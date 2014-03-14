@@ -19,6 +19,7 @@ from cogent.util.misc import remove_files
 from cogent import DNA
 
 from cogent.app.util import get_tmp_filename
+from tempfile import mkstemp
 
 from skbio.app.util import (CommandLineApplication, ResultPath,
                             ApplicationError, ApplicationNotFoundError)
@@ -348,9 +349,9 @@ def uclust_fasta_sort_from_filepath(
         tmp_dir=gettempdir(),
         HALT_EXEC=False):
     """Generates sorted fasta file via uclust --mergesort."""
-    output_filepath = output_filepath or \
-        get_tmp_filename(tmp_dir=tmp_dir, prefix='uclust_fasta_sort',
-                         suffix='.fasta')
+    if not output_filepath:
+        _, output_filepath = mkstemp(dir=tmp_dir, prefix='uclust_fasta_sort',
+                                     suffix='.fasta')
 
     app = Uclust(params={'--tmpdir': tmp_dir},
                  TmpDir=tmp_dir, HALT_EXEC=HALT_EXEC)

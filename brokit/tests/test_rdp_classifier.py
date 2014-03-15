@@ -7,7 +7,7 @@ from shutil import rmtree
 import tempfile
 from unittest import TestCase, main
 
-from bk_rdp.rdp_classifier import (RdpClassifier, RdpTrainer, assign_taxonomy,
+from brokit.rdp_classifier import (RdpClassifier, RdpTrainer, assign_taxonomy,
                                    train_rdp_classifier,
                                    train_rdp_classifier_and_assign_taxonomy,
                                    parse_rdp_assignment)

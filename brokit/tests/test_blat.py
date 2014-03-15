@@ -6,9 +6,9 @@ from os import remove
 from re import search
 from tempfile import mkstemp
 
-from bk_blat.blat import (Blat, assign_reads_to_database,
-                          assign_dna_reads_to_dna_database,
-                          assign_dna_reads_to_protein_database)
+from brokit.blat import (Blat, assign_reads_to_database,
+                         assign_dna_reads_to_dna_database,
+                         assign_dna_reads_to_protein_database)
 
 __author__ = "Adam Robbins-Pianka"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

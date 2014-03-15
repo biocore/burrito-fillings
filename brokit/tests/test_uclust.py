@@ -12,14 +12,14 @@ from unittest import TestCase, main
 
 from skbio.util.misc import remove_files
 
-from bk_uclust.uclust import (Uclust,
-                              uclust_fasta_sort_from_filepath,
-                              uclust_cluster_from_sorted_fasta_filepath,
-                              get_output_filepaths, clusters_from_uc_file,
-                              get_clusters_from_fasta_filepath,
-                              uclust_search_and_align_from_fasta_filepath,
-                              process_uclust_pw_alignment_results,
-                              UclustParseError)
+from brokit.uclust import (Uclust,
+                           uclust_fasta_sort_from_filepath,
+                           uclust_cluster_from_sorted_fasta_filepath,
+                           get_output_filepaths, clusters_from_uc_file,
+                           get_clusters_from_fasta_filepath,
+                           uclust_search_and_align_from_fasta_filepath,
+                           process_uclust_pw_alignment_results,
+                           UclustParseError)
 
 __author__ = "William Walters"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"

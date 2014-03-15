@@ -5,7 +5,7 @@ from os.path import exists
 from os import remove
 from tempfile import mkstemp
 
-from bk_bwa.bwa import (BWA_index, BWA_aln, BWA_samse, BWA_sampe, BWA_bwasw,
+from brokit.bwa import (BWA_index, BWA_aln, BWA_samse, BWA_sampe, BWA_bwasw,
                         create_bwa_index_from_fasta_file,
                         assign_reads_to_database,
                         InvalidArgumentApplicationError,

@@ -8,8 +8,8 @@ from os import remove, rmdir
 from tempfile import mkdtemp, mkstemp, NamedTemporaryFile
 from unittest import TestCase, main
 
-from bk_mothur.mothur import (Mothur, mothur_from_file, MothurClassifySeqs,
-                              mothur_classify_file)
+from brokit.mothur import (Mothur, mothur_from_file, MothurClassifySeqs,
+                           mothur_classify_file)
 
 
 __author__ = "Kyle Bittinger"

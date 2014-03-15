@@ -439,7 +439,8 @@ def uclust_cluster_from_sorted_fasta_filepath(
         tmp_dir=gettempdir(),
         HALT_EXEC=False):
     """ Returns clustered uclust file from sorted fasta"""
-    if not uc_save_filepath:
+    output_filepath = uc_save_filepath
+    if not output_filepath:
         _, output_filepath = mkstemp(dir=tmp_dir, prefix='uclust_clusters',
                                      suffix='.uc')
 

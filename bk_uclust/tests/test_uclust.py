@@ -6,9 +6,11 @@
 Modified from Daniel McDonald's test_cd_hit.py code on Feb-4-2010 """
 
 from subprocess import Popen, PIPE, STDOUT
-from cogent.util.misc import remove_files
-from cogent.util.unit_test import TestCase, main
-from cogent.app.util import get_tmp_filename
+from tempfile import mkstemp
+
+from unittest import TestCase, main
+
+from skbio.util.misc import remove_files
 
 from bk_uclust.uclust import (Uclust,
                               uclust_fasta_sort_from_filepath,
@@ -34,26 +36,25 @@ class UclustTests(TestCase):
 
     def setUp(self):
 
-        self.tmp_unsorted_fasta_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".fasta")
+        _, self.tmp_unsorted_fasta_filepath = mkstemp(prefix="uclust_test",
+                                                      suffix=".fasta")
         tmp_unsorted_fasta = open(self.tmp_unsorted_fasta_filepath, "w")
         tmp_unsorted_fasta.write('\n'.join(raw_dna_seqs))
         tmp_unsorted_fasta.close()
 
-        self.tmp_sorted_fasta_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".fasta")
+        _, self.tmp_sorted_fasta_filepath = mkstemp(prefix="uclust_test",
+                                                    suffix=".fasta")
         tmp_sorted_fasta = open(self.tmp_sorted_fasta_filepath, "w")
         tmp_sorted_fasta.write('\n'.join(sorted_dna_seqs))
         tmp_sorted_fasta.close()
 
-        self.tmp_uc_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".uc")
+        _, self.tmp_uc_filepath = mkstemp(prefix="uclust_test", suffix=".uc")
         tmp_uc = open(self.tmp_uc_filepath, "w")
         tmp_uc.write('\n'.join(uc_dna_clusters))
         tmp_uc.close()
 
-        self.tmp_clstr_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".clstr")
+        _, self.tmp_clstr_filepath = mkstemp(prefix="uclust_test",
+                                             suffix=".clstr")
 
         self.WorkingDir = '/tmp/uclust_test'
         self.tmpdir = '/tmp/'
@@ -138,54 +139,52 @@ class UclustConvenienceWrappers(TestCase):
 
     def setUp(self):
 
-        self.tmp_unsorted_fasta_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".fasta")
+        _, self.tmp_unsorted_fasta_filepath = mkstemp(prefix="uclust_test",
+                                                      suffix=".fasta")
         tmp_unsorted_fasta = open(self.tmp_unsorted_fasta_filepath, "w")
         tmp_unsorted_fasta.write('\n'.join(raw_dna_seqs))
         tmp_unsorted_fasta.close()
 
-        self.tmp_raw_dna_seqs_rc_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".fasta")
+        _, self.tmp_raw_dna_seqs_rc_filepath = mkstemp(prefix="uclust_test",
+                                                       suffix=".fasta")
         tmp_rc_fasta = open(self.tmp_raw_dna_seqs_rc_filepath, "w")
         tmp_rc_fasta.write('\n'.join(raw_dna_seqs_rc))
         tmp_rc_fasta.close()
 
-        self.tmp_sorted_fasta_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".fasta")
+        _, self.tmp_sorted_fasta_filepath = mkstemp(prefix="uclust_test",
+                                                    suffix=".fasta")
         tmp_sorted_fasta = open(self.tmp_sorted_fasta_filepath, "w")
         tmp_sorted_fasta.write('\n'.join(sorted_dna_seqs))
         tmp_sorted_fasta.close()
 
-        self.tmp_uc_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".uc")
+        _, self.tmp_uc_filepath = mkstemp(prefix="uclust_test", suffix=".uc")
         tmp_uc = open(self.tmp_uc_filepath, "w")
         tmp_uc.write('\n'.join(uc_dna_clusters))
         tmp_uc.close()
 
-        self.tmp_clstr_filepath = \
-            get_tmp_filename(prefix="uclust_test", suffix=".clstr")
+        _, self.tmp_clstr_filepath = mkstemp(prefix="uclust_test",
+                                             suffix=".clstr")
 
         self.search_align_out1_expected = search_align_out1_expected
         self.search_align_out_fasta_pairs1 = search_align_out_fasta_pairs1
         self.search_align_out_uc1 = search_align_out_uc1
-        self.search_align_query1_fp = \
-            get_tmp_filename(prefix="uclust_test", suffix=".clstr")
+        _, self.search_align_query1_fp = mkstemp(prefix="uclust_test",
+                                                 suffix=".clstr")
         open(self.search_align_query1_fp, 'w').write(search_align_query1)
-        self.search_align_template1_fp = \
-            get_tmp_filename(prefix="uclust_test", suffix=".clstr")
+        _, self.search_align_template1_fp = mkstemp(prefix="uclust_test",
+                                                    suffix=".clstr")
         open(self.search_align_template1_fp, 'w').write(search_align_template1)
 
         self.search_align_out2_expected = search_align_out2_expected
-        self.search_align_query2_fp = \
-            get_tmp_filename(prefix="uclust_test", suffix=".clstr")
+        _, self.search_align_query2_fp = mkstemp(prefix="uclust_test",
+                                                 suffix=".clstr")
         open(self.search_align_query2_fp, 'w').write(search_align_query2)
-        self.search_align_template2_fp = \
-            get_tmp_filename(prefix="uclust_test", suffix=".clstr")
+        _, self.search_align_template2_fp = mkstemp(prefix="uclust_test",
+                                                    suffix=".clstr")
         open(self.search_align_template2_fp, 'w').write(search_align_template2)
 
-        self.ref_dna_seqs_fp = get_tmp_filename(
-            prefix="uclust_test",
-            suffix=".fasta")
+        _, self.ref_dna_seqs_fp = mkstemp(prefix="uclust_test",
+                                          suffix=".fasta")
         open(self.ref_dna_seqs_fp, 'w').write(ref_dna_seqs)
 
         self.files_to_remove = [self.tmp_unsorted_fasta_filepath,

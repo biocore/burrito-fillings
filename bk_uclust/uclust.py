@@ -11,18 +11,15 @@ Modified from cogent.app.cd_hit.py on 1-21-10, written by Daniel McDonald.
 """
 
 from os.path import splitext, basename, join
-from tempfile import gettempdir
+from tempfile import gettempdir, mkstemp
 
-from cogent.parse.fasta import MinimalFastaParser
-from cogent.app.parameters import ValuedParameter, FlagParameter
-from cogent.util.misc import remove_files
 from cogent import DNA
-
-from cogent.app.util import get_tmp_filename
-from tempfile import mkstemp
 
 from skbio.app.util import (CommandLineApplication, ResultPath,
                             ApplicationError, ApplicationNotFoundError)
+from skbio.app.parameters import ValuedParameter, FlagParameter
+from skbio.parse.fasta import MinimalFastaParser
+from skbio.util.misc import remove_files
 
 
 class UclustParseError(Exception):
@@ -401,12 +398,10 @@ def uclust_search_and_align_from_fasta_filepath(
                  TmpDir=tmp_dir, HALT_EXEC=HALT_EXEC)
 
     # apply uclust
-    alignment_filepath = \
-        get_tmp_filename(tmp_dir=tmp_dir, prefix='uclust_alignments',
-                         suffix='.fasta')
-    uc_filepath = \
-        get_tmp_filename(tmp_dir=tmp_dir, prefix='uclust_results',
-                         suffix='.uc')
+    _, alignment_filepath = mkstemp(dir=tmp_dir, prefix='uclust_alignments',
+                                    suffix='.fasta')
+    _, uc_filepath = mkstemp(dir=tmp_dir, prefix='uclust_results',
+                             suffix='.uc')
     input_data = {'--input': query_fasta_filepath,
                   '--fastapairs': alignment_filepath,
                   '--uc': uc_filepath}
@@ -444,9 +439,9 @@ def uclust_cluster_from_sorted_fasta_filepath(
         tmp_dir=gettempdir(),
         HALT_EXEC=False):
     """ Returns clustered uclust file from sorted fasta"""
-    output_filepath = uc_save_filepath or \
-        get_tmp_filename(tmp_dir=tmp_dir, prefix='uclust_clusters',
-                         suffix='.uc')
+    if not uc_save_filepath:
+        _, output_filepath = mkstemp(dir=tmp_dir, prefix='uclust_clusters',
+                                     suffix='.uc')
 
     params = {'--id': percent_ID,
               '--maxaccepts': max_accepts,

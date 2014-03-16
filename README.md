@@ -1,7 +1,7 @@
 brokit
 ======
 
-The Biological Research (application) Obsolescence Kit (brokit - canonically pronounced 'brah-kit') package contains the application controllers for command line bioinformatics applications.
+The Biological Research (application controller) Obsolescence Kit (brokit - canonically pronounced 'brah-kit') package contains the application controllers for command line bioinformatics applications.
 
 **Note:** brokit is currently under active development and its API is not stable. Major compatibility-breaking API changes will likely happen as development progresses.
 

@@ -13,9 +13,9 @@ from unittest import TestCase, main
 from skbio.util.misc import remove_files
 
 from cogent import LoadSeqs
-from cogent.app.blast import blastn
 from cogent.app.util import get_tmp_filename
 
+from brokit.blast import blastn
 from brokit.formatdb import (FormatDb, build_blast_db_from_seqs,
                              build_blast_db_from_fasta_path,
                              build_blast_db_from_fasta_file)

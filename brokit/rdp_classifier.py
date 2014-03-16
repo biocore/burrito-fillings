@@ -12,7 +12,7 @@ import tempfile
 import warnings
 
 from skbio.app.parameters import ValuedParameter
-from skbio.parse.fasta import MinimalFastaParser
+from skbio.parse.sequences import fasta_parse
 from skbio.app.util import (CommandLineApplication, FilePath, ResultPath,
                             ApplicationNotFoundError, ApplicationError)
 
@@ -383,7 +383,7 @@ def assign_taxonomy(
     # RDP classifier doesn't preserve identifiers with spaces
     # Use lookup table
     seq_id_lookup = {}
-    for seq_id, seq in MinimalFastaParser(data):
+    for seq_id, seq in fasta_parse(data):
         seq_id_lookup[seq_id.split()[0]] = seq_id
 
     app_kwargs = {}

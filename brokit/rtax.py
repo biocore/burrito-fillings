@@ -14,7 +14,7 @@ import re
 from sys import stderr
 from shutil import rmtree
 
-from skbio.parse.fasta import MinimalFastaParser
+from skbio.parse.sequences import fasta_parse
 from skbio.app.parameters import ValuedParameter, FlagParameter
 from skbio.app.util import (CommandLineApplication, ResultPath,
                             get_tmp_filename, ApplicationError,
@@ -174,7 +174,7 @@ def assign_taxonomy(dataPath, reference_sequences_fp, id_to_taxonomy_fp, read_1_
         read_1_id_to_orig_id = {}
         readIdExtractor = re.compile(read_id_regex)  # OTU clustering produces ">clusterID read_1_id"
         data = open(dataPath,'r')
-        for seq_id, seq in MinimalFastaParser(data):
+        for seq_id, seq in fasta_parse(data):
             # apply the regex
             extract = readIdExtractor.match(seq_id)
             if extract is None:
@@ -197,7 +197,7 @@ def assign_taxonomy(dataPath, reference_sequences_fp, id_to_taxonomy_fp, read_1_
         amplicon_to_read_1_id = {}
         ampliconIdExtractor = re.compile(amplicon_id_regex)  # split_libraries produces >read_1_id ampliconID/1 ...  // see also assign_taxonomy 631
         read_1_data = open(read_1_seqs_fp,'r')
-        for seq_id, seq in MinimalFastaParser(read_1_data):
+        for seq_id, seq in fasta_parse(read_1_data):
             # apply the regex
             extract = ampliconIdExtractor.match(seq_id)
             if extract is None:

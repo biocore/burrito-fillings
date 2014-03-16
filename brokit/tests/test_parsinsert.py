@@ -11,7 +11,7 @@ from cogent.core.alignment import Alignment
 from cogent.parse.tree import DndParser
 from cogent.core.moltype import DNA
 
-from skbio.parse.fasta import MinimalFastaParser
+from skbio.parse.sequences import fasta_parse
 from skbio.app.util import get_tmp_filename
 
 from brokit.parsinsert import ParsInsert, insert_sequences_into_tree
@@ -25,7 +25,7 @@ class ParsInsertTests(TestCase):
         self._dirs_to_clean_up = []
         
         # load query seqs
-        self.seqs = Alignment(MinimalFastaParser(QUERY_SEQS.split()))
+        self.seqs = Alignment(fasta_parse(QUERY_SEQS.split()))
         
         # generate temp filename
         tmp_dir='/tmp'

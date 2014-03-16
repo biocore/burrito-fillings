@@ -18,7 +18,7 @@ from cogent import DNA
 from skbio.app.util import (CommandLineApplication, ResultPath,
                             ApplicationError, ApplicationNotFoundError)
 from skbio.app.parameters import ValuedParameter, FlagParameter
-from skbio.parse.fasta import MinimalFastaParser
+from skbio.parse.sequences import fasta_parse
 from skbio.util.misc import remove_files
 
 
@@ -193,7 +193,7 @@ def get_next_record_type(lines, types):
 
 def get_next_two_fasta_records(lines):
     result = []
-    for record in MinimalFastaParser(lines):
+    for record in fasta_parse(lines):
         result.append(record)
         if len(result) == 2:
             yield result

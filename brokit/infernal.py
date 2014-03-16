@@ -8,7 +8,6 @@ from tempfile import mkstemp
 
 from skbio.app.parameters import FlagParameter, ValuedParameter, FilePath
 from skbio.app.util import CommandLineApplication, ResultPath
-from skbio.parse.fasta import MinimalFastaParser
 
 from cogent.core.alignment import SequenceCollection, Alignment, DataError
 from cogent.parse.rfam import (MinimalRfamParser, ChangedSequence,

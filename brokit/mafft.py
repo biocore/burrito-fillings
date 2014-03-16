@@ -8,7 +8,7 @@ from os import remove
 
 from skbio.app.parameters import FlagParameter, ValuedParameter, FilePath
 from skbio.app.util import CommandLineApplication, ResultPath, get_tmp_filename
-from skbio.parse.fasta import MinimalFastaParser
+from skbio.parse.sequences import fasta_parse
 
 from cogent.core.moltype import DNA, RNA, PROTEIN
 from cogent.core.alignment import SequenceCollection, Alignment
@@ -273,7 +273,7 @@ def align_unaligned_seqs(seqs,moltype,params=None,accurate=False):
     #Get results using int_map as input to app
     res = app(int_map.toFasta())
     #Get alignment as dict out of results
-    alignment = dict(MinimalFastaParser(res['StdOut'].readlines()))
+    alignment = dict(fasta_parse(res['StdOut'].readlines()))
     #Make new dict mapping original IDs
     new_alignment = {}
     for k,v in alignment.items():
@@ -383,7 +383,7 @@ def add_seqs_to_alignment(seqs, aln, moltype, params=None, accurate=False):
     #Get results using int_map as input to app
     res = app(seq_int_map.toFasta())
     #Get alignment as dict out of results
-    alignment = dict(MinimalFastaParser(res['StdOut'].readlines()))
+    alignment = dict(fasta_parse(res['StdOut'].readlines()))
     
     #Make new dict mapping original IDs
     new_alignment = {}
@@ -441,7 +441,7 @@ def align_two_alignments(aln1, aln2, moltype, params=None):
     res = app(filepaths)
 
     #Get alignment as dict out of results
-    alignment = dict(MinimalFastaParser(res['StdOut'].readlines()))
+    alignment = dict(fasta_parse(res['StdOut'].readlines()))
     
     #Make new dict mapping original IDs
     new_alignment = {}

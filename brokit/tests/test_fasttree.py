@@ -10,14 +10,14 @@ from cogent.core.alignment import Alignment
 from cogent.parse.tree import DndParser
 from cogent.core.moltype import DNA
 
-from skbio.parse.fasta import MinimalFastaParser
+from skbio.parse.sequences import fasta_parse
 
 from brokit.fasttree import FastTree, build_tree_from_alignment
 
 
 class FastTreeTests(TestCase):
     def setUp(self):
-        self.seqs = Alignment(dict(MinimalFastaParser(test_seqs.split())))
+        self.seqs = Alignment(dict(fasta_parse(test_seqs.split())))
     
     def test_base_command(self):
         app = FastTree()

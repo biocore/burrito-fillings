@@ -4,9 +4,10 @@ Provides an application controller for the commandline version of:
 Infernal 1.0 and 1.0.2 only.
 """
 from os import remove
+from tempfile import mkstemp
 
 from skbio.app.parameters import FlagParameter, ValuedParameter, FilePath
-from skbio.app.util import CommandLineApplication, ResultPath, get_tmp_filename
+from skbio.app.util import CommandLineApplication, ResultPath
 from skbio.parse.fasta import MinimalFastaParser
 
 from cogent.core.alignment import SequenceCollection, Alignment, DataError
@@ -1253,7 +1254,8 @@ def cmbuild_from_alignment(aln, structure_string, refine=False, \
     
     #turn on refine flag if True.
     if refine:
-        app.Parameters['--refine'].on(get_tmp_filename(app.WorkingDir))
+        _, tmp_file = mkstemp(dir=app.WorkingDir)
+        app.Parameters['--refine'].on(tmp_file)
         
     #Get alignment in Stockholm format
     aln_file_string = stockholm_from_alignment(aln,GC_annotation=struct_dict)
@@ -1363,7 +1365,8 @@ def cmalign_from_alignment(aln, structure_string, seqs, moltype,\
     to_remove.append(cm_path)
     paths = [cm_path,seqs_path]
 
-    app.Parameters['-o'].on(get_tmp_filename(app.WorkingDir))
+    _, tmp_file = mkstemp(dir=app.WorkingDir)
+    app.Parameters['-o'].on(tmp_file)
     
     res = app(paths)
     
@@ -1436,7 +1439,8 @@ def cmalign_from_file(cm_file_path, seqs, moltype, alignment_file_path=None,\
     seqs_path = app._input_as_multiline_string(int_map.toFasta())
     paths = [cm_file_path,seqs_path]
     
-    app.Parameters['-o'].on(get_tmp_filename(app.WorkingDir))
+    _, tmp_file = mkstemp(dir=app.WorkingDir)
+    app.Parameters['-o'].on(tmp_file)
     res = app(paths)
     
     info, aligned, struct_string = \
@@ -1499,7 +1503,8 @@ def cmsearch_from_alignment(aln, structure_string, seqs, moltype, cutoff=0.0,\
     paths = [cm_path,seqs_path]
     to_remove.append(cm_path)
     
-    app.Parameters['--tabfile'].on(get_tmp_filename(app.WorkingDir))
+    _, tmp_file = mkstemp(dir=app.WorkingDir)
+    app.Parameters['--tabfile'].on(tmp_file)
     res = app(paths)
     
     search_results = list(CmsearchParser(res['SearchResults'].readlines()))
@@ -1543,7 +1548,8 @@ def cmsearch_from_file(cm_file_path, seqs, moltype, cutoff=0.0, params=None):
 
     paths = [cm_file_path,seqs_path]
     
-    app.Parameters['--tabfile'].on(get_tmp_filename(app.WorkingDir))
+    _, tmp_file = mkstemp(dir=app.WorkingDir)
+    app.Parameters['--tabfile'].on(tmp_file)
     res = app(paths)
     
     search_results = list(CmsearchParser(res['SearchResults'].readlines()))

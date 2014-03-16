@@ -250,7 +250,7 @@ def cdhit_clusters_from_seqs(seqs, moltype, params=None):
 
     # grab result
     res = app(int_map.toFasta())
-    clusters = parse_cdhit_clstr_file(res['CLSTR'].readlines())
+    clusters = parse_cdhit_clstr_file(res['CLSTR'])
 
     remapped_clusters = []
     for c in clusters:
@@ -297,7 +297,7 @@ def cdhit_from_seqs(seqs, moltype, params=None):
 
     # grab result
     res = app(seqs.toFasta())
-    new_seqs = dict(fasta_parse(res['FASTA'].readlines()))
+    new_seqs = dict(fasta_parse(res['FASTA']))
 
     # perform cleanup
     res.cleanUp()

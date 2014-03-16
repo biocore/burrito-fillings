@@ -545,7 +545,7 @@ def align_unaligned_seqs(seqs, moltype, params=None):
     #Get results using int_map as input to app
     res = app(int_map.toFasta())
     #Get alignment as dict out of results
-    alignment = dict(fasta_parse(res['MuscleOut'].readlines()))
+    alignment = dict(fasta_parse(res['MuscleOut']))
     #Make new dict mapping original IDs
     new_alignment = {}
     for k,v in alignment.items():
@@ -674,7 +674,7 @@ def add_seqs_to_alignment(seqs, aln, params=None):
     res = app((aln_filename, seqs_filename))
 
     #Get alignment as dict out of results
-    alignment = dict(fasta_parse(res['MuscleOut'].readlines()))
+    alignment = dict(fasta_parse(res['MuscleOut']))
     #Make new dict mapping original IDs
     new_alignment = {}
     for k,v in alignment.items():
@@ -741,7 +741,7 @@ def align_two_alignments(aln1, aln2, params=None):
     res = app((aln1_filename, aln2_filename))
 
     #Get alignment as dict out of results
-    alignment = dict(fasta_parse(res['MuscleOut'].readlines()))
+    alignment = dict(fasta_parse(res['MuscleOut']))
 
     #Make new dict mapping original IDs
     new_alignment = {}

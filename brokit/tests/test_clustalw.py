@@ -7,6 +7,7 @@ from cogent.core.alignment import Alignment
 from cogent.core.moltype import RNA
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
+from skbio.parse.sequences import parse_fasta
 from brokit.clustalw import (Clustalw, alignUnalignedSeqsFromFile,
                              alignUnalignedSeqs, alignTwoAlignments,
                              addSeqsToAlignment, buildTreeFromAlignment,
@@ -14,7 +15,6 @@ from brokit.clustalw import (Clustalw, alignUnalignedSeqsFromFile,
                              bootstrap_tree_from_alignment,
                              align_unaligned_seqs, align_and_build_tree,
                              add_seqs_to_alignment, align_two_alignments)
-from cogent.parse.fasta import MinimalFastaParser
 
 
 cw_vers = re.compile("CLUSTAL W [(]1\.8[1-3][.\d]*[)]")
@@ -465,15 +465,15 @@ class clustalwTests(GeneralSetUp):
     
     def test_add_seqs_to_alignment(self):
         """Clustalw add_seqs_to_alignment should work as expected."""
-        seq2 = dict(MinimalFastaParser(self.lines2))
-        align1 = dict(MinimalFastaParser(ALIGN1_FASTA.split('\n')))
+        seq2 = dict(parse_fasta(self.lines2))
+        align1 = dict(parse_fasta(ALIGN1_FASTA.split('\n')))
         res = add_seqs_to_alignment(seq2,align1,RNA)
         self.assertEqual(res.toFasta(), SEQ_PROFILE_ALIGN)
     
     def test_align_two_alignments(self):
         """Clustalw align_two_alignments should work as expected."""
-        align1 = dict(MinimalFastaParser(ALIGN1_FASTA.split('\n')))
-        align2 = dict(MinimalFastaParser(ALIGN2_FASTA.split('\n')))
+        align1 = dict(parse_fasta(ALIGN1_FASTA.split('\n')))
+        align2 = dict(parse_fasta(ALIGN2_FASTA.split('\n')))
         res = align_two_alignments(align1,align2,RNA)
         self.assertEqual(res.toFasta(), PROFILE_PROFILE_ALIGN)
     

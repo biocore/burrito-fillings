@@ -9,7 +9,7 @@ from tempfile import mkstemp
 from cogent import DNA
 from cogent.core.genetic_code import GeneticCodes
 
-from skbio.parse.sequences import fasta_parse
+from skbio.parse.sequences import parse_fasta
 from skbio.app.util import (CommandLineApplication, ResultPath,
                             ApplicationError)
 from skbio.app.parameters import FlagParameter, ValuedParameter, FilePath
@@ -391,7 +391,7 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
     _, tmp = mkstemp(dir=temp_dir)
     tmp_out = open(tmp, 'w')
 
-    for label, sequence in fasta_parse(open(query_fasta_fp)):
+    for label, sequence in parse_fasta(open(query_fasta_fp)):
         seq_id = label.split()[0]
 
         s = DNA.makeSequence(sequence)

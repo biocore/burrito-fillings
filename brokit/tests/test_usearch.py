@@ -12,7 +12,7 @@ from unittest import TestCase, main
 from tempfile import mkstemp, mkdtemp
 
 from skbio.util.misc import remove_files
-from skbio.parse.sequences import fasta_parse
+from skbio.parse.sequences import parse_fasta
 
 from brokit.usearch import (clusters_from_blast_uc_file,
                             usearch_fasta_sort_from_filepath,
@@ -322,7 +322,7 @@ class Usearch61Tests(TestCase):
                                         output_uc_filepath=sorted_uc_fp, log_name="abundance_sorted.log")
 
         output_fna = [
-            line for line in fasta_parse(open(output_fna_filepath, "U"))]
+            line for line in parse_fasta(open(output_fna_filepath, "U"))]
 
         expected_fna = [('seq2;size=3;',
                          'TTGGGCCGTGTCTCAGTCCCAATGTGGCCGTCACCCTCTCAGGCCGGCTACTGATCGTCGCCTTGGTGGGCCTTTACCCC'),
@@ -347,7 +347,7 @@ class Usearch61Tests(TestCase):
                                      output_fna_filepath=sorted_fna_fp)
 
         output_fna = [
-            line for line in fasta_parse(open(output_fna_filepath, "U"))]
+            line for line in parse_fasta(open(output_fna_filepath, "U"))]
 
         expected_fna = [('ref1',
                          'CGCGTGTATGAAGAAGGCCTTCGGGTTGTAAAGTACTTTCAGCGGGGAGGAGGGAGTAAAGTTAATACCTTTGCTCATTGACGTTACCCGCAGAAGAAGCACCGGCTAACTCCGTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCA'),
@@ -490,7 +490,7 @@ class Usearch61Tests(TestCase):
         self._files_to_remove.append(output_fp)
 
         output_fna = [
-            line for line in fasta_parse(open(output_fp, "U"))]
+            line for line in parse_fasta(open(output_fp, "U"))]
 
         expected_fna = [(
             'seq2',

@@ -6,7 +6,7 @@ from random import randint
 from StringIO import StringIO
 from unittest import TestCase, main
 
-from skbio.parse.sequences import fasta_parse
+from skbio.parse.sequences import parse_fasta
 from skbio.app.util import ApplicationError, get_tmp_filename
 
 from cogent.util.misc import flatten
@@ -108,7 +108,7 @@ class pplacerTests(Genericpplacer):
         params["-s"] = self.stats_fname
         params["--out-dir"] = "/tmp"
         
-        aln_ref_query=fasta_parse(StringIO(QUERY_SEQS))
+        aln_ref_query=parse_fasta(StringIO(QUERY_SEQS))
         aln = Alignment(aln_ref_query)
         seqs, align_map = aln.toPhylip()
         tree = insert_sequences_into_tree(seqs, DNA, params=params,

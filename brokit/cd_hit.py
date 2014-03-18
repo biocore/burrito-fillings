@@ -5,7 +5,7 @@ import shutil
 from os import remove
 from tempfile import mkstemp, mkdtemp
 
-from skbio.parse.sequences import fasta_parse
+from skbio.parse.sequences import parse_fasta
 from skbio.app.parameters import ValuedParameter
 from skbio.app.util import CommandLineApplication, ResultPath
 
@@ -297,7 +297,7 @@ def cdhit_from_seqs(seqs, moltype, params=None):
 
     # grab result
     res = app(seqs.toFasta())
-    new_seqs = dict(fasta_parse(res['FASTA']))
+    new_seqs = dict(parse_fasta(res['FASTA']))
 
     # perform cleanup
     res.cleanUp()

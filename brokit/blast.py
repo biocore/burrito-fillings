@@ -10,8 +10,8 @@ from skbio.app.parameters import FlagParameter, ValuedParameter, MixedParameter
 from skbio.app.util import (CommandLineApplication, ResultPath,
                             get_tmp_filename, guess_input_handler,
                             ApplicationNotFoundError)
-from skbio.parse.sequences import (FastaFinder, LabeledRecordFinder,
-                                   is_fasta_label)
+from skbio.parse.sequences.fasta import FastaFinder, is_fasta_label
+from skbio.parse.record_finder import LabeledRecordFinder
 
 from cogent.parse.blast import (LastProteinIds9, QMEBlast9, QMEPsiBlast9,
                                 BlastResult)

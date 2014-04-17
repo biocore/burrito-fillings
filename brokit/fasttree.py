@@ -50,10 +50,10 @@ class FastTree(CommandLineApplication):
 
     def __call__(self,data=None, remove_tmp=True):
         """Run the application with the specified kwargs on data
-        
+
             data: anything that can be cast into a string or written out to
-                a file. Usually either a list of things or a single string or 
-                number. input_handler will be called on this data before it 
+                a file. Usually either a list of things or a single string or
+                number. input_handler will be called on this data before it
                 is passed as part of the command-line argument, so by creating
                 your own input handlers you can customize what kind of data
                 you want your application to accept
@@ -84,13 +84,13 @@ class FastTree(CommandLineApplication):
                 str(errfile)]))
         if self.HaltExec:
             raise AssertionError, "Halted exec with command:\n" + command
-        # The return value of system is a 16-bit number containing the signal 
-        # number that killed the process, and then the exit status. 
-        # We only want to keep the exit status so do a right bitwise shift to 
+        # The return value of system is a 16-bit number containing the signal
+        # number that killed the process, and then the exit status.
+        # We only want to keep the exit status so do a right bitwise shift to
         # get rid of the signal number byte
         exit_status = system(command) >> 8
 
-        # Determine if error should be raised due to exit status of 
+        # Determine if error should be raised due to exit status of
         # appliciation
         if not self._accept_exit_status(exit_status):
             raise ApplicationError, \
@@ -119,9 +119,9 @@ class FastTree(CommandLineApplication):
         result['Tree'] = ResultPath(Path=self._outfile)
         return result
 
-def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
+def build_tree_from_alignment(aln, moltype=DNA, best_tree=False, params=None):
     """Returns a tree from alignment
-    
+
     Will check MolType of aln object
     """
     if params is None:
@@ -144,7 +144,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     int_map = SequenceCollection(int_map,MolType=moltype)
 
     app = FastTree(params=params)
-    
+
     result = app(int_map.toFasta())
     tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
     #remap tip names
@@ -152,4 +152,3 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
         tip.Name = int_keys[tip.Name]
 
     return tree
-    

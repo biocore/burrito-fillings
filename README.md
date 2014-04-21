@@ -1,7 +1,7 @@
 brokit
 ======
 
-The Biological Research (application controller) Obsolescence Kit (brokit - canonically pronounced 'brah-kit') package contains [scikit-bio](http://scikit-bio.org) application controllers for command line bioinformatics applications.
+The Biological Research (application controller) Obsolescence Kit (brokit - canonically pronounced 'brah-kit') package contains [scikit-bio](http://scikit-bio.org) [CommandLineApplication](https://github.com/biocore/scikit-bio/blob/master/skbio/app/util.py#L161) subclasses (i.e., *application controllers*) for bioinformatics applications. This is intended to be a temporary package for the application controllers that are used in QIIME as we figure out which of these we will continue to support.
 
 **Note:** brokit is currently under active development and its API is not stable. Major compatibility-breaking API changes will likely happen as development progresses.
 

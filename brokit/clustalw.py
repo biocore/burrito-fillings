@@ -15,19 +15,19 @@ from cogent.core.moltype import RNA, DNA, PROTEIN
 
 
 class Clustalw(CommandLineApplication):
-    """ clustalw application controller 
-   
-    The parameters are organized by function to give some idea of how the 
-    program works. However, no restrictions are put on any combinations 
+    """ clustalw application controller
+
+    The parameters are organized by function to give some idea of how the
+    program works. However, no restrictions are put on any combinations
     of parameters. Misuse of parameters can lead to errors or otherwise
     strange results.
 
-    You are supposed to choose one action for the program to perform. (align, 
+    You are supposed to choose one action for the program to perform. (align,
     profile, sequences, tree, or bootstrap). If you choose multiple, only the
     dominant action (see order above) will be executed. By DEFAULT, the -align
-    parameter is turned on. If you decide to turn another one on, you should 
+    parameter is turned on. If you decide to turn another one on, you should
     turn '-align' off IN ADDITION!
-    
+
     Some references to help pages are available in the 'getHelp' method.
     Some might be useful to you.
     """
@@ -41,7 +41,7 @@ class Clustalw(CommandLineApplication):
     #sequence file for alignment, or alignment file for bootstrap and tree
     #actions
     _input = {'-infile':ValuedParameter('-','infile',Delimiter='=',IsPath=True)}
-   
+
     # matrix and dnamatrix can be filenames as well, but not always.
     # They won't be treated as filenames and thus not quoted.
     # Therefore filepaths containing spaces might result in errors.
@@ -69,7 +69,7 @@ class Clustalw(CommandLineApplication):
         '-window':ValuedParameter('-',Name='window',Delimiter='='),
         '-pairgap':ValuedParameter('-',Name='pairgap',Delimiter='='),
         '-score':ValuedParameter('-',Name='score',Delimiter='=')}
-        
+
     # pwmatrix and pwdnamatrix can be filenames as well, but not always.
     # They won't be treated as filenames and thus not quoted.
     # Therefore filepaths containing spaces might result in errors.
@@ -102,7 +102,7 @@ class Clustalw(CommandLineApplication):
         '-usetree2':ValuedParameter('-','usetree2',Delimiter='=',IsPath=True),
         '-newtree1':ValuedParameter('-','newtree1',Delimiter='=',IsPath=True),
         '-newtree2':ValuedParameter('-','newtree2',Delimiter='=',IsPath=True)}
-    
+
     _structure_alignment={\
         '-nosecstr1':FlagParameter('-',Name='nosecstr1'),
         '-nosecstr2':FlagParameter('-',Name='nosecstr2'),
@@ -115,7 +115,7 @@ class Clustalw(CommandLineApplication):
         '-strandendin':ValuedParameter('-',Name='strandendin',Delimiter='='),
         '-strandendout':ValuedParameter('-',Name='strandendout',Delimiter='='),
         '-secstrout':ValuedParameter('-',Name='secstrout',Delimiter='=')}
-    
+
         #NOT SUPPORTED
         #'-help':FlagParameter('-','help'),
         #'-check':FlagParameter('-','check'),
@@ -136,9 +136,9 @@ class Clustalw(CommandLineApplication):
     _parameters.update(_output)
     _parameters.update(_profile_alignment)
     _parameters.update(_structure_alignment)
- 
+
     _command = 'clustalw'
-   
+
     def getHelp(self):
         """Methods that points to the documentation"""
         help_str =\
@@ -148,12 +148,12 @@ class Clustalw(CommandLineApplication):
             clustalw_help_1.8.html
         http://hypernig.nig.ac.jp/homology/clustalw-e_help.html
         http://www.genebee.msu.su/clustal/help.html
-        
+
         A page that give reasonable insight in use of the parameters:
         http://bioweb.pasteur.fr/seqanal/interfaces/clustalw.html
         """
         return help_str
-   
+
     def _input_as_multiline_string(self, data):
         """Writes data to tempfile and sets -infile parameter
 
@@ -190,7 +190,7 @@ class Clustalw(CommandLineApplication):
 
     def _input_as_string(self,data):
         """Makes data the value of a specific parameter
-    
+
         This method returns the empty string. The parameter will be printed
         automatically once set.
         """
@@ -210,10 +210,10 @@ class Clustalw(CommandLineApplication):
             return _output_formats[self.Parameters['-output'].Value]
         else:
             return '.aln'
-    
+
     def _aln_filename(self,prefix):
         """Return name of file containing the alignment
-        
+
         prefix -- str, prefix of alignment file.
         """
         if self.Parameters['-outfile'].isOn():
@@ -221,13 +221,13 @@ class Clustalw(CommandLineApplication):
         else:
             aln_filename = prefix + self._suffix()
         return aln_filename
-    
+
     def _tempfile_as_multiline_string(self, data):
         """Write a multiline string to a temp file and return the filename.
 
             data: a multiline string to be written to a file.
 
-           * Note: the result will be the filename as a FilePath object 
+           * Note: the result will be the filename as a FilePath object
             (which is a string subclass).
 
         """
@@ -240,7 +240,7 @@ class Clustalw(CommandLineApplication):
     def _get_result_paths(self,data):
         """Return dict of {key: ResultPath}
         """
-        
+
         #clustalw .aln is used when no or unkown output type specified
         _treeinfo_formats = {'nj':'.nj',
                             'dist':'.dst',
@@ -249,7 +249,7 @@ class Clustalw(CommandLineApplication):
         result = {}
         par = self.Parameters
         abs = self._absolute
-        
+
         if par['-align'].isOn():
             prefix = par['-infile'].Value.rsplit('.', 1)[0]
             #prefix = par['-infile'].Value.split('.')[0]
@@ -300,7 +300,7 @@ class Clustalw(CommandLineApplication):
             #prefix2 = par['-profile2'].Value.split('.')[0] #sequences
             aln_filename = ''; aln_written = True
             dnd_filename = ''; dnd_written = True
-            
+
             aln_filename = self._aln_filename(prefix2)
             if par['-usetree'].isOn():
                 dnd_written = False
@@ -308,7 +308,7 @@ class Clustalw(CommandLineApplication):
                 aln_written = False
                 dnd_filename = abs(par['-newtree'].Value)
             else:
-                dnd_filename = prefix2 + '.dnd'  
+                dnd_filename = prefix2 + '.dnd'
             result['Align'] = ResultPath(Path=aln_filename,\
                 IsWritten=aln_written)
             result['Dendro'] = ResultPath(Path=dnd_filename,\
@@ -328,16 +328,16 @@ class Clustalw(CommandLineApplication):
                 IsWritten=tree_written)
             result['TreeInfo'] = ResultPath(Path=treeinfo_filename,\
                 IsWritten=treeinfo_written)
-            
+
         elif par['-bootstrap'].isOn():
             prefix = par['-infile'].Value.rsplit('.', 1)[0]
-            #prefix = par['-infile'].Value.split('.')[0]   
+            #prefix = par['-infile'].Value.split('.')[0]
             boottree_filename = prefix + '.phb'
             result['Tree'] = ResultPath(Path=boottree_filename,IsWritten=True)
-        
+
         return result
 
-        
+
 #SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS
 def alignUnalignedSeqs(seqs,add_seq_names=True,WorkingDir=None,\
     SuppressStderr=None,SuppressStdout=None):
@@ -372,13 +372,13 @@ def alignUnalignedSeqsFromFile(filename,WorkingDir=None,SuppressStderr=None,\
 def alignTwoAlignments(aln1,aln2,outfile,WorkingDir=None,SuppressStderr=None,\
     SuppressStdout=None):
     """Aligns two alignments. Individual sequences are not realigned
-    
+
     aln1: string, name of file containing the first alignment
     aln2: string, name of file containing the second alignment
-    outfile: you're forced to specify an outfile name, because if you don't 
-        aln1 will be overwritten. So, if you want aln1 to be overwritten, you 
+    outfile: you're forced to specify an outfile name, because if you don't
+        aln1 will be overwritten. So, if you want aln1 to be overwritten, you
         should specify the same filename.
-    WARNING: a .dnd file is created with the same prefix as aln1. So an 
+    WARNING: a .dnd file is created with the same prefix as aln1. So an
     existing dendrogram might get overwritten.
     """
     app = Clustalw({'-profile':None,'-profile1':aln1,\
@@ -390,7 +390,7 @@ def alignTwoAlignments(aln1,aln2,outfile,WorkingDir=None,SuppressStderr=None,\
 def addSeqsToAlignment(aln1,seqs,outfile,WorkingDir=None,SuppressStderr=None,\
         SuppressStdout=None):
     """Aligns sequences from second profile against first profile
-    
+
     aln1: string, name of file containing the alignment
     seqs: string, name of file containing the sequences that should be added
         to the alignment.
@@ -399,13 +399,13 @@ def addSeqsToAlignment(aln1,seqs,outfile,WorkingDir=None,SuppressStderr=None,\
     app = Clustalw({'-sequences':None,'-profile1':aln1,\
         '-profile2':seqs,'-outfile':outfile},SuppressStderr=\
         SuppressStderr,WorkingDir=WorkingDir, SuppressStdout=SuppressStdout)
-        
+
     app.Parameters['-align'].off()
     return app()
 
 def buildTreeFromAlignment(filename,WorkingDir=None,SuppressStderr=None):
     """Builds a new tree from an existing alignment
-    
+
     filename: string, name of file containing the seqs or alignment
     """
     app = Clustalw({'-tree':None,'-infile':filename},SuppressStderr=\
@@ -415,10 +415,10 @@ def buildTreeFromAlignment(filename,WorkingDir=None,SuppressStderr=None):
 
 def align_and_build_tree(seqs, moltype, best_tree=False, params=None):
     """Returns an alignment and a tree from Sequences object seqs.
-    
+
     seqs: an cogent.core.alignment.SequenceCollection object, or data that can
     be used to build one.
-    
+
     moltype: cogent.core.moltype.MolType object
 
     best_tree: if True (default:False), uses a slower but more accurate
@@ -433,8 +433,8 @@ def align_and_build_tree(seqs, moltype, best_tree=False, params=None):
     aln = align_unaligned_seqs(seqs, moltype=moltype, params=params)
     tree = build_tree_from_alignment(aln, moltype, best_tree, params)
     return {'Align':aln,'Tree':tree}
-    
-def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
+
+def build_tree_from_alignment(aln, moltype=DNA, best_tree=False, params=None):
     """Returns a tree from Alignment object aln.
 
     aln: an cogent.core.alignment.Alignment object, or data that can be used
@@ -454,7 +454,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     app = Clustalw(InputHandler='_input_as_multiline_string', params=params, \
                    WorkingDir='/tmp')
     app.Parameters['-align'].off()
-    
+
     #Set params to empty dict if None.
     if params is None:
         params={}
@@ -481,7 +481,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     seq_collection = SequenceCollection(aln)
     int_map, int_keys = seq_collection.getIntMap()
     int_map = SequenceCollection(int_map)
-    
+
     # Collect result
     result = app(int_map.toFasta())
 
@@ -495,7 +495,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params=None):
     del(seq_collection, app, result, int_map, int_keys)
 
     return tree
-    
+
 def bootstrap_tree_from_alignment(aln, seed=None, num_trees=None, params=None):
     """Returns a tree from Alignment object aln with bootstrap support values.
 
@@ -503,7 +503,7 @@ def bootstrap_tree_from_alignment(aln, seed=None, num_trees=None, params=None):
     to build one.
 
     seed: an interger, seed value to use
-    
+
     num_trees: an integer, number of trees to bootstrap against
 
     params: dict of parameters to pass in to the Clustal app controller.
@@ -538,7 +538,7 @@ def bootstrap_tree_from_alignment(aln, seed=None, num_trees=None, params=None):
     seq_collection = SequenceCollection(aln)
     int_map, int_keys = seq_collection.getIntMap()
     int_map = SequenceCollection(int_map)
-    
+
     # Collect result
     result = app(int_map.toFasta())
 
@@ -553,16 +553,16 @@ def bootstrap_tree_from_alignment(aln, seed=None, num_trees=None, params=None):
 
     return tree
 
-def align_unaligned_seqs(seqs, moltype, params=None):
+def align_unaligned_seqs(seqs, moltype=DNA, params=None):
     """Returns an Alignment object from seqs.
 
     seqs: cogent.core.alignment.SequenceCollection object, or data that can be
     used to build one.
-    
+
     moltype: a MolType object.  DNA, RNA, or PROTEIN.
 
     params: dict of parameters to pass in to the Clustal app controller.
-    
+
     Result will be a cogent.core.alignment.Alignment object.
     """
     #create SequenceCollection object from seqs
@@ -606,17 +606,17 @@ def add_seqs_to_alignment(seqs, aln, moltype, params=None):
     seq_int_map, seq_int_keys = seq_collection.getIntMap()
     #Create SequenceCollection from int_map.
     seq_int_map = SequenceCollection(seq_int_map,MolType=moltype)
-    
+
     #create Alignment object from aln
     aln = Alignment(aln,MolType=moltype)
     #Create mapping between abbreviated IDs and full IDs
     aln_int_map, aln_int_keys = aln.getIntMap(prefix='seqn_')
     #Create SequenceCollection from int_map.
     aln_int_map = Alignment(aln_int_map,MolType=moltype)
-    
+
     #Update seq_int_keys with aln_int_keys
     seq_int_keys.update(aln_int_keys)
-    
+
     #Create Mafft app.
     app = Clustalw(InputHandler='_input_as_multiline_string',\
         params=params,
@@ -624,20 +624,20 @@ def add_seqs_to_alignment(seqs, aln, moltype, params=None):
     app.Parameters['-align'].off()
     app.Parameters['-infile'].off()
     app.Parameters['-sequences'].on()
-    
+
     #Add aln_int_map as profile1
     app.Parameters['-profile1'].on(\
         app._tempfile_as_multiline_string(aln_int_map.toFasta()))
-    
+
     #Add seq_int_map as profile2
     app.Parameters['-profile2'].on(\
         app._tempfile_as_multiline_string(seq_int_map.toFasta()))
     #Get results using int_map as input to app
     res = app()
-    
+
     #Get alignment as dict out of results
     alignment = dict(ClustalParser(res['Align'].readlines()))
-    
+
     #Make new dict mapping original IDs
     new_alignment = {}
     for k,v in alignment.items():
@@ -667,17 +667,17 @@ def align_two_alignments(aln1, aln2, moltype, params=None):
     aln1_int_map, aln1_int_keys = aln1.getIntMap()
     #Create SequenceCollection from int_map.
     aln1_int_map = Alignment(aln1_int_map,MolType=moltype)
-    
+
     #create Alignment object from aln
     aln2 = Alignment(aln2,MolType=moltype)
     #Create mapping between abbreviated IDs and full IDs
     aln2_int_map, aln2_int_keys = aln2.getIntMap(prefix='seqn_')
     #Create SequenceCollection from int_map.
     aln2_int_map = Alignment(aln2_int_map,MolType=moltype)
-    
+
     #Update aln1_int_keys with aln2_int_keys
     aln1_int_keys.update(aln2_int_keys)
-    
+
     #Create Mafft app.
     app = Clustalw(InputHandler='_input_as_multiline_string',\
         params=params,
@@ -685,20 +685,20 @@ def align_two_alignments(aln1, aln2, moltype, params=None):
     app.Parameters['-align'].off()
     app.Parameters['-infile'].off()
     app.Parameters['-profile'].on()
-    
+
     #Add aln_int_map as profile1
     app.Parameters['-profile1'].on(\
         app._tempfile_as_multiline_string(aln1_int_map.toFasta()))
-    
+
     #Add seq_int_map as profile2
     app.Parameters['-profile2'].on(\
         app._tempfile_as_multiline_string(aln2_int_map.toFasta()))
     #Get results using int_map as input to app
     res = app()
-    
+
     #Get alignment as dict out of results
     alignment = dict(ClustalParser(res['Align'].readlines()))
-    
+
     #Make new dict mapping original IDs
     new_alignment = {}
     for k,v in alignment.items():
@@ -713,4 +713,3 @@ def align_two_alignments(aln1, aln2, moltype, params=None):
         aln2,aln2_int_map,aln2_int_keys,app,res,alignment)
 
     return new_alignment
-    

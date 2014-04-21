@@ -108,7 +108,7 @@ class CD_HIT(CommandLineApplication):
         '-p':ValuedParameter('-',Name='p',Delimiter=' '),
 
         # 1 or 0, default 0
-        # by cd-hit's default algorithm, a sequence is clustered to the first 
+        # by cd-hit's default algorithm, a sequence is clustered to the first
         # cluster that meet the threshold (fast cluster). If set to 1, the program
         # will cluster it into the most similar cluster that meet the threshold
         # (accurate but slow mode)
@@ -119,7 +119,7 @@ class CD_HIT(CommandLineApplication):
         '-h':ValuedParameter('-',Name='h',Delimiter=' ')
     }
     _synonyms = {'Similarity':'-c'}
- 
+
     def getHelp(self):
         """Method that points to documentation"""
         help_str =\
@@ -129,12 +129,12 @@ class CD_HIT(CommandLineApplication):
 
         The following papers should be cited if this resource is used:
 
-        Clustering of highly homologous sequences to reduce thesize of large 
+        Clustering of highly homologous sequences to reduce thesize of large
         protein database", Weizhong Li, Lukasz Jaroszewski & Adam Godzik
         Bioinformatics, (2001) 17:282-283
 
         Tolerating some redundancy significantly speeds up clustering of large
-        protein databases", Weizhong Li, Lukasz Jaroszewski & Adam Godzik 
+        protein databases", Weizhong Li, Lukasz Jaroszewski & Adam Godzik
         Bioinformatics, (2002) 18:77-82
         """
         return help_str
@@ -213,7 +213,7 @@ class CD_HIT_EST(CD_HIT):
         '-r':ValuedParameter('-',Name='r',Delimiter=' ')
         })
 
-def cdhit_clusters_from_seqs(seqs, moltype, params=None):
+def cdhit_clusters_from_seqs(seqs, moltype=DNA, params=None):
     """Returns the CD-HIT clusters given seqs
 
     seqs        : dict like collection of sequences
@@ -230,7 +230,7 @@ def cdhit_clusters_from_seqs(seqs, moltype, params=None):
     int_map, int_keys = seqs.getIntMap()
     #Create SequenceCollection from int_map.
     int_map = SequenceCollection(int_map,MolType=moltype)
-    
+
     # setup params and make sure the output argument is set
     if params is None:
         params = {}
@@ -332,4 +332,3 @@ def parse_cdhit_clstr_file(lines):
         clusters.append(curr_cluster)
 
     return clusters
-

@@ -22,10 +22,10 @@ MOLTYPE_MAP = {'DNA':'-D',
 
 
 class Clearcut(CommandLineApplication):
-    """ clearcut application controller 
-   
-    The parameters are organized by function to give some idea of how the 
-    program works. However, no restrictions are put on any combinations 
+    """ clearcut application controller
+
+    The parameters are organized by function to give some idea of how the
+    program works. However, no restrictions are put on any combinations
     of parameters. Misuse of parameters can lead to errors or otherwise
     strange results.
     """
@@ -43,16 +43,16 @@ class Clearcut(CommandLineApplication):
         '-S':FlagParameter('-',Name='S'),
         #--neighbor.  Use traditional Neighbor-Joining algorithm. (Default: OFF)
         '-N':FlagParameter('-',Name='N'),
-        
+
         }
-         
+
 
     # Input file is distance matrix or alignment.  Default expects distance
     # matrix.  Output file is tree created by clearcut.
     _input = {\
         # --in=<infilename>.  Input file
         '--in':ValuedParameter('--',Name='in',Delimiter='=',IsPath=True),
-        # --stdin.  Read input from STDIN. 
+        # --stdin.  Read input from STDIN.
         '-I':FlagParameter('-',Name='I'),
         # --distance.  Input file is a distance matrix. (Default: ON)
         '-d':FlagParameter('-',Name='d',Value=True),
@@ -64,17 +64,17 @@ class Clearcut(CommandLineApplication):
         # --protein.  Input alignment are protein sequences.
         '-P':FlagParameter('-',Name='P'),
         }
-  
-  
+
+
     #Correction model for computing distance matrix (Default: NO Correction):
     _correction={\
         # --jukes.  Use Jukes-Cantor correction for computing distance matrix.
         '-j':FlagParameter('-',Name='j'),
         # --kimura.  Use Kimura correction for distance matrix.
         '-k':FlagParameter('-',Name='k'),
-        
+
         }
-    
+
     _output={\
         # --out=<outfilename>.  Output file
         '--out':ValuedParameter('--',Name='out',Delimiter='=',IsPath=True),
@@ -88,10 +88,10 @@ class Clearcut(CommandLineApplication):
         '-e':FlagParameter('-',Name='e'),
         # --expdist.  Exponential notation in distance output. (Default: OFF)
         '-E':FlagParameter('-',Name='E'),
-        
+
         }
 
-    
+
         #NOT SUPPORTED
         #'-h':FlagParameter('-','h'),       #Help
         #'-V':FlagParameter('-','V'),       #Version
@@ -102,9 +102,9 @@ class Clearcut(CommandLineApplication):
     _parameters.update(_input)
     _parameters.update(_correction)
     _parameters.update(_output)
- 
+
     _command = 'clearcut'
-   
+
     def getHelp(self):
         """Method that points to the Clearcut documentation."""
         help_str =\
@@ -113,7 +113,7 @@ class Clearcut(CommandLineApplication):
         http://bioinformatics.hungry.com/clearcut/
         """
         return help_str
-   
+
     def _input_as_multiline_string(self, data):
         """Writes data to tempfile and sets -infile parameter
 
@@ -150,17 +150,17 @@ class Clearcut(CommandLineApplication):
 
     def _input_as_string(self,data):
         """Makes data the value of a specific parameter
-    
+
         This method returns the empty string. The parameter will be printed
         automatically once set.
         """
         if data:
             self.Parameters['--in'].on(data)
         return ''
-    
+
     def _tree_filename(self):
         """Return name of file containing the alignment
-        
+
         prefix -- str, prefix of alignment file.
         """
         if self.Parameters['--out']:
@@ -176,32 +176,32 @@ class Clearcut(CommandLineApplication):
         if self.Parameters['--out'].isOn():
             out_name = self._tree_filename()
             result['Tree'] = ResultPath(Path=out_name,IsWritten=True)
-        return result      
+        return result
 
 
-        
+
 #SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS
 
 
-def align_unaligned_seqs(seqs, moltype, params=None):
+def align_unaligned_seqs(seqs, moltype=DNA, params=None):
     """Returns an Alignment object from seqs.
 
     seqs: SequenceCollection object, or data that can be used to build one.
-    
+
     moltype: a MolType object.  DNA, RNA, or PROTEIN.
 
     params: dict of parameters to pass in to the Clearcut app controller.
-    
+
     Result will be an Alignment object.
     """
     #Clearcut does not support alignment
     raise NotImplementedError, """Clearcut does not support alignment."""
-    
+
 def align_and_build_tree(seqs, moltype, best_tree=False, params={}):
     """Returns an alignment and a tree from Sequences object seqs.
-    
+
     seqs: SequenceCollection object, or data that can be used to build one.
-    
+
     best_tree: if True (default:False), uses a slower but more accurate
     algorithm to build the tree.
 
@@ -213,8 +213,8 @@ def align_and_build_tree(seqs, moltype, best_tree=False, params={}):
     """
     #Clearcut does not support alignment
     raise NotImplementedError, """Clearcut does not support alignment."""
-    
-def build_tree_from_alignment(aln, moltype, best_tree=False, params={},\
+
+def build_tree_from_alignment(aln, moltype=DNA, best_tree=False, params={},\
     working_dir='/tmp'):
     """Returns a tree from Alignment object aln.
 
@@ -222,10 +222,10 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={},\
     to build one.
         -  Clearcut only accepts aligned sequences.  Alignment object used to
         handle unaligned sequences.
-    
+
     moltype: a cogent.core.moltype object.
         - NOTE: If moltype = RNA, we must convert to DNA since Clearcut v1.0.8
-        gives incorrect results if RNA is passed in.  'U' is treated as an 
+        gives incorrect results if RNA is passed in.  'U' is treated as an
         incorrect character and is excluded from distance calculations.
 
     best_tree: if True (default:False), uses a slower but more accurate
@@ -237,7 +237,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={},\
     fails.
     """
     params['--out'] = get_tmp_filename(working_dir)
-    
+
     # Create instance of app controller, enable tree, disable alignment
     app = Clearcut(InputHandler='_input_as_multiline_string', params=params, \
                    WorkingDir=working_dir, SuppressStdout=True,\
@@ -246,17 +246,17 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={},\
     app.Parameters['-a'].on()
     #Turn off input as distance matrix
     app.Parameters['-d'].off()
-    
+
     #If moltype = RNA, we must convert to DNA.
     if moltype == RNA:
         moltype = DNA
-    
+
     if best_tree:
         app.Parameters['-N'].on()
-    
+
     #Turn on correct moltype
     moltype_string = moltype.label.upper()
-    app.Parameters[MOLTYPE_MAP[moltype_string]].on()    
+    app.Parameters[MOLTYPE_MAP[moltype_string]].on()
 
     # Setup mapping. Clearcut clips identifiers. We will need to remap them.
     # Clearcut only accepts aligned sequences.  Let Alignment object handle
@@ -269,7 +269,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={},\
 
     # Collect result
     result = app(int_map.toFasta())
-    
+
     # Build tree
     tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
     for node in tree.tips():
@@ -280,7 +280,7 @@ def build_tree_from_alignment(aln, moltype, best_tree=False, params={},\
     del(seq_aln, app, result, int_map, int_keys, params)
 
     return tree
-    
+
 def add_seqs_to_alignment(seqs, aln, params=None):
     """Returns an Alignment object from seqs and existing Alignment.
 
@@ -306,13 +306,13 @@ def align_two_alignments(aln1, aln2, params=None):
     #Clearcut does not support alignment
     raise NotImplementedError, """Clearcut does not support alignment."""
 
-    
+
 def build_tree_from_distance_matrix(matrix, best_tree=False, params={},\
     working_dir='/tmp'):
     """Returns a tree from a distance matrix.
 
     matrix: a square Dict2D object (cogent.util.dict2d)
-    
+
     best_tree: if True (default:False), uses a slower but more accurate
     algorithm to build the tree.
 
@@ -322,7 +322,7 @@ def build_tree_from_distance_matrix(matrix, best_tree=False, params={},\
     fails.
     """
     params['--out'] = get_tmp_filename(working_dir)
-    
+
     # Create instance of app controller, enable tree, disable alignment
     app = Clearcut(InputHandler='_input_as_multiline_string', params=params, \
                    WorkingDir=working_dir, SuppressStdout=True,\
@@ -331,16 +331,16 @@ def build_tree_from_distance_matrix(matrix, best_tree=False, params={},\
     app.Parameters['-a'].off()
     #Input is a distance matrix
     app.Parameters['-d'].on()
-    
+
     if best_tree:
         app.Parameters['-N'].on()
-    
+
     # Turn the dict2d object into the expected input format
     matrix_input, int_keys = _matrix_input_from_dict2d(matrix)
 
     # Collect result
     result = app(matrix_input)
-    
+
     # Build tree
     tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
 
@@ -356,9 +356,9 @@ def build_tree_from_distance_matrix(matrix, best_tree=False, params={},\
 
 def _matrix_input_from_dict2d(matrix):
     """makes input for running clearcut on a matrix from a dict2D object"""
-    #clearcut truncates names to 10 char- need to rename before and 
+    #clearcut truncates names to 10 char- need to rename before and
     #reassign after
-    
+
     #make a dict of env_index:full name
     int_keys = dict([('env_' + str(i), k) for i,k in \
             enumerate(sorted(matrix.keys()))])
@@ -374,7 +374,7 @@ def _matrix_input_from_dict2d(matrix):
         for env2 in matrix[env1]:
             new_dists.append((int_map[env1], int_map[env2], matrix[env1][env2]))
     int_map_dists = Dict2D(new_dists)
-    
+
     #names will be fed into the phylipTable function - it is the int map names
     names = sorted(int_map_dists.keys())
     rows = []
@@ -388,6 +388,5 @@ def _matrix_input_from_dict2d(matrix):
     input_matrix = phylipMatrix(rows, names)
     #input needs a trailing whitespace or it will fail!
     input_matrix += '\n'
-   
-    return input_matrix, int_keys
 
+    return input_matrix, int_keys

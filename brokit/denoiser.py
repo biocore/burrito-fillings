@@ -13,6 +13,7 @@ be as short-lived as its name is awesome.
 
 """
 
-from cogent.parse.flowgram import (
-    Flowgram, FlowgramCollection, lazy_parse_ssf_handle,
-    build_averaged_flowgram, seq_to_flow)
+from cogent.parse.flowgram import (Flowgram, build_averaged_flowgram,
+                                   seq_to_flow)
+from cogent.parse.flowgram_parser import lazy_parse_sff_handle, get_header_info
+from cogent.parse.flowgram_collection import (FlowgramCollection, parse_sff)

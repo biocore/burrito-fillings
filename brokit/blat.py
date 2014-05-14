@@ -8,6 +8,7 @@ from tempfile import mkstemp
 
 from cogent import DNA
 from cogent.core.genetic_code import GeneticCodes
+from cogent.parse.blast import MinimalBlatParser9
 
 from skbio.parse.sequences import parse_fasta
 from skbio.app.util import (CommandLineApplication, ResultPath,

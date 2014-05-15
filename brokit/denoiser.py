@@ -17,3 +17,4 @@ from cogent.parse.flowgram import (Flowgram, build_averaged_flowgram,
                                    seq_to_flow)
 from cogent.parse.flowgram_parser import lazy_parse_sff_handle, get_header_info
 from cogent.parse.flowgram_collection import (FlowgramCollection, parse_sff)
+from cogent.util.trie import build_prefix_map

@@ -41,10 +41,5 @@ setup(name='brokit',
       maintainer_email="gregcaporaso@gmail.com",
       url='https://github.com/biocore/brokit',
       packages=find_packages(),
-      install_requires=['scikit-bio == 0.0.0-dev'],
-      dependency_links=[
-        'https://github.com/biocore/scikit-bio/archive/master.zip#egg=scikit-bio-0.0.0-dev'
-      ],
-      extras_require={},
-      classifiers=classifiers
-      )
+      install_requires=['scikit-bio == 0.1.1'],
+      classifiers=classifiers)

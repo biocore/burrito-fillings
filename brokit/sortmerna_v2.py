@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-r"""
+"""
 Application controller for SortMeRNA version 2.0
 ================================================
 """
@@ -28,7 +28,11 @@ class IndexDB(CommandLineApplication):
         '--ref': ValuedParameter('--', Name='ref', Delimiter=' ', IsPath=True),
 
         # Maximum number of positions to store for each unique seed
-        '--max_pos': ValuedParameter('--', Name='max_pos', Delimiter=' ', IsPath=False, Value="10000")
+        '--max_pos': ValuedParameter('--', Name='max_pos', Delimiter=' ', IsPath=False, Value="10000"),
+
+        # tmp folder for storing unique L-mers (prior to calling CMPH in indexdb_rna),
+        # this tmp file is removed by indexdb_rna after it is not used any longer
+        '--tmpdir': ValuedParameter('--', Name='tmpdir', Delimiter=' ', IsPath=True)
     } 
 
     def _get_result_paths(self, data):
@@ -48,6 +52,11 @@ class IndexDB(CommandLineApplication):
                 result_path = ResultPath(Path=file_path, IsWritten=True)
                 result[key] = result_path
         return result
+
+    def _accept_exit_status(self, exit_status):
+        """ Test for acceptable exit status
+        """
+        return exit_status == 0
 
 
 def build_database_sortmerna(fasta_path, 
@@ -83,11 +92,17 @@ def build_database_sortmerna(fasta_path,
         db_name = output_dir + index_basename
 
     # Instantiate the object
-    sdb = IndexDB(WorkingDir=output_dir, HALT_EXEC=HALT_EXEC)
+    sdb = IndexDB()
+
     # The parameter --ref STRING must follow the format where STRING = /path/to/ref.fasta,/path/to/ref.idx
     sdb.Parameters['--ref'].on(fasta_path + ',' + db_name)
-    # Override --max_pos parameter default value
-    sdb.Parameters['--max_pos'].on(max_pos)
+
+    # Set temporary directory
+    sdb.Parameters['--tmpdir'].on(output_dir)
+
+    # Override --max_pos parameter 
+    if max_pos is not None:
+        sdb.Parameters['--max_pos'].on(max_pos)
 
     # Run indexdb_rna
     app_result = sdb()
@@ -117,33 +132,24 @@ class Sortmerna(CommandLineApplication):
             
         # File path + base name for output files for aligned reads
         '--aligned': ValuedParameter('--', Name='aligned', Delimiter=' ', IsPath=True, Value=None),
-            
-        # File path + base name for output files for non-aligned reads
-        '--other': ValuedParameter('--', Name='other', Delimiter=' ', IsPath=True, Value=None),
-            
+
+        # Output log file with parameters used to launch sortmerna and statistics on final results
+        '--log': FlagParameter('--', Name='log', Value=True),
+                        
         # Output Fasta or Fastq file of aligned reads (flag)
         '--fastx': FlagParameter('--', Name='fastx', Value=True),
             
         # Output BLAST alignment file (flag)
-        '--blast': ValuedParameter('--', Name='blast', Delimiter=' ', IsPath=False, Value=False),
-                        
-        # Report the first INT number of alignments
-        '--num_alignments': ValuedParameter('--', Name='num_alignments', Delimiter=' ',IsPath=False),
-            
+        '--blast': ValuedParameter('--', Name='blast', Delimiter=' ', IsPath=False, Value=None),
+                                    
         # Report the best INT number of alignments
-        '--best': ValuedParameter('--', Name='best', Delimiter=' ',IsPath=False),
-            
-        # Control the number of reads searched before selecting the best ones
-        '--min_lis': ValuedParameter('--', Name='min_lis', Delimiter=' ',IsPath=False),
-            
-        # Output all reads to SAM and BLAST alignments, a null string for non-aligned reads
-        '--print_all_reads': FlagParameter('--',Name='print_all_reads', Value=False),
-                                                
+        '--best': ValuedParameter('--', Name='best', Delimiter=' ',IsPath=False, Value="1"),
+                                                            
         # Number of threads
-        '-a': ValuedParameter('-', Name='a', Delimiter=' ', IsPath=False, Value=None),
+        '-a': ValuedParameter('-', Name='a', Delimiter=' ', IsPath=False, Value="1"),
             
         # E-value threshold
-        '-e': ValuedParameter('-', Name='e', Delimiter=' ', IsPath=False, Value=None),
+        '-e': ValuedParameter('-', Name='e', Delimiter=' ', IsPath=False, Value="1"),
                         
         # Similarity threshold
         '--id': ValuedParameter('--', Name='id', Delimiter=' ',IsPath=False, Value="0.97"),
@@ -164,24 +170,138 @@ class Sortmerna(CommandLineApplication):
     _working_dir = None
 
 
-    def _get_result_paths(self, data):
-        ''' Set the result output path
-        '''
-    
+    def _get_result_paths(self, fileExtension=None):
+        """ Set the result paths """
+
         result = {}
-    
-        result['OutputAligned'] = ResultPath(Path=self.Parameters['--aligned'.Value],
-                                      IsWritten=self.Parameters[--aligned].isOn())
-    
-        result['OutputNonAligned'] = ResultPath(Path=self.Parameters['--other'.Value],
-                                            IsWritten=self.Parameters[--other].isOn())
+
+        # get the file extension of the reads file (sortmerna internally outputs 
+        # all results with this extension)
+        fileExtension = splitext(self.Parameters['--reads'].Value)[1]
+
+        # at this point the parameter --aligned should be set as 
+        # sortmerna will not run without it
+        if not self.Parameters['--aligned'].isOn():
+            print "Error: "
+            sys.exit(0)
+
+        # file base name for aligned reads
+        output_base = self.Parameters['--aligned'].Value
+
+        # Blast alignments
+        if self.Parameters['--blast'].isOn():
+            result['BlastAlignments'] = ResultPath(Path=output_base + '.blast',
+                                                   IsWritten=True)
+
+        # OTU map (mandatory output)
+        result['OtuMap'] = ResultPath(Path=output_base + '_otus.txt',
+                                      IsWritten=True)
+
+        # FASTA file of sequences in the OTU map (madatory output)
+        result['FastaMatches'] = ResultPath(Path=output_base + fileExtension,
+                                            IsWritten=True)
+
+        # FASTA file of sequences not in the OTU map (mandatory output)
+        result['FastaForDenovo'] = ResultPath(Path=output_base + '_denovo' + fileExtension,
+                                              IsWritten=True)
+
+        # Log file
+        result['LogFile'] = ResultPath(Path=output_base + '.log',
+                                        IsWritten=True)
     
         return result
+
+    def _accept_exit_status(self, exit_status):
+        """ Test for acceptable exit status
+        """
+        return exit_status == 0
+
+    def getHelp(self):
+        """Method that points to documentation"""
+        help_str =\
+            """
+        SortMeRNA is hosted at:
+        http://bioinfo.lifl.fr/RNA/sortmerna/
+        https://github.com/biocore/sortmerna
+
+        The following paper should be cited if this resource is used:
+
+        Kopylova, E., Noe L. and Touzet, H.,
+        SortMeRNA: fast and accurate filtering of ribosomal RNAs in metatranscriptomic data, 
+        Bioinformatics (2012) 28(24)
+        """
+        return help_str
         
-    #def _accept_exit_status(self,exit_status):
+
 
 
 # Start reference clustering functions
 
-#def sortmerna_ref_cluster():
+def sortmerna_ref_cluster(seq_path=None,
+                          sortmerna_db=None,
+                          refseqs_fp=None,
+                          output_dir=None,
+                          max_e_value=None,
+                          similarity=None,
+                          coverage=None,
+                          threads=None,
+                          tabular=False,
+                          best=None,
+                          HALT_EXEC=False
+                          ):
+    ''' Function  : Launch sortmerna OTU picker 
+        Parameters: sortmerna_db, refseqs_fp, seq_path and output_dir are mandatory and must already exist 
+        Return    : a dictionary of all output files set in _get_result_paths() with the file descriptors
+                    pointing to an open file as the values
+    '''
+
+    # Instantiate the object
+    smr = Sortmerna()
+
+    # Set input reads path
+    if seq_path is not None:
+        smr.Parameters['--reads'].on(seq_path)
+    else:
+        print "Error: an read file is mandatory input. " 
+        sys.exit(1)
+
+    # Set the input reference sequence + indexed database path
+    if sortmerna_db is not None:
+        smr.Parameters['--ref'].on(refseqs_fp + ',' + sortmerna_db)
+    else:
+        print "Error: a indexed database for reference set %s must already exist. " % refseqs_fp
+        print "       Use indexdb_rna to index the database."
+        sys.exit(1)
+
+    # Set output results path (for Blast alignments, clusters and failures)
+    if output_dir is not None:
+        if not output_dir.endswith('/'):
+            output_file = output_dir + '/picked_otus'
+        else:
+            output_file = output_dir + 'picked_otus'
+        smr.Parameters['--aligned'].on(output_file)
+
+    # Set E-value threshold
+    if max_e_value is not None:
+        smr.Parameters['-e'].on(max_e_value)
+
+    # Set similarity threshold
+    if similarity is not None:
+        smr.Parameters['--id'].on(similarity)
+
+    # Set query coverage threshold
+    if coverage is not None:
+        smr.Parameters['--coverage'].on(coverage)
+
+    # Set number of best alignments to output
+    if best is not None:
+        smr.Parameters['--best'].on(best)
+
+    if tabular:
+        smr.Parameters['--blast'].on("3")
+
+    # Run sortmerna
+    app_result = smr()
+
+    return app_result
 

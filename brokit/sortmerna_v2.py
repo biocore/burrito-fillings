@@ -38,9 +38,8 @@ class IndexDB(CommandLineApplication):
     def _get_result_paths(self, data):
         """ Build the dict of result filepaths
         """
-        # access data through self.Parameters so we know it's been cast
-        # to a FilePath
         wd = self.WorkingDir
+
         db_name = (self.Parameters['--ref'].Value).split('/')[-1]
 
         result = {}
@@ -49,9 +48,10 @@ class IndexDB(CommandLineApplication):
             for file_path in glob(wd + (db_name + '.' + extension + '*')):
                 # this will match e.g. nr.bursttrie_0.dat, nr.bursttrie_1.dat and nr.stats
                 key = file_path.split(db_name + '.')[1]
-                result_path = ResultPath(Path=file_path, IsWritten=True)
-                result[key] = result_path
+                result[key] = ResultPath(Path=file_path, IsWritten=True)                 
         return result
+
+
 
     def _accept_exit_status(self, exit_status):
         """ Test for acceptable exit status
@@ -92,7 +92,7 @@ def build_database_sortmerna(fasta_path,
         db_name = output_dir + index_basename
 
     # Instantiate the object
-    sdb = IndexDB()
+    sdb = IndexDB(WorkingDir=output_dir, HALT_EXEC=HALT_EXEC)
 
     # The parameter --ref STRING must follow the format where STRING = /path/to/ref.fasta,/path/to/ref.idx
     sdb.Parameters['--ref'].on(fasta_path + ',' + db_name)
@@ -107,13 +107,19 @@ def build_database_sortmerna(fasta_path,
     # Run indexdb_rna
     app_result = sdb()
 
+    # Return all output files (by indexdb_rna) as a list,
+    # first however remove the StdErr and StdOut filepaths
+    # as they files will be destroyed at the exit from
+    # this function (IndexDB is a local instance)
     db_filepaths = []
-    for v in app_result.values():
+    for key in app_result:
         try:
-            db_filepaths.append(v.name)
+            if (key is not 'StdErr' and \
+                key is not 'StdOut'):
+                db_filepaths.append(app_result[key].name)
         except AttributeError:
-            # not a file object, so no path to return
             pass
+
     return db_name, db_filepaths
 
 
@@ -167,10 +173,9 @@ class Sortmerna(CommandLineApplication):
     _input_handler = '_input_as_string'
     _supress_stdout = False
     _supress_stderr = False
-    _working_dir = None
 
 
-    def _get_result_paths(self, fileExtension=None):
+    def _get_result_paths(self,data):
         """ Set the result paths """
 
         result = {}
@@ -256,7 +261,7 @@ def sortmerna_ref_cluster(seq_path=None,
     '''
 
     # Instantiate the object
-    smr = Sortmerna()
+    smr = Sortmerna(HALT_EXEC=HALT_EXEC)
 
     # Set input reads path
     if seq_path is not None:

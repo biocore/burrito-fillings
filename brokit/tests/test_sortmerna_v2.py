@@ -12,6 +12,8 @@ from brokit.sortmerna_v2 import (IndexDB,
 								 sortmerna_ref_cluster)
 from tempfile import mkstemp, mkdtemp
 from skbio.util.misc import remove_files
+from os import close
+from os.path import abspath, exists
 
 
 # ----------------------------------------------------------------------------
@@ -22,97 +24,6 @@ from skbio.util.misc import remove_files
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-
-class SortmernaV2Tests(TestCase):
-
-    """ Tests for SortMeRNA version 2.0 functionality """
-
-    def setUp(self):
-    # create the temporary input files
-    	self.output_dir = '/tmp/'
-
-    	self.reference_seq_fp = reference_seqs_fp
-    	self.read_seqs_fp = read_seqs_fp
-
-    	# create temporary file with reference sequences defined in reference_seqs_fp
-        f, self.file_reference_seq_fp = mkstemp(prefix='temp_references',
-                                         	   suffix='.fasta')
-        close(f)
-
-        # write _reference_ sequences to tmp file
-        tmp = open(self.file_reference_seq_fp, 'w')
-        tmp.write(self.reference_seq_fp)
-        tmp.close()
-
-        # create temporary file with read sequences defined in read_seqs_fp
-        f, self.file_read_seqs_fp = mkstemp(prefix='temp_reads',
-        									suffix='.fasta')
-        close(f)
-
-        # write _read_ sequences to tmp file
-        tmp = open(self.file_read_seqs_fp)
-        tmp.write(self.read_seqs_fp)
-        tmp.close()
-
-        # list of files to remove
-        self._files_to_remove = [self.file_reference_seq_fp, self.file_read_seqs_fp]
-
-
-    def tearDown(self):
-    	remove_files(self._files_to_remove)
-
-    def test_indexdb_default_param(self):
-    	""" Test indexing a database using SortMeRNA
-    	"""
-
-		self.sortmerna_db, self.db_files = \
-        	build_database_sortmerna(abspath(self.file_reference_seq_fp),
-                                 	max_pos=250,
-                                 	output_dir=self.output_dir)
-
-        expected_db_files = set([self.sortmerna_db + ext\
-			for ext in ['.bursttrie_0.dat','.kmer_0.dat','.pos_0.dat','.stats']])
-
-        # Check correct database files were generated
-        self.assertEqual(set(self.db_files),expected_db_files)
-
-        # Make sure all db_files exist
-        for fp in db_files:
-            self.assertTrue(exists(fp))
-  
-
-    def test_sortmerna_default_param(self):
-    	""" SortMeRNA version 2.0 reference OTU picking works with default settings
-    	"""
-
-    	# run sortmerna 
-        output_files_fp = sortmerna_ref_cluster(
-                                            self.file_read_seqs_fp,
-                                            self.sortmerna_db,
-                                            self.file_reference_seq_fp,
-                                            self.output_dir,
-                                            max_e_value=1,
-                                            similarity=0.97,
-                                            coverage=0.97,
-                                            threads=1,
-                                            tabular=False,
-                                            best=1,
-                                            HALT_EXEC=False)
-
-        # check all output files exist
-        output_files = ["picked_otus_otus.txt", "picked_otus.log", "picked_otus_denovo.fasta", "picked_otus.fasta"]
-		for fp in output_files:
-			self.assertTrue(exists(self.output_dir + fp))     
-
-        # Remove all db_files  
-        remove_files(db_files)
-        
-        # Make sure nothing weird happened in the remove
-        for fp in db_files:
-            self.assertFalse(exists(fp))
-
-
-# Input data and expected results used for testing
 
 # Reference sequence database
 reference_seqs_fp = """>426848
@@ -213,27 +124,94 @@ TTGGGCACTCTAGCGAGACTGCCGGTAATAAACCGGAGGAAGGTGGGGATGACGTCAAATCATCATGCCCCTTATGACCT
 GGGCTACACACGTGCTACAATGGCTGGTACAACGAGTCGCAAGCCGGTGACGGCAAGCTAATCTCTTAAAGCCAGTCTCA
 GTTCGGATTGTAGGCTGCAACTCGCCTACATGAAGTCGGAATCGCTAGTAATCGCGGATCAGCACGCCGCGGTGAATACG
 TTCCCGGGCCT
+"""
 
-""".split('\n')
-
-# Reads to search against the database (10 reads are rRNA, 10 are random)
-read_seqs_fp = """>f2_1271 HWI-EAS440_0386:1:30:4487:20156#0/1 orig_bc=ACCAGACGATGC new_bc=ACCAGACGATGC bc_diffs=0
-TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCG
->f2_1539 HWI-EAS440_0386:1:31:12039:10494#0/1 orig_bc=ACCAGACGATGC new_bc=ACCAGACGATGC bc_diffs=0
-TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAG
->f1_2278 HWI-EAS440_0386:1:32:3943:19113#0/1 orig_bc=ACACTGTTCATG new_bc=ACACTGTTCATG bc_diffs=0
-TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAG
->f2_2349 HWI-EAS440_0386:1:33:11754:2337#0/1 orig_bc=ACCAGACGATGC new_bc=ACCAGACGATGC bc_diffs=0
-TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAG
->f1_2727 HWI-EAS440_0386:1:33:17206:16370#0/1 orig_bc=ACACTGTTCATG new_bc=ACACTGTTCATG bc_diffs=0
-TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAG
->f2_2750 HWI-EAS440_0386:1:33:4173:17707#0/1 orig_bc=ACCAGACGATGC new_bc=ACCAGACGATGC bc_diffs=0
-TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAG
->f1_2919 HWI-EAS440_0386:1:34:7244:5240#0/1 orig_bc=ACACTGTTCATG new_bc=ACACTGTTCATG bc_diffs=0
-TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAG
->f1_2990 HWI-EAS440_0386:1:34:15559:8361#0/1 orig_bc=ACACTGTTCATG new_bc=ACACTGTTCATG bc_diffs=0
-TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAG
-""".split('\n')
+# Reads to search against the database 
+# - 10 rRNA reads:   amplicon reads were taken from Qiime study 1685
+# - 10 random reads: simulated using mason with the following command:
+#     mason illumina -N 10 -snN -o simulated_random_reads.fa -n 150 random.fasta
+# - 10 rRNA reads with id < 97: amplicon reads were taken from Qiime study 1685
+read_seqs_fp = """>HMPMockV1.2.Staggered2.673827_47 M141:79:749142:1:1101:16169:1589 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCAAGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATTTGATACTGGCAAGCTTGAGTCTCGTAGAGGAGGGTAGAATTCCAGG
+TGTAGCGGGGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCTCCATGGACGAAGACTGACGCT
+>HMPMockV1.2.Staggered2.673827_115 M141:79:749142:1:1101:14141:1729 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCCGGCTCAACCTTGGAACTGCATCTGATACGGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCTCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACA
+>HMPMockV1.2.Staggered2.673827_122 M141:79:749142:1:1101:16032:1739 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGTGATCAAACA
+>HMPMockV1.2.Staggered2.673827_161 M141:79:749142:1:1101:17917:1787 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCTCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACA
+>HMPMockV1.2.Staggered2.673827_180 M141:79:749142:1:1101:16014:1819 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGTGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTG
+>HMPMockV1.2.Staggered2.673827_203 M141:79:749142:1:1101:17274:1859 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGTTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCCGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCTCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGATCAAACA
+>HMPMockV1.2.Staggered2.673827_207 M141:79:749142:1:1101:17460:1866 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACA
+>HMPMockV1.2.Staggered2.673827_215 M141:79:749142:1:1101:18390:1876 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACG
+>HMPMockV1.2.Staggered2.673827_218 M141:79:749142:1:1101:18249:1879 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTTCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCACACA
+>HMPMockV1.2.Staggered2.673827_220 M141:79:749142:1:1101:15057:1880 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGG
+TGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCTCCTGGACGAAGACTGACGCTC
+>simulated_random_reads.fa.000000000
+AGCCGGGTGTCTACGGTCAGGTGTGTTCTGACTACGTAGTTTGACAGCACGTGTCCTTTCCCCTTCCCAAGGTAACGAATTGTCGTTATCAACGTTTCGATCCGTAATTTCACGGAACGACATAAAGGCATCAATACTATCGCCAACAGA
+>simulated_random_reads.fa.000000001
+GTGGACGTCGTGGCGGCGTACTAACTTCCTACAGGCATATCCGGAATAACATTCTGCCGCTTGTCGACATAAGCTGTTCCCTACATAGACGACGACGGTTGAAGGGTGTATGTATTCTTTGGGTACGGCTCCTCTGGGCGCATGGTAGCA
+>simulated_random_reads.fa.000000002
+CATTCTTTATAGGCCTACAACACTAATCATCGTTAAGCATAAGGGGAGGAGTGTGCGTGGCATCAAGTCCTGGTTCTTCGCCTAGTACCACACCGTCTCACACGCAGCCGCCGACGACCAGTGAGGGCGCGTGGGACACCCATTCGGTCC
+>simulated_random_reads.fa.000000003
+TCGCCTTGGTACAAACAGTCGCGGCACGCTGTATGGAGGACCATAGAGGCACAGGCTGAGGACAGGGGCATGGAAGGTTCAATCGCCCCCCACAGCTTTAGGTAGGAAGTACTGTTCTAGTGCCAATTTGATTTTAACGGCAGTTACTCG
+>simulated_random_reads.fa.000000004
+CATATTCTAATATCCTACTTCTGATACCCGATTATACACGACACCACCCCAGGACTGTCGTCACATCCTTATCTGGATAAACATCCGGTTCCGTTTGGCCGTGCTCCGCAAGTGATGCGTCTGTGGAATGTACGTGGAGCGTTGACAGTT
+>simulated_random_reads.fa.000000005
+CCGGATTAGGCATGTTTATAGTACAACGGATTCGCAAAAAGGTCAGGGTAACAATTTTGAAATGCTTTCATACTGCGGTCTAAATGGACCACCCTTTAGGTGCAGCCAACTATAGTTGGTCGATTCTCTGAACACGTACCGAAGGCAATT
+>simulated_random_reads.fa.000000006
+AACCCATCGGAATAATCTACTGCTTCGTATGGAACGGTCCTACATTTAAATAAACGTGTCCAGTGCCACCCGATACCTCTCGTCAATCAGGGGCTCTCCCTGAATCAGCAGTAAACAAACCCAGTACACTGTCGAACACTACTGAGACCG
+>simulated_random_reads.fa.000000007
+CCGAAGGCAAGTCTGTCGTAGAATGGTTTTTGTCGTTGTAACAACCCCGCTCTAGACCCTGAAAACCATAAAGTCAAGCCCAACTAATATTAGAGGCATTCTGGCTACTCCCGCTCACCGCAATCTTCACATACTGTGATACCCTCAGCC
+>simulated_random_reads.fa.000000008
+ATATCCGTTAAACCCCGGATTTGACAATTCATCATCAACGCTACTAACGGCTTTCTCAATTTGGGGCTGTGGCCTATCCGCATACGGCTACCTGCGCAAGAAGAGAGTACTGTTAGATGTCACGCTGCACTTGCGAAGACCGGTGGGCGT
+>simulated_random_reads.fa.000000009
+AGCGATGAGTACACAAGATGAGTGAAGGGATTAAACTTCAAACCTTGAAGTGTTACCCGATTTCCTACCATTGGGGATTCGTTAATGCTTCGAATGGATCTATATCCGGTGTTTAGCTGACTGTTAAAATACTCTCGTTGTACGAAAGTA
+>HMPMockV1.2.Staggered2.673827_0 M141:79:749142:1:1101:17530:1438 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGCAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACCTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTG
+>HMPMockV1.2.Staggered2.673827_1 M141:79:749142:1:1101:17007:1451 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTTACGCTG
+>HMPMockV1.2.Staggered2.673827_2 M141:79:749142:1:1101:16695:1471 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTGGGGA
+>HMPMockV1.2.Staggered2.673827_3 M141:79:749142:1:1101:17203:1479 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCGTAGAGATATGGAGGAACACCAGTGGCGAAGGCGACGTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTGG
+>HMPMockV1.2.Staggered2.673827_4 M141:79:749142:1:1101:14557:1490 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGGCTGTAACTGACGCTGATGTGCGCAAGCGTGGTGATCAAACA
+>HMPMockV1.2.Staggered2.673827_5 M141:79:749142:1:1101:16104:1491 1:N:0:CGACTAATGTGT orig_bc=CGACTAATGTGT new_bc=CGACTTATGTGT bc_diffs=1
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGC
+>HMPMockV1.2.Staggered2.673827_6 M141:79:749142:1:1101:16372:1491 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCGCAGAGATATGGAGGAACAACAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGTAAG
+>HMPMockV1.2.Staggered2.673827_7 M141:79:749142:1:1101:17334:1499 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGT
+>HMPMockV1.2.Staggered2.673827_8 M141:79:749142:1:1101:17273:1504 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGAAATGCACAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGA
+>HMPMockV1.2.Staggered2.673827_9 M141:79:749142:1:1101:16835:1505 1:N:0:CGACTTATGTGT orig_bc=CGACTTATGTGT new_bc=CGACTTATGTGT bc_diffs=0
+TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATG
+TGTAGCGGTGACATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTGGGGAT
+"""
 
 # Expected OTU map output file
 expected_otumap_fp = """
@@ -255,6 +233,177 @@ expected_fasta_denovo_fp = """
 # Expected BLAST alignments
 expected_blast_fp = """
 """
+
+
+
+# Test class and cases
+class SortmernaV2Tests(TestCase):
+    """ Tests for SortMeRNA version 2.0 functionality """
+
+    def setUp(self):
+
+    	self.output_dir = '/tmp/'
+    	self.reference_seq_fp = reference_seqs_fp
+    	self.read_seqs_fp = read_seqs_fp
+
+    	# create temporary file with reference sequences defined in reference_seqs_fp
+        f, self.file_reference_seq_fp = mkstemp(prefix='temp_references_',
+                                         	   suffix='.fasta')
+        close(f)
+
+        # write _reference_ sequences to tmp file
+        tmp = open(self.file_reference_seq_fp, 'w')
+        tmp.write(self.reference_seq_fp)
+        tmp.close()
+
+        # create temporary file with read sequences defined in read_seqs_fp
+        f, self.file_read_seqs_fp = mkstemp(prefix='temp_reads_',
+        									suffix='.fasta')
+        close(f)
+
+        # write _read_ sequences to tmp file
+        tmp = open(self.file_read_seqs_fp, 'w')
+        tmp.write(self.read_seqs_fp)
+        tmp.close()
+
+        # list of files to remove
+        self.files_to_remove = [self.file_reference_seq_fp, self.file_read_seqs_fp]
+
+    def tearDown(self):
+
+    	remove_files(self.files_to_remove)
+
+
+    def test_indexdb_default_param(self):
+    	""" Test indexing a database using SortMeRNA
+    	"""
+    	sortmerna_db, db_files_to_remove = build_database_sortmerna(
+    			abspath(self.file_reference_seq_fp),
+    			max_pos=250,
+    			output_dir=self.output_dir)
+
+        expected_db_files = set([sortmerna_db + ext\
+			for ext in ['.bursttrie_0.dat','.kmer_0.dat','.pos_0.dat','.stats']])
+
+        # Make sure all db_files exist
+        for fp in expected_db_files:
+            self.assertTrue(exists(fp))
+
+        # Add files to be remove
+        (self.files_to_remove).extend(db_files_to_remove)
+          
+
+    def test_sortmerna_default_param(self):
+    	""" SortMeRNA version 2.0 reference OTU picking works with default settings
+    	"""
+    	# rebuild the index
+    	sortmerna_db, db_files_to_remove = build_database_sortmerna(
+    			abspath(self.file_reference_seq_fp),
+    			max_pos=250,
+    			output_dir=self.output_dir)
+
+    	# Files created by indexdb_rna to be deleted
+        (self.files_to_remove).extend(db_files_to_remove)
+
+    	# Run SortMeRNA 
+        output_files_fp = sortmerna_ref_cluster(
+                                            self.file_read_seqs_fp,
+                                            sortmerna_db,
+                                            self.file_reference_seq_fp,
+                                            self.output_dir,
+                                            max_e_value=1,
+                                            similarity=0.97,
+                                            coverage=0.97,
+                                            threads=1,
+                                            tabular=False,
+                                            best=1,
+                                            HALT_EXEC=False)
+
+        # Check all sortmerna output files exist
+        output_files = set([self.output_dir + ext\
+        	for ext in ['picked_otus_otus.txt', 'picked_otus.log', 'picked_otus_denovo.fasta', 'picked_otus.fasta']])
+
+        for fp in output_files:
+        	self.assertTrue(exists(fp))
+
+        # Random reads that should not appear in any output file
+        random_reads = ['simulated_random_reads.fa.000000000', \
+        				'simulated_random_reads.fa.000000001', \
+        				'simulated_random_reads.fa.000000002', \
+        				'simulated_random_reads.fa.000000003', \
+        				'simulated_random_reads.fa.000000004', \
+        				'simulated_random_reads.fa.000000005', \
+        				'simulated_random_reads.fa.000000006', \
+        				'simulated_random_reads.fa.000000007', \
+        				'simulated_random_reads.fa.000000008', \
+        				'simulated_random_reads.fa.000000009']
+
+        f_aligned = output_files_fp['FastaMatches']
+        f_otumap = output_files_fp['OtuMap']
+        f_denovo = output_files_fp['FastaForDenovo']
+
+        random_reads_to_search = re.compile('|'.join(random_reads))
+
+        # Check none of the random reads are in the aligned FASTA file
+        for i, s in enumerate(f_aligned)
+        	if random_reads_to_search.search(s)
+        		print("ERROR: random read %s found in the alignment file %s at line %r"  % \
+        			(i, output_files[3], s))
+
+        # Check none of the random reads are in the OTU map
+        for i, s in enumerate(f_otumap)
+        	if random_reads_to_search.search(s)
+        		print("ERROR: random read %s found in the OTU map file %s at line %r" % \
+        			(i, output_files[0], s))
+
+        # Check none of the random reads are in the de novo FASTA file
+        for i, s in enumerate(f_denovo)
+        	if random_reads_to_search.search(s)
+        		print("ERROR: random read %s found in the FASTA file for de novo reads %s at line %r" % \
+        			(i, output_files[2], s))
+
+
+        # Reads passing E-value threshold and with similarity/coverage >=97%
+        otu_reads = ['HMPMockV1.2.Staggered2.673827_47', \
+        			'HMPMockV1.2.Staggered2.673827_115', \
+        			'HMPMockV1.2.Staggered2.673827_122', \
+        			'HMPMockV1.2.Staggered2.673827_161', \
+        			'HMPMockV1.2.Staggered2.673827_180', \
+        			'HMPMockV1.2.Staggered2.673827_203', \
+        			'HMPMockV1.2.Staggered2.673827_207', \
+        			'HMPMockV1.2.Staggered2.673827_215', \
+        			'HMPMockV1.2.Staggered2.673827_218', 
+        			'HMPMockV1.2.Staggered2.673827_220']
+
+        # Reads passing E-value threshold and with similarity/coverage <97%
+        denovo_reads = ['HMPMockV1.2.Staggered2.673827_0' \
+        				'HMPMockV1.2.Staggered2.673827_1' \
+        				'HMPMockV1.2.Staggered2.673827_2' \
+        				'HMPMockV1.2.Staggered2.673827_3' \
+        				'HMPMockV1.2.Staggered2.673827_4' \
+        				'HMPMockV1.2.Staggered2.673827_5' \
+        				'HMPMockV1.2.Staggered2.673827_6' \
+        				'HMPMockV1.2.Staggered2.673827_7' \
+        				'HMPMockV1.2.Staggered2.673827_8' \
+        				'HMPMockV1.2.Staggered2.673827_9']
+
+        # Check correct number of OTU clusters
+        otu_clusters = ['295053']
+
+
+        # Files created sortmerna to be deleted (StdErr and StdOut were already
+        # removed in sortmerna_ref_cluster)
+        db_filepaths = []
+        for key in output_files_fp:
+        	try:
+        		if (key is not 'StdErr' and \
+        			key is not 'StdOut'):
+        			db_filepaths.append(output_files_fp[key].name)
+        	except AttributeError:
+        		pass
+
+        (self.files_to_remove).extend(db_filepaths)
+
 
 if __name__ == '__main__':
     main()

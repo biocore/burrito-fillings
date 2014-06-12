@@ -13,7 +13,10 @@ from brokit.sortmerna_v2 import (IndexDB,
 from tempfile import mkstemp, mkdtemp
 from skbio.util.misc import remove_files
 from os import close
-from os.path import abspath, exists
+from os.path import abspath, exists, getsize
+from skbio.parse.sequences import parse_fasta
+import re
+
 
 
 # ----------------------------------------------------------------------------
@@ -320,11 +323,19 @@ class SortmernaV2Tests(TestCase):
                                             HALT_EXEC=False)
 
         # Check all sortmerna output files exist
-        output_files = set([self.output_dir + ext\
-        	for ext in ['picked_otus_otus.txt', 'picked_otus.log', 'picked_otus_denovo.fasta', 'picked_otus.fasta']])
+        output_files = [self.output_dir + ext\
+        	for ext in ['picked_otus_otus.txt', 'picked_otus.log', 'picked_otus_denovo.fasta', 'picked_otus.fasta']]
 
+        # File size (in bytes) for picked_otus_otus.txt, picked_otus.log, picked_otus_denovo.fasta, picked_otus.fasta
+        output_files_size = [346, 935, 3748, 7574]
+
+        # Check output files have the correct size
+        i = 0
         for fp in output_files:
         	self.assertTrue(exists(fp))
+        	size = getsize(fp)
+        	self.assertTrue(size,output_files_size[i])
+        	i = i+1
 
         # Random reads that should not appear in any output file
         random_reads = ['simulated_random_reads.fa.000000000', \
@@ -338,31 +349,6 @@ class SortmernaV2Tests(TestCase):
         				'simulated_random_reads.fa.000000008', \
         				'simulated_random_reads.fa.000000009']
 
-        f_aligned = output_files_fp['FastaMatches']
-        f_otumap = output_files_fp['OtuMap']
-        f_denovo = output_files_fp['FastaForDenovo']
-
-        random_reads_to_search = re.compile('|'.join(random_reads))
-
-        # Check none of the random reads are in the aligned FASTA file
-        for i, s in enumerate(f_aligned)
-        	if random_reads_to_search.search(s)
-        		print("ERROR: random read %s found in the alignment file %s at line %r"  % \
-        			(i, output_files[3], s))
-
-        # Check none of the random reads are in the OTU map
-        for i, s in enumerate(f_otumap)
-        	if random_reads_to_search.search(s)
-        		print("ERROR: random read %s found in the OTU map file %s at line %r" % \
-        			(i, output_files[0], s))
-
-        # Check none of the random reads are in the de novo FASTA file
-        for i, s in enumerate(f_denovo)
-        	if random_reads_to_search.search(s)
-        		print("ERROR: random read %s found in the FASTA file for de novo reads %s at line %r" % \
-        			(i, output_files[2], s))
-
-
         # Reads passing E-value threshold and with similarity/coverage >=97%
         otu_reads = ['HMPMockV1.2.Staggered2.673827_47', \
         			'HMPMockV1.2.Staggered2.673827_115', \
@@ -372,24 +358,70 @@ class SortmernaV2Tests(TestCase):
         			'HMPMockV1.2.Staggered2.673827_203', \
         			'HMPMockV1.2.Staggered2.673827_207', \
         			'HMPMockV1.2.Staggered2.673827_215', \
-        			'HMPMockV1.2.Staggered2.673827_218', 
+        			'HMPMockV1.2.Staggered2.673827_218', \
         			'HMPMockV1.2.Staggered2.673827_220']
 
         # Reads passing E-value threshold and with similarity/coverage <97%
-        denovo_reads = ['HMPMockV1.2.Staggered2.673827_0' \
-        				'HMPMockV1.2.Staggered2.673827_1' \
-        				'HMPMockV1.2.Staggered2.673827_2' \
-        				'HMPMockV1.2.Staggered2.673827_3' \
-        				'HMPMockV1.2.Staggered2.673827_4' \
-        				'HMPMockV1.2.Staggered2.673827_5' \
-        				'HMPMockV1.2.Staggered2.673827_6' \
-        				'HMPMockV1.2.Staggered2.673827_7' \
-        				'HMPMockV1.2.Staggered2.673827_8' \
+        denovo_reads = ['HMPMockV1.2.Staggered2.673827_0', \
+        				'HMPMockV1.2.Staggered2.673827_1', \
+        				'HMPMockV1.2.Staggered2.673827_2', \
+        				'HMPMockV1.2.Staggered2.673827_3', \
+        				'HMPMockV1.2.Staggered2.673827_4', \
+        				'HMPMockV1.2.Staggered2.673827_5', \
+        				'HMPMockV1.2.Staggered2.673827_6', \
+        				'HMPMockV1.2.Staggered2.673827_7', \
+        				'HMPMockV1.2.Staggered2.673827_8', \
         				'HMPMockV1.2.Staggered2.673827_9']
 
         # Check correct number of OTU clusters
         otu_clusters = ['295053']
 
+        f_aligned = output_files_fp['FastaMatches']
+        f_otumap = output_files_fp['OtuMap']
+        f_denovo = output_files_fp['FastaForDenovo']
+
+        # Verify the aligned FASTA file 
+        for label, seq in parse_fasta(f_aligned):
+        	id = label.split()[0]
+        	# Read is not random
+        	self.assertNotIn(id, random_reads)
+        	# Read is either in otu_reads or denovo_reads
+        	self.assertIn(id, otu_reads+denovo_reads)
+
+        # Verify the de novo reads FASTA file
+        for label, seq in parse_fasta(f_denovo):
+        	id = label.split()[0]
+        	# Read is not random
+        	self.assertNotIn(id, random_reads)
+        	# Read is not an OTU read
+        	self.assertNotIn(id, otu_reads)
+        	# Read is a de novo read
+        	self.assertIn(id, denovo_reads)
+
+        # Check the OTU map
+        for line in f_otumap:
+        	otu_entry = line.split()
+        	# Cluster ID is correct
+        	self.assertIn(otu_entry[0],otu_clusters)
+        	# Each read in the cluster must exclusively be an OTU read
+        	for read in otu_entry[1:]:
+        		self.assertNotIn(read, random_reads)
+        		self.assertNotIn(read, denovo_reads)
+        		self.assertIn(read, otu_reads)
+
+        # Check log file number of clusters and failures corresponds to 
+        # the results in the output files
+        f_log = output_files_fp['LogFile']
+        num_clusters = 0
+        num_failures = 0
+        for line in f_log:
+        	if "Total OTUs" in line:
+        		num_clusters = (re.split('Total OTUs = ', line)[1]).strip()
+        	elif "non-aligned reads" in line:
+        		num_failures = (re.split('non-aligned reads = | \(', line)[1]).strip()
+
+        self.assertEqual(int(num_clusters),len(otu_clusters))
+        self.assertEqual(int(num_failures),len(denovo_reads))
 
         # Files created sortmerna to be deleted (StdErr and StdOut were already
         # removed in sortmerna_ref_cluster)

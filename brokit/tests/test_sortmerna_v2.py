@@ -252,7 +252,6 @@ class SortmernaV2Tests(TestCase):
         self.files_to_remove = [self.file_reference_seq_fp, self.file_read_seqs_fp]
 
     def tearDown(self):
-
     	remove_files(self.files_to_remove)
 
 
@@ -303,7 +302,7 @@ class SortmernaV2Tests(TestCase):
 
         # Check all sortmerna output files exist
         output_files = [self.output_dir + ext\
-        	for ext in ['picked_otus_otus.txt', 'picked_otus.log', 'picked_otus_denovo.fasta', 'picked_otus.fasta']]
+        	for ext in ['sortmerna_otus_otus.txt', 'sortmerna_otus.log', 'sortmerna_otus_denovo.fasta', 'sortmerna_otus.fasta']]
 
         # File size (in bytes) for picked_otus_otus.txt, picked_otus.log, picked_otus_denovo.fasta, picked_otus.fasta
         output_files_size = [346, 935, 3748, 7574]

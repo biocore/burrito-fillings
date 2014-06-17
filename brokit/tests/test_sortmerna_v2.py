@@ -216,27 +216,6 @@ TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCC
 TGTAGCGGTGACATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTGGGGAT
 """
 
-# Expected OTU map output file
-expected_otumap_fp = """
-""".split('\n')
-
-# Expected FASTA output file
-# (reads passing the E-value threshold and _above_ the similarity
-# and coverage threshold (eg., 97%))
-expected_fasta_fp = """
-""".split('\n')
-
-# Expected FASTA output file for de novo OTU picking 
-# (reads passing the E-value threshold but _below_ the similarity 
-# and coverage threshold (eg., 97%))
-expected_fasta_denovo_fp = """
-""".split('\n')
-
-
-# Expected BLAST alignments
-expected_blast_fp = """
-"""
-
 
 
 # Test class and cases

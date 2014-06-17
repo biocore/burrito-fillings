@@ -13,7 +13,7 @@ Application controller for SortMeRNA version 2.0
 # ----------------------------------------------------------------------------
 
 
-from os.path import split, splitext
+from os.path import split, splitext, dirname
 from skbio.app.util import CommandLineApplication, ResultPath
 from skbio.app.parameters import ValuedParameter, FlagParameter, FilePath
 from glob import glob
@@ -245,7 +245,7 @@ class Sortmerna(CommandLineApplication):
 def sortmerna_ref_cluster(seq_path=None,
                           sortmerna_db=None,
                           refseqs_fp=None,
-                          output_dir=None,
+                          result_path=None,
                           max_e_value=None,
                           similarity=None,
                           coverage=None,
@@ -279,11 +279,12 @@ def sortmerna_ref_cluster(seq_path=None,
         sys.exit(1)
 
     # Set output results path (for Blast alignments, clusters and failures)
+    output_dir = dirname(result_path)
     if output_dir is not None:
         if not output_dir.endswith('/'):
-            output_file = output_dir + '/picked_otus'
+            output_file = output_dir + '/sortmerna_otus'
         else:
-            output_file = output_dir + 'picked_otus'
+            output_file = output_dir + 'sortmerna_otus'
         smr.Parameters['--aligned'].on(output_file)
 
     # Set E-value threshold

@@ -40,7 +40,7 @@ class Sumaclust(CommandLineApplication):
     	'-t': ValuedParameter('-', Name='t', Delimiter=' ', Value=0.97, IsPath=False),
     	# Maximum ratio between abundance of two sequences so that the less abundant
     	# one can be considered as a variant of the more abundant one. 
-    	'-R': ValuedParameter('-', Name='R', Delimiter=' ', Value=0.50, IsPath=False)
+    	'-R': ValuedParameter('-', Name='R', Delimiter=' ', Value=1, IsPath=False)
     }
 
     _synonyms = {}
@@ -127,8 +127,15 @@ def sumaclust_denovo_cluster(seq_path=None,
 	# (to be passed as final arguments in the sumaclust command)
 	app_result = sumaclust(seq_path)
 
-	# Return all output files 
-	return app_result
+	# Put clusters into a list of lists
+	clusters = []
+	f_otumap = app_result['OtuMap']
+	for line in f_otumap:	
+		cluster = line.strip().split('\t')
+		clusters.append(cluster[1:])
+
+	# Return clusters 
+	return clusters
 
 
 

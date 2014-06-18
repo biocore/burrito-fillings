@@ -137,7 +137,7 @@ class SumaclustV1Tests(TestCase):
 
 		result_path = self.output_dir + "sumaclust_otus.txt"
 
-		output_files = sumaclust_denovo_cluster(seq_path=self.file_read_seqs,
+		clusters = sumaclust_denovo_cluster(seq_path=self.file_read_seqs,
 												result_path=result_path,
 												shortest_len=True,
 												similarity=None,
@@ -146,15 +146,36 @@ class SumaclustV1Tests(TestCase):
 												HALT_EXEC=False)
 
 		# Check the OTU map was output with the correct size
-		otumap = output_files['OtuMap'].name
-		self.assertTrue(exists(otumap))
+		self.assertTrue(exists(result_path))
 
 		# Checkout output file has the correct size
-		size = getsize(otumap)
+		size = getsize(result_path)
 		self.assertTrue(size,270)
 
 		# Check file identical to expected result (the hash should be identical)
-		self.assertTrue(filecmp.cmp(otumap,self.file_otumap))
+		self.assertTrue(filecmp.cmp(result_path,self.file_otumap))
+
+		# Check the returned clusters list of lists is as expected
+		expected_clusters = [['s1_844', 's1_1886', 's1_5347', 's1_5737',
+							  's1_7014', 's1_7881', 's1_7040', 's1_6200',
+							  's1_1271', 's1_8615'],
+							 ['s1_8977', 's1_10439', 's1_12366', 's1_15985',
+							  's1_21935', 's1_11650', 's1_11001', 's1_8592', 
+							  's1_14735', 's1_4677'],
+							 ['s1_630', 's1_4572', 's1_5748', 's1_13961',
+							  's1_2369', 's1_3750', 's1_7634', 's1_8623',
+							  's1_8744', 's1_6846']]
+
+		# Should be 3 clusters
+		self.assertEqual(3,len(clusters))
+		i=0
+		for actual_cluster in clusters:
+			actual_cluster.sort()
+			expected_clusters[i].sort()
+			self.assertEqual(actual_cluster,expected_clusters[i])
+			i+=1
+
+
 
 if __name__ == '__main__':
     main()

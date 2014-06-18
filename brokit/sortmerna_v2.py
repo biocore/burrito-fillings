@@ -320,6 +320,10 @@ def sortmerna_ref_cluster(seq_path=None,
     if tabular:
         smr.Parameters['--blast'].on("3")
 
+    # Set number of threads
+    if threads is not None:
+        smr.Parameters['-a'].on(threads)
+
     # Run sortmerna
     app_result = smr()
 

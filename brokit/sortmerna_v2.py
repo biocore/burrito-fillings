@@ -17,6 +17,9 @@ from os.path import split, splitext, dirname
 from skbio.app.util import CommandLineApplication, ResultPath
 from skbio.app.parameters import ValuedParameter, FlagParameter, FilePath
 from glob import glob
+from os import remove 
+from skbio.parse.sequences import parse_fasta
+import re
 
 class IndexDB(CommandLineApplication):
     """ SortMeRNA generic application controller for building databases    
@@ -141,10 +144,10 @@ class Sortmerna(CommandLineApplication):
 
         # Output log file with parameters used to launch sortmerna and statistics on final results
         '--log': FlagParameter('--', Name='log', Value=True),
-                        
+
         # Output Fasta or Fastq file of aligned reads (flag)
         '--fastx': FlagParameter('--', Name='fastx', Value=True),
-            
+                                    
         # Output BLAST alignment file (flag)
         '--blast': ValuedParameter('--', Name='blast', Delimiter=' ', IsPath=False, Value=None),
                                     
@@ -162,10 +165,10 @@ class Sortmerna(CommandLineApplication):
             
         # Query coverage threshold
         '--coverage': ValuedParameter('--', Name='coverage', Delimiter=' ', IsPath=False, Value="0.97"),
-            
+
         # Output Fasta/Fastq file with reads failing to pass the --id and --coverage thresholds for de novo clustering
         '--de_novo_otu': FlagParameter('--', Name='de_novo_otu', Value=True),
-            
+                        
         # Output an OTU map
         '--otu_map': FlagParameter('--', Name='otu_map', Value=True)
     }
@@ -255,9 +258,20 @@ def sortmerna_ref_cluster(seq_path=None,
                           HALT_EXEC=False
                           ):
     ''' Function  : Launch sortmerna OTU picker 
-        Parameters: sortmerna_db, refseqs_fp, seq_path and output_dir are mandatory and must already exist 
-        Return    : a dictionary of all output files set in _get_result_paths() with the file descriptors
-                    pointing to an open file as the values
+
+        Parameters: seq_path, filepath to reads;
+                    sortmerna_db, indexed reference database;
+                    refseqs_fp, filepath of reference sequences;
+                    result_path, filepath to output OTU map;
+                    max_e_value, E-value threshold;
+                    similarity, similarity %id threshold;
+                    coverage, query coverage threshold;
+                    threads, number of threads to use (OpenMP);
+                    tabular, output BLAST tabular alignments;
+                    best, number of best alignments to output per read;
+
+        Return    : clusters, (list of lists) 
+                    failures, reads which did not align (list)
     '''
 
     # Instantiate the object
@@ -309,5 +323,27 @@ def sortmerna_ref_cluster(seq_path=None,
     # Run sortmerna
     app_result = smr()
 
-    return app_result
+    # Put clusters into a list of lists
+    clusters = []
+    f_otumap = app_result['OtuMap']
+    for line in f_otumap:
+        cluster = line.strip().split('\t')
+        clusters.append(cluster[1:])
+
+    # Put failures into a list
+    failures = []
+
+    f_failure = app_result['FastaForDenovo']
+    for label, seq in parse_fasta(f_failure):
+        label = re.split('>| ',label)[0]
+        failures.append(label)
+
+    # remove the aligned FASTA file and failures FASTA file
+    # (currently these are re-constructed using pick_rep_set.py
+    # further in the OTU-picking pipeline)
+    smr_files_to_remove = [app_result['FastaForDenovo'].name, 
+                            app_result['FastaMatches'].name,
+                            app_result['OtuMap'].name]
+
+    return clusters, failures, smr_files_to_remove
 

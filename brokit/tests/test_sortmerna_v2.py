@@ -287,7 +287,7 @@ class SortmernaV2Tests(TestCase):
         (self.files_to_remove).extend(db_files_to_remove)
 
     	# Run SortMeRNA 
-        output_files_fp = sortmerna_ref_cluster(
+        clusters, failures, smr_files_to_remove = sortmerna_ref_cluster(
                                             self.file_read_seqs_fp,
                                             sortmerna_db,
                                             self.file_reference_seq_fp,
@@ -351,12 +351,12 @@ class SortmernaV2Tests(TestCase):
         				'HMPMockV1.2.Staggered2.673827_8', \
         				'HMPMockV1.2.Staggered2.673827_9']
 
-        # Check correct number of OTU clusters
+        # Check correct number of OTU clusters in file
         otu_clusters = ['295053']
 
-        f_aligned = output_files_fp['FastaMatches']
-        f_otumap = output_files_fp['OtuMap']
-        f_denovo = output_files_fp['FastaForDenovo']
+        f_aligned = open(output_files[3], "U")
+        f_otumap = open(output_files[0], "U")
+        f_denovo = open(output_files[2], "U")
 
         # Verify the aligned FASTA file 
         for label, seq in parse_fasta(f_aligned):
@@ -387,9 +387,29 @@ class SortmernaV2Tests(TestCase):
         		self.assertNotIn(read, denovo_reads)
         		self.assertIn(read, otu_reads)
 
+
+        # Check returned list of lists of clusters
+        expected_cluster = ['HMPMockV1.2.Staggered2.673827_47',
+        					'HMPMockV1.2.Staggered2.673827_115',	
+        					'HMPMockV1.2.Staggered2.673827_122',
+        					'HMPMockV1.2.Staggered2.673827_161',
+        					'HMPMockV1.2.Staggered2.673827_180',
+        					'HMPMockV1.2.Staggered2.673827_203',
+        					'HMPMockV1.2.Staggered2.673827_207',
+        					'HMPMockV1.2.Staggered2.673827_215',
+        					'HMPMockV1.2.Staggered2.673827_218',
+        					'HMPMockV1.2.Staggered2.673827_220']
+
+        # Should only have 1 cluster
+        self.assertEqual(1,len(clusters))
+        for actual_cluster in clusters:
+        	actual_cluster.sort()
+        	expected_cluster.sort()
+        	self.assertEqual(actual_cluster,expected_cluster)
+
         # Check log file number of clusters and failures corresponds to 
         # the results in the output files
-        f_log = output_files_fp['LogFile']
+        f_log = open(output_files[1], "U")
         num_clusters = 0
         num_failures = 0
         for line in f_log:
@@ -403,16 +423,7 @@ class SortmernaV2Tests(TestCase):
 
         # Files created sortmerna to be deleted (StdErr and StdOut were already
         # removed in sortmerna_ref_cluster)
-        db_filepaths = []
-        for key in output_files_fp:
-        	try:
-        		if (key is not 'StdErr' and \
-        			key is not 'StdOut'):
-        			db_filepaths.append(output_files_fp[key].name)
-        	except AttributeError:
-        		pass
-
-        (self.files_to_remove).extend(db_filepaths)
+        (self.files_to_remove).extend(output_files)
 
 
 if __name__ == '__main__':

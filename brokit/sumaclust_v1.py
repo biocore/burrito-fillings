@@ -122,6 +122,10 @@ def sumaclust_denovo_cluster(seq_path=None,
 	if shortest_len is False:
 		sumaclust.Parameters['-l'].off()
 
+	# Set the number of threads
+	if threads is not 1:
+		sumaclust.Parameters['-p'].on(threads)
+
 	# Launch SumaClust,
 	# set the data string to include the read filepath
 	# (to be passed as final arguments in the sumaclust command)

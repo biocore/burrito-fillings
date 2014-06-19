@@ -57,6 +57,13 @@ class Sumaclust(CommandLineApplication):
     	# OTU map (mandatory output)
     	result['OtuMap'] = ResultPath(Path=self.Parameters['-O'].Value,IsWritten=True)
 
+    	# SumaClust will not produce any output file if the 
+    	# input file was empty, so we create an empty
+    	# output file
+    	if isfile(result['OtuMap'].Path) is False:
+    		otumap_f = open(result['OtuMap'].Path, 'w')
+    		otumap_f.close()
+
     	return result
 
 	def getHelp(self):

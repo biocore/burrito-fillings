@@ -15,11 +15,10 @@ Application controller for SortMeRNA version 2.0
 
 from os.path import split, splitext, dirname
 from glob import glob
-from os import remove
 import re
 
 from skbio.app.util import CommandLineApplication, ResultPath
-from skbio.app.parameters import ValuedParameter, FlagParameter, FilePath
+from skbio.app.parameters import ValuedParameter, FlagParameter
 from skbio.parse.sequences import parse_fasta
 
 

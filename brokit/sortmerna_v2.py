@@ -205,8 +205,7 @@ class Sortmerna(CommandLineApplication):
         # at this point the parameter --aligned should be set as
         # sortmerna will not run without it
         if not self.Parameters['--aligned'].isOn():
-            print "Error: "
-            sys.exit(0)
+            raise ValueError("Error: the --aligned parameter must be set.")
 
         # file base name for aligned reads
         output_base = self.Parameters['--aligned'].Value
@@ -241,18 +240,16 @@ class Sortmerna(CommandLineApplication):
 
     def getHelp(self):
         """Method that points to documentation"""
-        help_str =\
-            """
-        SortMeRNA is hosted at:
-        http://bioinfo.lifl.fr/RNA/sortmerna/
-        https://github.com/biocore/sortmerna
-
-        The following paper should be cited if this resource is used:
-
-        Kopylova, E., Noe L. and Touzet, H.,
-        SortMeRNA: fast and accurate filtering of ribosomal RNAs in
-        metatranscriptomic data, Bioinformatics (2012) 28(24)
-        """
+        help_str = ("SortMeRNA is hosted at:\n"
+                    "http://bioinfo.lifl.fr/RNA/sortmerna/\n"
+                    "https://github.com/biocore/sortmerna\n\n"
+                    "The following paper should be cited if this resource is "
+                    "used:\n\n"
+                    "Kopylova, E., Noe L. and Touzet, H.,\n"
+                    "SortMeRNA: fast and accurate filtering of ribosomal RNAs "
+                    "in\n"
+                    "metatranscriptomic data, Bioinformatics (2012) 28(24)\n"
+                    )
         return help_str
 
 
@@ -293,17 +290,15 @@ def sortmerna_ref_cluster(seq_path=None,
     if seq_path is not None:
         smr.Parameters['--reads'].on(seq_path)
     else:
-        print "Error: an read file is mandatory input. "
-        sys.exit(1)
+        raise ValueError("Error: an read file is mandatory input.")
 
     # Set the input reference sequence + indexed database path
     if sortmerna_db is not None:
         smr.Parameters['--ref'].on(refseqs_fp + ',' + sortmerna_db)
     else:
-        print "Error: a indexed database for reference set %s must " \
-              " already exist. " % refseqs_fp
-        print "       Use indexdb_rna to index the database."
-        sys.exit(1)
+        raise ValueError("Error: a indexed database for reference set %s must"
+                         " already exist.\n       Use indexdb_rna to index the"
+                         " database." % refseqs_fp)
 
     # Set output results path (for Blast alignments, clusters and failures)
     output_dir = dirname(result_path)

@@ -11,12 +11,13 @@ from os import close
 from os.path import abspath, exists, getsize
 from tempfile import mkstemp, mkdtemp
 
+from skbio.util.misc import remove_files
+from skbio.parse.sequences import parse_fasta
+
 from brokit.sortmerna_v2 import (IndexDB,
                                  build_database_sortmerna,
                                  Sortmerna,
                                  sortmerna_ref_cluster)
-from skbio.util.misc import remove_files
-from skbio.parse.sequences import parse_fasta
 
 # ----------------------------------------------------------------------------
 # Copyright (c) 2014--, brokit development team

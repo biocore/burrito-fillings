@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Application controller for SortMeRNA version 2.0
 ================================================

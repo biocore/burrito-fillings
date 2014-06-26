@@ -159,7 +159,6 @@ def sumaclust_denovo_cluster(seq_path=None,
     app_result = sumaclust(seq_path)
 
     # Put clusters into a list of lists
-    clusters = []
     f_otumap = app_result['OtuMap']
     clusters = [line.strip().split('\t')[1:] for line in f_otumap]
 

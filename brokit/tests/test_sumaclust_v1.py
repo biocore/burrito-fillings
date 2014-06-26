@@ -10,6 +10,7 @@ import filecmp
 from tempfile import mkstemp, mkdtemp
 from os import close
 from os.path import exists, getsize, join
+from shutil import rmtree
 
 from skbio.util.misc import remove_files
 
@@ -42,7 +43,6 @@ class SumaclustV1Tests(TestCase):
         # write read sequences to tmp file
         with open(self.file_read_seqs, 'w') as tmp:
             tmp.write(self.read_seqs)
-        tmp.close()
 
         # create temporary file with final OTU map
         f, self.file_otumap = mkstemp(prefix='temp_otumap',
@@ -52,13 +52,13 @@ class SumaclustV1Tests(TestCase):
         # write OTU map to tmp file
         with open(self.file_otumap, 'w') as tmp:
             tmp.write(self.expected_otumap)
-        tmp.close()
 
         # list of files to remove
         self.files_to_remove = [self.file_read_seqs, self.file_otumap]
 
     def tearDown(self):
         remove_files(self.files_to_remove)
+        rmtree(self.output_dir)
 
     def check_clusters(self,
                        clusters=None,

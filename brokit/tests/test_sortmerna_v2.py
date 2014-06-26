@@ -112,7 +112,7 @@ class SortmernaV2Tests(TestCase):
         fasta_dir = dirname(abspath(self.file_reference_seq_fp))
         out_dir = dirname(sortmerna_db)
 
-        self.assertEqual(fasta_dir,out_dir)
+        self.assertEqual(fasta_dir, out_dir)
 
         self.assertRaises(ValueError,
                           sortmerna_ref_cluster,
@@ -126,7 +126,8 @@ class SortmernaV2Tests(TestCase):
                           seq_path=None,
                           sortmerna_db=sortmerna_db,
                           refseqs_fp=self.file_reference_seq_fp,
-                          result_path=join(self.output_dir, "sortmerna_otus.txt"))
+                          result_path=join(self.output_dir,
+                                           "sortmerna_otus.txt"))
 
     def test_tabular_output(self):
         """ SortMeRNA should output a BLAST tabular output
@@ -146,8 +147,8 @@ class SortmernaV2Tests(TestCase):
             result_path=join(self.output_dir, "sortmerna_otus.txt"),
             tabular=True)
 
-        self.assertTrue(exists(join(self.output_dir,"sortmerna_otus.blast")))
-
+        self.assertTrue(exists(join(self.output_dir,
+                                    "sortmerna_otus.blast")))
 
     def test_empty_result_path(self):
         """ SortMeRNA should fail with an empty indexed database
@@ -157,7 +158,8 @@ class SortmernaV2Tests(TestCase):
                           seq_path=self.file_read_seqs_fp,
                           sortmerna_db=None,
                           refseqs_fp=self.file_reference_seq_fp,
-                          result_path=join(self.output_dir, "sortmerna_otus.txt")
+                          result_path=join(self.output_dir,
+                                           "sortmerna_otus.txt")
                           )
 
     def test_sortmerna_default_param(self):

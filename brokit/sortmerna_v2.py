@@ -82,7 +82,8 @@ def build_database_sortmerna(fasta_path=None,
     """
 
     if fasta_path is None:
-        raise ValueError("Error: path to fasta reference sequences must exist.")
+        raise ValueError("Error: path to fasta reference "
+                         "sequences must exist.")
 
     fasta_dir, fasta_filename = split(fasta_path)
     if not output_dir:
@@ -93,7 +94,7 @@ def build_database_sortmerna(fasta_path=None,
 
     index_basename = splitext(fasta_filename)[0]
 
-    db_name = join(output_dir,index_basename)
+    db_name = join(output_dir, index_basename)
 
     # Instantiate the object
     sdb = IndexDB(WorkingDir=output_dir, HALT_EXEC=HALT_EXEC)
@@ -262,9 +263,9 @@ def sortmerna_ref_cluster(seq_path=None,
 
        Parameters
        ----------
-       seq_path     : str 
+       seq_path     : str
                       filepath to reads
-       sortmerna_db : str 
+       sortmerna_db : str
                       indexed reference database
        refseqs_fp   : str
                       filepath of reference sequences
@@ -272,23 +273,23 @@ def sortmerna_ref_cluster(seq_path=None,
                       filepath to output OTU map
        max_e_value  : float, optional
                       E-value threshold
-       similarity   : float, optional 
+       similarity   : float, optional
                       similarity %id threshold
-       coverage     : float, optional 
+       coverage     : float, optional
                       query coverage % threshold
-       threads      : int, optional 
+       threads      : int, optional
                       number of threads to use (OpenMP)
-       tabular      : bool, optional 
+       tabular      : bool, optional
                       output BLAST tabular alignments
        best         : int, optional
                       number of best alignments to output per read
 
        Returns
-       -------   
+       -------
        clusters     : list of lists
-                      OTU ids and reads mapping to them 
+                      OTU ids and reads mapping to them
 
-       failures     : list 
+       failures     : list
                       reads which did not align
     """
 
@@ -303,19 +304,19 @@ def sortmerna_ref_cluster(seq_path=None,
 
     # Set the input reference sequence + indexed database path
     if sortmerna_db is not None:
-        smr.Parameters['--ref'].on("%s,%s" % (refseqs_fp,sortmerna_db))
+        smr.Parameters['--ref'].on("%s,%s" % (refseqs_fp, sortmerna_db))
     else:
         raise ValueError("Error: an indexed database for reference set %s must"
                          " already exist.\nUse indexdb_rna to index the"
                          " database." % refseqs_fp)
 
     if result_path is None:
-    	raise ValueError("Error: the result path must be set.")
+        raise ValueError("Error: the result path must be set.")
 
     # Set output results path (for Blast alignments, clusters and failures)
     output_dir = dirname(result_path)
     if output_dir is not None:
-        output_file = join(output_dir,"sortmerna_otus")
+        output_file = join(output_dir, "sortmerna_otus")
         smr.Parameters['--aligned'].on(output_file)
 
     # Set E-value threshold
@@ -350,7 +351,8 @@ def sortmerna_ref_cluster(seq_path=None,
 
     # Put failures into a list
     f_failure = app_result['FastaForDenovo']
-    failures = [re.split('>| ', label)[0] for label, seq in parse_fasta(f_failure)]
+    failures = [re.split('>| ', label)[0]
+                for label, seq in parse_fasta(f_failure)]
 
     # remove the aligned FASTA file and failures FASTA file
     # (currently these are re-constructed using pick_rep_set.py

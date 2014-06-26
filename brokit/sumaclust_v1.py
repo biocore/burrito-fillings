@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Application controller for SumaClust version 1.0
 ================================================
@@ -12,7 +11,7 @@ Application controller for SumaClust version 1.0
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from os.path import split, splitext, isdir, dirname, isfile
+from os.path import split, isdir, dirname, isfile, exists, realpath
 
 from skbio.app.util import CommandLineApplication, ResultPath
 from skbio.app.parameters import ValuedParameter, FlagParameter
@@ -32,7 +31,7 @@ class Sumaclust(CommandLineApplication):
         '-O': ValuedParameter('-', Name='O', Delimiter=' ',
                               Value=None, IsPath=True),
 
-        # FASTA output file is deactivated (not used in pick_otus)
+        # Flag '-f' must be passed to deactivate FASTA output
         '-f': FlagParameter('-', Name='f', Value=True),
 
         # Number of threads
@@ -72,7 +71,7 @@ class Sumaclust(CommandLineApplication):
         # SumaClust will not produce any output file if the
         # input file was empty, so we create an empty
         # output file
-        if isfile(result['OtuMap'].Path) is False:
+        if not isfile(result['OtuMap'].Path):
             otumap_f = open(result['OtuMap'].Path, 'w')
             otumap_f.close()
 
@@ -88,8 +87,8 @@ class Sumaclust(CommandLineApplication):
                     "SUMATRA and SUMACLUST: fast and exact comparison and "
                     "clustering "
                     "of full-length barcode sequences\n"
-                    "Mercier, C., Boyer, F., Taberlet, P., Bonin, A., "
-                    "Kopylova, E. and Coissac E.,"
+                    "Mercier, C., Boyer, F., Kopylova, E., Taberlet, P., "
+                    "Bonin, A. and Coissac E.,"
                     "2014 (in preparation)\n"
                     )
 
@@ -98,10 +97,10 @@ class Sumaclust(CommandLineApplication):
 
 def sumaclust_denovo_cluster(seq_path=None,
                              result_path=None,
-                             shortest_len=None,
-                             similarity=None,
+                             shortest_len=True,
+                             similarity=0.97,
                              threads=1,
-                             exact=None,
+                             exact=False,
                              HALT_EXEC=False
                              ):
     """ Function  : launch SumaClust de novo OTU picker
@@ -119,32 +118,40 @@ def sumaclust_denovo_cluster(seq_path=None,
                     as the values
     """
 
+    # Sequence path is mandatory
+    if (seq_path is None
+            or not exists(seq_path)):
+        raise ValueError("Error: FASTA query sequence filepath is "
+                         "mandatory input.")
+
+    # Output directory is mandatory
+    if (result_path is None
+            or not isdir(dirname(realpath(result_path)))):
+        raise ValueError("Error: output directory is mandatory input.")
+
     # Instantiate the object
     sumaclust = Sumaclust(HALT_EXEC=HALT_EXEC)
 
     # Set the OTU-map filepath
-    output_dir = dirname(result_path)
-    if isdir(output_dir):
-        sumaclust.Parameters['-O'].on(result_path)
-    else:
-        raise ValueError("The output directory %s does not exist."
-                         % output_dir)
+    sumaclust.Parameters['-O'].on(result_path)
 
     # Set the similarity threshold
     if similarity is not None:
         sumaclust.Parameters['-t'].on(similarity)
 
     # Set the option to perform exact clustering (default: False)
-    if exact is True:
+    if exact:
         sumaclust.Parameters['-e'].on()
 
     # Turn off option for reference sequence length to be the shortest
-    if shortest_len is False:
+    if not shortest_len:
         sumaclust.Parameters['-l'].off()
 
     # Set the number of threads
-    if threads is not 1:
+    if threads > 1:
         sumaclust.Parameters['-p'].on(threads)
+    elif threads < 1:
+        raise ValueError("Number of threads must be positive.")
 
     # Launch SumaClust,
     # set the data string to include the read filepath
@@ -154,9 +161,7 @@ def sumaclust_denovo_cluster(seq_path=None,
     # Put clusters into a list of lists
     clusters = []
     f_otumap = app_result['OtuMap']
-    for line in f_otumap:
-        cluster = line.strip().split('\t')
-        clusters.append(cluster[1:])
+    clusters = [line.strip().split('\t')[1:] for line in f_otumap]
 
     # Return clusters
     return clusters

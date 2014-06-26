@@ -13,7 +13,7 @@ Application controller for SortMeRNA version 2.0
 # ----------------------------------------------------------------------------
 
 
-from os.path import split, splitext, dirname
+from os.path import split, splitext, dirname, join
 from glob import glob
 import re
 
@@ -29,6 +29,7 @@ class IndexDB(CommandLineApplication):
     _command_delimiter = ' '
     _parameters = {
         # Fasta reference file followed by indexed reference
+        # (ex. /path/to/refseqs.fasta,/path/to/refseqs.idx)
         '--ref': ValuedParameter('--', Name='ref', Delimiter=' ', IsPath=True),
 
         # Maximum number of positions to store for each unique seed
@@ -45,27 +46,23 @@ class IndexDB(CommandLineApplication):
     def _get_result_paths(self, data):
         """ Build the dict of result filepaths
         """
-        wd = self.WorkingDir
-
-        db_name = (self.Parameters['--ref'].Value).split('/')[-1]
+        # get the filepath of the indexed database (after comma)
+        # /path/to/refseqs.fasta,/path/to/refseqs.idx
+        #                        ^------------------^
+        db_name = (self.Parameters['--ref'].Value).split(',')[1]
 
         result = {}
         extensions = ['bursttrie', 'kmer', 'pos', 'stats']
         for extension in extensions:
-            for file_path in glob(wd + (db_name + '.' + extension + '*')):
+            for file_path in glob("%s.%s*" % (db_name, extension)):
                 # this will match e.g. nr.bursttrie_0.dat, nr.bursttrie_1.dat
                 # and nr.stats
                 key = file_path.split(db_name + '.')[1]
                 result[key] = ResultPath(Path=file_path, IsWritten=True)
         return result
 
-    def _accept_exit_status(self, exit_status):
-        """ Test for acceptable exit status
-        """
-        return exit_status == 0
 
-
-def build_database_sortmerna(fasta_path,
+def build_database_sortmerna(fasta_path=None,
                              max_pos=None,
                              output_dir=None,
                              HALT_EXEC=False):
@@ -84,6 +81,9 @@ def build_database_sortmerna(fasta_path,
          print the command -- useful for debugging
     """
 
+    if fasta_path is None:
+        raise ValueError("Error: path to fasta reference sequences must exist.")
+
     fasta_dir, fasta_filename = split(fasta_path)
     if not output_dir:
         output_dir = fasta_dir or '.'
@@ -93,17 +93,14 @@ def build_database_sortmerna(fasta_path,
 
     index_basename = splitext(fasta_filename)[0]
 
-    if not output_dir.endswith('/'):
-        db_name = output_dir + '/' + index_basename
-    else:
-        db_name = output_dir + index_basename
+    db_name = join(output_dir,index_basename)
 
     # Instantiate the object
     sdb = IndexDB(WorkingDir=output_dir, HALT_EXEC=HALT_EXEC)
 
     # The parameter --ref STRING must follow the format where
     # STRING = /path/to/ref.fasta,/path/to/ref.idx
-    sdb.Parameters['--ref'].on(fasta_path + ',' + db_name)
+    sdb.Parameters['--ref'].on("%s,%s" % (fasta_path, db_name))
 
     # Set temporary directory
     sdb.Parameters['--tmpdir'].on(output_dir)
@@ -119,13 +116,8 @@ def build_database_sortmerna(fasta_path,
     # first however remove the StdErr and StdOut filepaths
     # as they files will be destroyed at the exit from
     # this function (IndexDB is a local instance)
-    db_filepaths = []
-    for key in app_result:
-        try:
-            if (key is not 'StdErr' and key is not 'StdOut'):
-                db_filepaths.append(app_result[key].name)
-        except AttributeError:
-            pass
+    db_filepaths = [v.name for k, v in app_result.items()
+                    if k not in {'StdErr', 'StdOut'} and hasattr(v, 'name')]
 
     return db_name, db_filepaths
 
@@ -145,18 +137,24 @@ class Sortmerna(CommandLineApplication):
         '--ref': ValuedParameter('--', Name='ref', Delimiter=' ',
                                  IsPath=True, Value=None),
 
-        # File path + base name for output files for aligned reads
+        # File path + base name for all output files
         '--aligned': ValuedParameter('--', Name='aligned', Delimiter=' ',
                                      IsPath=True, Value=None),
 
         # Output log file with parameters used to launch sortmerna and
-        # statistics on final results
+        # statistics on final results (the log file takes on
+        # the basename given in --aligned and the extension '.log')
         '--log': FlagParameter('--', Name='log', Value=True),
 
         # Output Fasta or Fastq file of aligned reads (flag)
         '--fastx': FlagParameter('--', Name='fastx', Value=True),
 
-        # Output BLAST alignment file (flag)
+        # Output BLAST alignment file (BLAST tabular format
+        # including two trailing columns for CIGAR string and
+        # % query coverage)
+        # If BLAST output is set (pick_otus.py --sortmerna_tabular
+        # flag) then '--blast INT' is set to '--blast 3',
+        # otherwise it is not passed to the command (Value=None)
         '--blast': ValuedParameter('--', Name='blast', Delimiter=' ',
                                    IsPath=False, Value=None),
 
@@ -203,7 +201,7 @@ class Sortmerna(CommandLineApplication):
 
         # at this point the parameter --aligned should be set as
         # sortmerna will not run without it
-        if not self.Parameters['--aligned'].isOn():
+        if self.Parameters['--aligned'].isOff():
             raise ValueError("Error: the --aligned parameter must be set.")
 
         # file base name for aligned reads
@@ -232,11 +230,6 @@ class Sortmerna(CommandLineApplication):
 
         return result
 
-    def _accept_exit_status(self, exit_status):
-        """ Test for acceptable exit status
-        """
-        return exit_status == 0
-
     def getHelp(self):
         """Method that points to documentation"""
         help_str = ("SortMeRNA is hosted at:\n"
@@ -257,30 +250,47 @@ def sortmerna_ref_cluster(seq_path=None,
                           sortmerna_db=None,
                           refseqs_fp=None,
                           result_path=None,
-                          max_e_value=None,
-                          similarity=None,
-                          coverage=None,
-                          threads=None,
                           tabular=False,
-                          best=None,
+                          max_e_value=1,
+                          similarity=0.97,
+                          coverage=0.97,
+                          threads=1,
+                          best=1,
                           HALT_EXEC=False
                           ):
-    ''' Function  : Launch sortmerna OTU picker
+    """Launch sortmerna OTU picker
 
-        Parameters: seq_path, filepath to reads;
-                    sortmerna_db, indexed reference database;
-                    refseqs_fp, filepath of reference sequences;
-                    result_path, filepath to output OTU map;
-                    max_e_value, E-value threshold;
-                    similarity, similarity %id threshold;
-                    coverage, query coverage threshold;
-                    threads, number of threads to use (OpenMP);
-                    tabular, output BLAST tabular alignments;
-                    best, number of best alignments to output per read;
+       Parameters
+       ----------
+       seq_path     : str 
+                      filepath to reads
+       sortmerna_db : str 
+                      indexed reference database
+       refseqs_fp   : str
+                      filepath of reference sequences
+       result_path  : str
+                      filepath to output OTU map
+       max_e_value  : float, optional
+                      E-value threshold
+       similarity   : float, optional 
+                      similarity %id threshold
+       coverage     : float, optional 
+                      query coverage % threshold
+       threads      : int, optional 
+                      number of threads to use (OpenMP)
+       tabular      : bool, optional 
+                      output BLAST tabular alignments
+       best         : int, optional
+                      number of best alignments to output per read
 
-        Return    : clusters, (list of lists)
-                    failures, reads which did not align (list)
-    '''
+       Returns
+       -------   
+       clusters     : list of lists
+                      OTU ids and reads mapping to them 
+
+       failures     : list 
+                      reads which did not align
+    """
 
     # Instantiate the object
     smr = Sortmerna(HALT_EXEC=HALT_EXEC)
@@ -289,23 +299,23 @@ def sortmerna_ref_cluster(seq_path=None,
     if seq_path is not None:
         smr.Parameters['--reads'].on(seq_path)
     else:
-        raise ValueError("Error: an read file is mandatory input.")
+        raise ValueError("Error: a read file is mandatory input.")
 
     # Set the input reference sequence + indexed database path
     if sortmerna_db is not None:
-        smr.Parameters['--ref'].on(refseqs_fp + ',' + sortmerna_db)
+        smr.Parameters['--ref'].on("%s,%s" % (refseqs_fp,sortmerna_db))
     else:
-        raise ValueError("Error: a indexed database for reference set %s must"
-                         " already exist.\n       Use indexdb_rna to index the"
+        raise ValueError("Error: an indexed database for reference set %s must"
+                         " already exist.\nUse indexdb_rna to index the"
                          " database." % refseqs_fp)
+
+    if result_path is None:
+    	raise ValueError("Error: the result path must be set.")
 
     # Set output results path (for Blast alignments, clusters and failures)
     output_dir = dirname(result_path)
     if output_dir is not None:
-        if not output_dir.endswith('/'):
-            output_file = output_dir + '/sortmerna_otus'
-        else:
-            output_file = output_dir + 'sortmerna_otus'
+        output_file = join(output_dir,"sortmerna_otus")
         smr.Parameters['--aligned'].on(output_file)
 
     # Set E-value threshold
@@ -335,19 +345,12 @@ def sortmerna_ref_cluster(seq_path=None,
     app_result = smr()
 
     # Put clusters into a list of lists
-    clusters = []
     f_otumap = app_result['OtuMap']
-    for line in f_otumap:
-        cluster = line.strip().split('\t')
-        clusters.append(cluster[1:])
+    clusters = [line.strip().split('\t')[1:] for line in f_otumap]
 
     # Put failures into a list
-    failures = []
-
     f_failure = app_result['FastaForDenovo']
-    for label, seq in parse_fasta(f_failure):
-        label = re.split('>| ', label)[0]
-        failures.append(label)
+    failures = [re.split('>| ', label)[0] for label, seq in parse_fasta(f_failure)]
 
     # remove the aligned FASTA file and failures FASTA file
     # (currently these are re-constructed using pick_rep_set.py

@@ -285,7 +285,7 @@ def sortmerna_ref_cluster(seq_path=None,
 
        Returns
        -------
-       clusters     : map of lists
+       clusters     : dict of lists
                       OTU ids and reads mapping to them
 
        failures     : list

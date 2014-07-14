@@ -285,7 +285,7 @@ def sortmerna_ref_cluster(seq_path=None,
 
        Returns
        -------
-       clusters     : list of lists
+       clusters     : dict of lists
                       OTU ids and reads mapping to them
 
        failures     : list
@@ -344,9 +344,10 @@ def sortmerna_ref_cluster(seq_path=None,
     # Run sortmerna
     app_result = smr()
 
-    # Put clusters into a list of lists
+    # Put clusters into a map of lists
     f_otumap = app_result['OtuMap']
-    clusters = [line.strip().split('\t')[1:] for line in f_otumap]
+    rows = (line.strip().split('\t') for line in f_otumap)
+    clusters = {r[0]:r[1:] for r in rows}
 
     # Put failures into a list
     f_failure = app_result['FastaForDenovo']

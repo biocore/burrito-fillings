@@ -175,7 +175,7 @@ class SortmernaV2Tests(TestCase):
         self.files_to_remove.extend(db_files_to_remove)
 
         # Run SortMeRNA
-        clusters, failures, smr_files_to_remove = sortmerna_ref_cluster(
+        cluster_map, failures, smr_files_to_remove = sortmerna_ref_cluster(
             seq_path=self.file_read_seqs_fp,
             sortmerna_db=sortmerna_db,
             refseqs_fp=self.file_reference_seq_fp,
@@ -284,8 +284,8 @@ class SortmernaV2Tests(TestCase):
                             'HMPMockV1.2.Staggered2.673827_220']
 
         # Should only have 1 cluster
-        self.assertEqual(1, len(clusters))
-        for actual_cluster in clusters:
+        self.assertEqual(1, len(cluster_map))
+        for actual_cluster in cluster_map.itervalues():
             actual_cluster.sort()
             expected_cluster.sort()
             self.assertEqual(actual_cluster, expected_cluster)

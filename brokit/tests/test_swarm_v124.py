@@ -72,8 +72,15 @@ class SwarmTests(TestCase):
         remove_files(self.files_to_remove)
         rmtree(self.output_dir)
 
-    def check_clusters(self,
-                       clusters=None):
+    def test_default_param(self):
+        """ Swarm should return the correct clusters using
+            default inputs
+        """
+        clusters = swarm_denovo_cluster(seq_path=self.file_read_seqs,
+                                        output_dir=self.output_dir,
+                                        d=1,
+                                        threads=1,
+                                        prefilter_identical_sequences=True)
 
         # Check the returned clusters list of lists is as expected
         expected_clusters = [['s1_630', 's1_4572', 's1_5748',
@@ -98,18 +105,6 @@ class SwarmTests(TestCase):
             actual_cluster.sort()
             expected_cluster.sort()
             self.assertEqual(actual_cluster, expected_cluster)
-
-    def test_default_param(self):
-        """ Swarm should return the correct clusters using
-            default inputs
-        """
-        clusters = swarm_denovo_cluster(seq_path=self.file_read_seqs,
-                                        output_dir=self.output_dir,
-                                        d=1,
-                                        threads=1,
-                                        prefilter_identical_sequences=True)
-
-        self.check_clusters(clusters)
 
     def test_prefilter_identical_sequences_false(self):
         """ The option prefilter_identical_sequences can be

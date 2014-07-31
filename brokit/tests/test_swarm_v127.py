@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Unit tests for the Swarm version 1.2.4 Application controller
+Unit tests for the Swarm version 1.2.7 Application controller
 =============================================================
 """
 
@@ -27,7 +27,7 @@ from brokit.swarm_v124 import swarm_denovo_cluster
 
 
 class SwarmTests(TestCase):
-    """ Tests for Swarm version 1.2.4 functionality """
+    """ Tests for Swarm version 1.2.7 functionality """
 
     def setUp(self):
         self.output_dir = mkdtemp()

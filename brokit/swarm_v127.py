@@ -1,5 +1,5 @@
 """
-Application controller for Swarm version 1.2.4
+Application controller for Swarm version 1.2.7
 ==============================================
 """
 

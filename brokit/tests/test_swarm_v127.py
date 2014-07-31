@@ -14,7 +14,7 @@ from shutil import rmtree
 
 from skbio.util.misc import remove_files
 
-from brokit.swarm_v124 import swarm_denovo_cluster
+from brokit.swarm_v127 import swarm_denovo_cluster
 
 
 # ----------------------------------------------------------------------------

@@ -90,7 +90,6 @@ class Swarm(CommandLineApplication):
                     amplicon, abundance = seq_ids[i].rsplit("_", 1)
                     seq_ids[i] = amplicon
                 clusters.append(seq_ids)
-
         except (OSError, 2):
             raise OSError("Cannot find swarm_breaker.py "
                           "in the $PATH directories.\n")
@@ -235,13 +234,13 @@ def swarm_denovo_cluster(seq_path=None,
     # Set the resolution
     if d > 0:
         swarm.Parameters['-d'].on(d)
-    elif d < 1:
+    else:
         raise ValueError("Resolution -d must be a positive integer.")
 
     # Set the number of threads
     if threads > 0:
         swarm.Parameters['-t'].on(threads)
-    elif threads < 1:
+    else:
         raise ValueError("Number of threads must be a positive integer.")
 
     # Set the result path for Swarm output

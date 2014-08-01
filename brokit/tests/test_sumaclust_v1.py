@@ -13,8 +13,9 @@ from os.path import exists, getsize, join
 from shutil import rmtree
 
 from skbio.util.misc import remove_files
+from qiime.parse import fields_to_dict
 
-from brokit.sumaclust_v1 import (sumaclust_denovo_cluster)
+from brokit.sumaclust_v1 import sumaclust_denovo_cluster
 
 
 # ----------------------------------------------------------------------------
@@ -60,6 +61,9 @@ class SumaclustV1Tests(TestCase):
         # Checkout output file has the correct size
         size = getsize(result_path)
         self.assertTrue(size, 270)
+
+        otu_map = fields_to_dict(open(result_path))
+        self.assertTrue(len(otu_map),3)
 
         # Check the returned clusters list of lists is as expected
         expected_clusters = [['s1_844', 's1_1886', 's1_5347', 's1_5737',

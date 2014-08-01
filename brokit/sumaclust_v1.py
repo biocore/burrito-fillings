@@ -112,10 +112,7 @@ def sumaclust_denovo_cluster(seq_path=None,
                     threads, number of threads to use;
                     exact, boolean to perform exact matching
 
-        Return    : a dictionary of all output files set in
-                    _get_result_paths() with the file
-                    descriptors pointing to an open file
-                    as the values
+        Return    : clusters, list of lists
     """
 
     # Sequence path is mandatory
@@ -148,9 +145,9 @@ def sumaclust_denovo_cluster(seq_path=None,
         sumaclust.Parameters['-l'].off()
 
     # Set the number of threads
-    if threads > 1:
+    if threads > 0:
         sumaclust.Parameters['-p'].on(threads)
-    elif threads < 1:
+    else:
         raise ValueError("Number of threads must be positive.")
 
     # Launch SumaClust,

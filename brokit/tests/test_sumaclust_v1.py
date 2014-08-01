@@ -14,7 +14,7 @@ from shutil import rmtree
 
 from skbio.util.misc import remove_files
 
-from brokit.sumaclust_v1 import (sumaclust_denovo_cluster)
+from brokit.sumaclust_v1 import sumaclust_denovo_cluster
 
 
 # ----------------------------------------------------------------------------
@@ -33,7 +33,6 @@ class SumaclustV1Tests(TestCase):
 
         self.output_dir = mkdtemp()
         self.read_seqs = reads_seqs
-        self.expected_otumap = expected_otumap
 
         # create temporary file with read sequences defined in read_seqs
         f, self.file_read_seqs = mkstemp(prefix='temp_reads_',
@@ -44,36 +43,28 @@ class SumaclustV1Tests(TestCase):
         with open(self.file_read_seqs, 'w') as tmp:
             tmp.write(self.read_seqs)
 
-        # create temporary file with final OTU map
-        f, self.file_otumap = mkstemp(prefix='temp_otumap',
-                                      suffix='.txt')
-        close(f)
-
-        # write OTU map to tmp file
-        with open(self.file_otumap, 'w') as tmp:
-            tmp.write(self.expected_otumap)
-
         # list of files to remove
-        self.files_to_remove = [self.file_read_seqs, self.file_otumap]
+        self.files_to_remove = [self.file_read_seqs]
 
     def tearDown(self):
         remove_files(self.files_to_remove)
         rmtree(self.output_dir)
 
     def check_clusters(self,
-                       clusters=None,
-                       result_path=None):
+                       clusters,
+                       result_path):
 
-        # Check the OTU map was output with the correct size
+        # Check the OTU map file exists
         self.assertTrue(exists(result_path))
 
         # Checkout output file has the correct size
         size = getsize(result_path)
         self.assertTrue(size, 270)
 
-        # Check file identical to expected result (the hash should
-        # be identical)
-        self.assertTrue(filecmp.cmp(result_path, self.file_otumap))
+        with open(result_path, "U") as f_otumap: 
+            otu_map = [line.strip().split('\t') for line in f_otumap]
+
+        self.assertTrue(len(otu_map),3)
 
         # Check the returned clusters list of lists is as expected
         expected_clusters = [['s1_844', 's1_1886', 's1_5347', 's1_5737',
@@ -254,13 +245,6 @@ GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAGTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGT
 GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTATTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTAAGTCAGATGTGAAAGCCCA
 >s1_8615 reference=129416 amplicon=complement(522..813) errors=81%G
 GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTATTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTGAGTCAGATGTGAAAGCCCA
-"""
-
-# The expected OTU map from clustering the read_seqs from 3 species
-# (using exact and non-exact options)
-expected_otumap = """s1_844\ts1_844\ts1_1886\ts1_5347\ts1_5737\ts1_7014\ts1_7881\ts1_7040\ts1_6200\ts1_1271\ts1_8615
-s1_8977\ts1_8977\ts1_10439\ts1_12366\ts1_15985\ts1_21935\ts1_11650\ts1_11001\ts1_8592\ts1_14735\ts1_4677
-s1_13961\ts1_13961\ts1_4572\ts1_5748\ts1_630\ts1_2369\ts1_3750\ts1_7634\ts1_8623\ts1_8744\ts1_6846
 """
 
 if __name__ == '__main__':

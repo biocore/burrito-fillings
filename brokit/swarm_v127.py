@@ -13,8 +13,8 @@ Application controller for Swarm version 1.2.7
 
 from os.path import split, isdir, exists, join
 from tempfile import mkstemp
-from os import close
-from subprocess import Popen, PIPE, STDOUT
+from os import close, linesep
+from subprocess import Popen, PIPE
 import re
 
 from skbio.app.util import CommandLineApplication, ResultPath
@@ -47,7 +47,26 @@ class Swarm(CommandLineApplication):
     _supress_stderr = False
     files_to_remove = []
 
-    def _swarm_breaker(self, seq_path=None):
+    def __call__(self, seq_path):
+
+        # De-replicate query sequences
+        exact_match_id_map, seq_path =\
+            self._apply_identical_sequences_prefilter(seq_path)
+
+        # Run Swarm
+        app_result = super(Swarm, self).__call__(seq_path)
+
+        # Run swarm_breaker.py to refine the clusters
+        clusters = self._swarm_breaker(seq_path)
+
+        # Expand clusters
+        clusters = self._map_filtered_clusters_to_full_clusters(
+            clusters, exact_match_id_map)
+
+        return clusters
+
+    def _swarm_breaker(self,
+                       seq_path):
         """
             Input : a filepath to de-replicated
                     input FASTA reads
@@ -64,40 +83,44 @@ class Swarm(CommandLineApplication):
         """
         swarm_breaker_command = ["swarm_breaker.py",
                                  "-f",
-                                 # de-replicated FASTA sequences
                                  seq_path,
                                  "-s",
-                                 # Swarm OTU-map
                                  self.Parameters['-o'].Value,
                                  "-d",
-                                 # resolution
                                  str(self.Parameters['-d'].Value)]
 
         try:
             # launch swarm_breaker.py as a subprocess,
-            # pipe refined OTU-map to stdout
+            # pipe refined OTU-map to the standard stream
             proc = Popen(swarm_breaker_command,
-                         stderr=STDOUT,
                          stdout=PIPE,
+                         stderr=PIPE,
                          close_fds=True)
+
+            stdout, stderr = proc.communicate()
+
+            if stderr:
+                raise StandardError("Process exited with %s" % stderr)
 
             # store refined clusters in list of lists
             clusters = []
-            for line in proc.stdout:
+            for line in stdout.split(linesep):
+                # skip line if contains only the newline character
+                if not line:
+                    break
                 seq_ids = re.split("\t| ", line.strip())
                 # remove the abundance information from the labels
                 for i in range(len(seq_ids)):
-                    amplicon, abundance = seq_ids[i].rsplit("_", 1)
-                    seq_ids[i] = amplicon
+                    seq_ids[i] = seq_ids[i].rsplit("_", 1)[0]
                 clusters.append(seq_ids)
         except (OSError, 2):
             raise OSError("Cannot find swarm_breaker.py "
-                          "in the $PATH directories.\n")
-        proc.wait()
+                          "in the $PATH directories.")
 
         return clusters
 
-    def _prefilter_exact_matches(self, seqs):
+    def _prefilter_exact_matches(self,
+                                 seqs):
         """
         """
         unique_sequences = {}
@@ -108,14 +131,15 @@ class Swarm(CommandLineApplication):
             try:
                 temp_seq_id = unique_sequences[seq]
             except KeyError:
-                temp_seq_id = 'QiimeExactMatch.%s' % seq_id
+                temp_seq_id = 'ExactMatch.%s' % seq_id
                 unique_sequences[seq] = temp_seq_id
                 seq_id_map[temp_seq_id] = []
                 filtered_seqs.append((temp_seq_id, seq))
             seq_id_map[temp_seq_id].append(seq_id)
         return filtered_seqs, seq_id_map
 
-    def _apply_identical_sequences_prefilter(self, seq_path):
+    def _apply_identical_sequences_prefilter(self,
+                                             seq_path):
         """
             Input : a filepath to input FASTA reads
             Method: prepares and writes de-replicated reads
@@ -131,7 +155,7 @@ class Swarm(CommandLineApplication):
         """
         # creating mapping for de-replicated reads
         seqs_to_cluster, exact_match_id_map =\
-            self._prefilter_exact_matches(parse_fasta(open(seq_path, 'U')))
+            self._prefilter_exact_matches(parse_fasta(seq_path))
 
         # create temporary file for storing the de-replicated reads
         fd, unique_seqs_fp = mkstemp(
@@ -148,11 +172,12 @@ class Swarm(CommandLineApplication):
                                    len(exact_match_id_map[seq_id]),
                                    seq))
         unique_seqs_f.close()
-        del(seqs_to_cluster)
 
         return exact_match_id_map, unique_seqs_fp
 
-    def _map_filtered_clusters_to_full_clusters(self, clusters, filter_map):
+    def _map_filtered_clusters_to_full_clusters(self,
+                                                clusters,
+                                                filter_map):
         """
             Input:  clusters, a list of cluster lists
                     filter_map, the seq_id in each clusters
@@ -173,13 +198,9 @@ class Swarm(CommandLineApplication):
         """ Set the result paths
         """
 
-        result = {}
-
         # Swarm OTU map (mandatory output)
-        result['OtuMap'] = ResultPath(Path=self.Parameters['-o'].Value,
-                                      IsWritten=True)
-
-        return result
+        return {'OtuMap': ResultPath(Path=self.Parameters['-o'].Value,
+                                     IsWritten=True)}
 
     def getHelp(self):
         """ Method that points to documentation
@@ -198,11 +219,10 @@ class Swarm(CommandLineApplication):
         return help_str
 
 
-def swarm_denovo_cluster(seq_path=None,
-                         output_dir=None,
+def swarm_denovo_cluster(seq_path,
+                         output_dir,
                          d=1,
                          threads=1,
-                         prefilter_identical_sequences=True,
                          HALT_EXEC=False):
     """ Function  : launch the Swarm de novo OTU picker
 
@@ -210,23 +230,17 @@ def swarm_denovo_cluster(seq_path=None,
                     output_dir, output directory path
                     d, resolution
                     threads, number of threads to use
-                    prefilter_identical_sequences, boolean
-                    whether to dereplicate the sequences prior
-                    to clustering them
 
         Return    : clusters, list of lists
     """
 
     # Sequence path is mandatory
-    if (seq_path is None
-            or not exists(seq_path)):
-        raise ValueError("Error: FASTA query sequence filepath is "
-                         "mandatory input.")
+    if not exists(seq_path):
+        raise ValueError("%s does not exist" % seq_path)
 
     # Output directory is mandatory
-    if (output_dir is None
-            or not isdir(output_dir)):
-        raise ValueError("Error: output directory is mandatory input.")
+    if not isdir(output_dir):
+        raise ValueError("%s does not exist" % output_dir)
 
     # Instantiate the object
     swarm = Swarm(HALT_EXEC=HALT_EXEC)
@@ -251,40 +265,10 @@ def swarm_denovo_cluster(seq_path=None,
     # is output by swarm_breaker.py
     swarm.files_to_remove.append(swarm_OTU_map)
 
-    # De-replicate query sequences
-    if prefilter_identical_sequences:
-        exact_match_id_map, seq_path =\
-            swarm._apply_identical_sequences_prefilter(seq_path)
-
     # Launch Swarm
     # set the data string to include the read filepath
     # (to be passed as final arguments in the swarm command)
-    app_result = swarm(seq_path)
-
-    # Launch swarm_breaker.py to refine Swarm OTUs
-    # if the sequences were not de-replicated using QIIME,
-    # verify that the labels include abundance after the
-    # last occurrence of '_'
-    # (this is required for swarm_breaker)
-    if not prefilter_identical_sequences:
-        with open(seq_path) as file:
-            for label, seq in parse_fasta(file):
-                try:
-                    amplicon, abundance = label.strip("\n").rsplit("_", 1)
-                    break
-                except ValueError:
-                    raise ValueError("FASTA labels must have the abundance "
-                                     "information after the last occurrence "
-                                     "of separator '_' in the label, eg. "
-                                     ">sampleID_sequenceID_abundance")
-
-    # Run swarm_breaker.py to refine the clusters
-    clusters = swarm._swarm_breaker(seq_path)
-
-    # Expand clusters
-    if prefilter_identical_sequences:
-        clusters = swarm._map_filtered_clusters_to_full_clusters(
-            clusters, exact_match_id_map)
+    clusters = swarm(seq_path)
 
     remove_files(swarm.files_to_remove, error_on_missing=False)
 

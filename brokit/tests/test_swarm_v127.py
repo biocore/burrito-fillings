@@ -8,7 +8,7 @@ Unit tests for the Swarm version 1.2.7 Application controller
 from unittest import TestCase, main
 import filecmp
 from tempfile import mkstemp, mkdtemp
-from os import close
+from os import close, rmdir
 from os.path import exists, getsize, join
 from shutil import rmtree
 
@@ -32,8 +32,6 @@ class SwarmTests(TestCase):
     def setUp(self):
         self.output_dir = mkdtemp()
         self.read_seqs = reads_seqs
-        self.reads_seqs_no_derep = reads_seqs_no_derep
-        self.derep_reads = derep_reads
 
         # create temporary file with read sequences defined in read_seqs
         f, self.file_read_seqs = mkstemp(prefix='temp_reads_',
@@ -44,29 +42,8 @@ class SwarmTests(TestCase):
         with open(self.file_read_seqs, 'w') as tmp:
             tmp.write(self.read_seqs)
 
-        # create temporary file with non-dereplicated sequences
-        f, self.file_reads_seqs_no_derep = mkstemp(
-            prefix='temp_reads_no_derep',
-            suffix='.txt')
-        close(f)
-
-        # write non-dereplicated sequences to file
-        with open(self.file_reads_seqs_no_derep, 'w') as tmp:
-            tmp.write(self.reads_seqs_no_derep)
-
-        # create temporary file with de-replicated sequences
-        f, self.file_derep_reads = mkstemp(prefix='temp_derep_reads_',
-                                           suffix='.fasta')
-        close(f)
-
-        # write de-replicated sequences to file
-        with open(self.file_derep_reads, 'w') as tmp:
-            tmp.write(self.derep_reads)
-
         # list of files to remove
-        self.files_to_remove = [self.file_read_seqs,
-                                self.file_reads_seqs_no_derep,
-                                self.file_derep_reads]
+        self.files_to_remove = [self.file_read_seqs]
 
     def tearDown(self):
         remove_files(self.files_to_remove)
@@ -79,8 +56,7 @@ class SwarmTests(TestCase):
         clusters = swarm_denovo_cluster(seq_path=self.file_read_seqs,
                                         output_dir=self.output_dir,
                                         d=1,
-                                        threads=1,
-                                        prefilter_identical_sequences=True)
+                                        threads=1)
 
         # Check the returned clusters list of lists is as expected
         expected_clusters = [['s1_630', 's1_4572', 's1_5748',
@@ -106,101 +82,37 @@ class SwarmTests(TestCase):
             expected_cluster.sort()
             self.assertEqual(actual_cluster, expected_cluster)
 
-    def test_prefilter_identical_sequences_false(self):
-        """ The option prefilter_identical_sequences can be
-            set to false only if the input FASTA file has been
-            de-replicated to include the abundance information
-            after the last underscore '_' in the sequence label,
-            otherwise a ValueError is thrown.
-            Note: "prefilter_identical_sequences=False" should
-            be used with caution since there's no easy way for
-            us to verify that the number after the final '_' in
-            the label is indeed the abundance for dereplicated
-            input sequences (rather than part of the sequence ID),
-            we leave this to the user to check
-        """
-
-        self.assertRaises(ValueError,
-                          swarm_denovo_cluster,
-                          seq_path=self.file_reads_seqs_no_derep,
-                          output_dir=self.output_dir,
-                          d=1,
-                          threads=1,
-                          prefilter_identical_sequences=False)
-
-    def test_pass_dereplicated_reads(self):
-        """ Reads will not be de-replicated if
-            'prefilter_identical_sequences=False' and
-            the sequence labels appear to have abundance
-            as the number after the final '_'.
-            Note: "prefilter_identical_sequences=False" should
-            be used with caution since there's no easy way for
-            us to verify that the number after the final '_' in
-            the label is indeed the abundance for dereplicated
-            input sequences (rather than part of the sequence ID),
-            we leave this to the user to check
-        """
-        clusters = swarm_denovo_cluster(seq_path=self.file_derep_reads,
-                                        output_dir=self.output_dir,
-                                        d=1,
-                                        threads=1,
-                                        prefilter_identical_sequences=False)
-
-        # Check the returned clusters list of lists is as expected
-        expected_clusters = [['QiimeExactMatch.s1_630',
-                              'QiimeExactMatch.s1_8744',
-                              'QiimeExactMatch.s1_8623',
-                              'QiimeExactMatch.s1_7634',
-                              'QiimeExactMatch.s1_6846',
-                              'QiimeExactMatch.s1_3750',
-                              'QiimeExactMatch.s1_2369'],
-                             ['QiimeExactMatch.s1_8977',
-                              'QiimeExactMatch.s1_8592',
-                              'QiimeExactMatch.s1_4677',
-                              'QiimeExactMatch.s1_14735',
-                              'QiimeExactMatch.s1_11650',
-                              'QiimeExactMatch.s1_11001'],
-                             ['QiimeExactMatch.s1_844',
-                              'QiimeExactMatch.s1_8615',
-                              'QiimeExactMatch.s1_7040',
-                              'QiimeExactMatch.s1_6200',
-                              'QiimeExactMatch.s1_1271']]
-
-        # Should be 3 clusters
-        self.assertEqual(len(clusters), 3)
-
-        # List of actual clusters matches list of expected clusters
-        for actual_cluster, expected_cluster in zip(clusters,
-                                                    expected_clusters):
-            actual_cluster.sort()
-            expected_cluster.sort()
-            self.assertEqual(actual_cluster, expected_cluster)
-
     def test_seq_path(self):
         """ Swarm should raise a ValueError if the sequences
-            filepath was not provided
+            filepath does not exist
         """
+
+        f, tmp_file = mkstemp(prefix='temp_reads_',
+                              suffix='.fasta')
+        close(f)
+        remove_files([tmp_file])
 
         self.assertRaises(ValueError,
                           swarm_denovo_cluster,
-                          seq_path=None,
+                          seq_path=tmp_file,
                           output_dir=self.output_dir,
                           d=1,
-                          threads=1,
-                          prefilter_identical_sequences=True)
+                          threads=1)
 
     def test_output_dir(self):
         """ Swarm should raise a ValueError if the output
-            directory was not provided
+            directory does not exist
         """
+
+        tmp_dir = mkdtemp(prefix='temp_dir_')
+        rmdir(tmp_dir)
 
         self.assertRaises(ValueError,
                           swarm_denovo_cluster,
                           seq_path=self.file_read_seqs,
-                          output_dir=None,
+                          output_dir=tmp_dir,
                           d=1,
-                          threads=1,
-                          prefilter_identical_sequences=True)
+                          threads=1)
 
     def test_negative_resolution(self):
         """ Swarm should raise a ValueError if the resolution
@@ -212,8 +124,7 @@ class SwarmTests(TestCase):
                           seq_path=self.file_read_seqs,
                           output_dir=self.output_dir,
                           d=-2,
-                          threads=1,
-                          prefilter_identical_sequences=True)
+                          threads=1)
 
     def test_negative_threads(self):
         """ Swarm should raise a ValueError if number of threads
@@ -225,8 +136,7 @@ class SwarmTests(TestCase):
                           seq_path=self.file_read_seqs,
                           output_dir=self.output_dir,
                           d=1,
-                          threads=-2,
-                          prefilter_identical_sequences=True)
+                          threads=-2)
 
 # Reads to cluster
 # there are 30 reads representing 3 species (gives 3 clusters)
@@ -289,55 +199,6 @@ GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAGTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGT
 >s1_7881 reference=129416 amplicon=complement(522..813)
 GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTATTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTAAGTCAGATGTGAAAGCCCA
 >s1_8615 reference=129416 amplicon=complement(522..813) errors=81%G
-GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTATTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTGAGTCAGATGTGAAAGCCCA
-"""
-
-# not de-replicated sequences
-reads_seqs_no_derep = """>s1 reference=1049393 amplicon=complement(497..788)
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTGGCGGGGTAAGTCAGGTGTGAAATCTCG
->s2 reference=1049393 amplicon=complement(497..788) errors=73%A
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTAGCGGGGTAAGTCAGGTGTGAAATCTCG
->s3 reference=1049393 amplicon=complement(497..788) errors=100%A
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTGGCGGGGTAAGTCAGGTGTGAAATCTCA
->s4 reference=1049393 amplicon=complement(497..788)
-"""
-
-# de-replicated sequences
-derep_reads = """>QiimeExactMatch.s1_630_4
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTGGCGGGGTAAGTCAGGTGTGAAATCTCG
->QiimeExactMatch.s1_2369_1
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTAGCGGGGTAAGTCAGGTGTGAAATCTCG
->QiimeExactMatch.s1_3750_1
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTGGCGGGGTAAGTCAGGTGTGAAATCTCA
->QiimeExactMatch.s1_6846_1
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCATAGGTGGCGGGGTAAGTCAGGTGTGAAATCTCG
->QiimeExactMatch.s1_7634_1
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTGGCGGGGTAAGTCAGGTGTGAAATCTTG
->QiimeExactMatch.s1_8623_1
-GTGCCAGCAGCCGCGGAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTGGCGGGGTAAGTCAGGTGTGAAATCTCG
->QiimeExactMatch.s1_8744_1
-GTGCCAGCAGCCGCGGTAATACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGAGTGCGTAGGTGGCGGGGTAAGTCAGGTGTGAAATCTCG
->QiimeExactMatch.s1_4677_1
-GTGCCAGCAGCCGCGGTAATACGGAGGGTCCAAGCGTTGTCCGGAATCACTGGGTGTAAAGGGTGCGTAGGCGTGTCTGTAAGTCAGAGGTGAAAGCCCA
->QiimeExactMatch.s1_8592_1
-GTGCCAGCAGCCGCGGTAATACGGAGGGTCCAAGCGTTGTCCGGAATCACTGGGTGTAAAGGGTGCGTAGGCGGGTCTGTAAGTCAGAGGTGAAAAGCCCA
->QiimeExactMatch.s1_8977_5
-GTGCCAGCAGCCGCGGTAATACGGAGGGTCCAAGCGTTGTCCGGAATCACTGGGTGTAAAGGGTGCGTAGGCGGGTCTGTAAGTCAGAGGTGAAAGCCCA
->QiimeExactMatch.s1_11001_1
-GTGCCAGCAGCCGCGGTAATACGGAGGGTCCAAGCGTTGTCCGGAATCACTGGGTGTAAAGGGTGCGTAGGCGGGTCTGTAAGTCAGAGGGGAAAGCCCA
->QiimeExactMatch.s1_11650_1
-GTGCCAGCAGCCGCGGTAATACGGAGGGTCCAAGCGTTGTCCGGAATCACTGGGTGTAAAGGGTGCGTAGGCGGGTCGTAAGTCAGAGGTGAAAGCCCA
->QiimeExactMatch.s1_14735_1
-GTGCCAGCAGCCGCGGTAATACGGAGGGTCCAAGCGTTGTCCGGAATCACTGGGTGTAAAGGGTGCGTAGGCGGGTCTGTAAGTCAGAGGTGACAGCCCA
->QiimeExactMatch.s1_844_6
-GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTATTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTAAGTCAGATGTGAAAGCCCA
->QiimeExactMatch.s1_1271_1
-GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTATTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTAAGTCAGATGTGACAGCCCA
->QiimeExactMatch.s1_6200_1
-GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTATTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTAAGTCAGATGTCAAAGCCCA
->QiimeExactMatch.s1_7040_1
-GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAGTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTAAGTCAGATGTGAAAGCCCA
->QiimeExactMatch.s1_8615_1
 GTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTATTCGGAATTACTGGGCGTAAAGGGCGTGTAGGCGGCTTTGTGAGTCAGATGTGAAAGCCCA
 """
 

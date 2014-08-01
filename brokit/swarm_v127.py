@@ -48,6 +48,15 @@ class Swarm(CommandLineApplication):
     files_to_remove = []
 
     def __call__(self, seq_path):
+        """
+            Input : seq_path, a filepath to input FASTA reads
+
+            Method: de-replicate FASTA reads,
+                    launch Swarm followed by swarm_breaker.py,
+                    expand clusters
+
+            Return: clusters, a list of lists
+        """
 
         # De-replicate query sequences
         exact_match_id_map, seq_path =\
@@ -68,7 +77,7 @@ class Swarm(CommandLineApplication):
     def _swarm_breaker(self,
                        seq_path):
         """
-            Input : a filepath to de-replicated
+            Input : seq_path, a filepath to de-replicated
                     input FASTA reads
 
             Method: using swarm_breaker.py, break
@@ -141,7 +150,7 @@ class Swarm(CommandLineApplication):
     def _apply_identical_sequences_prefilter(self,
                                              seq_path):
         """
-            Input : a filepath to input FASTA reads
+            Input : seq_path, a filepath to input FASTA reads
             Method: prepares and writes de-replicated reads
                     to a temporary FASTA file, calls
                     parent method to do the actual

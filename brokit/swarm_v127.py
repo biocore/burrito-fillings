@@ -11,14 +11,15 @@ Application controller for Swarm version 1.2.7
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from os.path import split, isdir, exists, join
+from os.path import isdir, exists, join
 from tempfile import mkstemp
 from os import close, linesep
 from subprocess import Popen, PIPE
 import re
 
-from skbio.app.util import CommandLineApplication, ResultPath
-from skbio.app.parameters import ValuedParameter, FlagParameter
+from skbio.app.util import (CommandLineApplication, ResultPath,
+                            ApplicationNotFoundError)
+from skbio.app.parameters import ValuedParameter
 from skbio.parse.sequences import parse_fasta
 from skbio.util.misc import remove_files
 
@@ -63,7 +64,7 @@ class Swarm(CommandLineApplication):
             self._apply_identical_sequences_prefilter(seq_path)
 
         # Run Swarm
-        app_result = super(Swarm, self).__call__(seq_path)
+        super(Swarm, self).__call__(seq_path)
 
         # Run swarm_breaker.py to refine the clusters
         clusters = self._swarm_breaker(seq_path)
@@ -122,8 +123,8 @@ class Swarm(CommandLineApplication):
                 for i in range(len(seq_ids)):
                     seq_ids[i] = seq_ids[i].rsplit("_", 1)[0]
                 clusters.append(seq_ids)
-        except (OSError, 2):
-            raise OSError("Cannot find swarm_breaker.py "
+        except OSError:
+            raise ApplicationNotFoundError("Cannot find swarm_breaker.py "
                           "in the $PATH directories.")
 
         return clusters
@@ -229,27 +230,21 @@ class Swarm(CommandLineApplication):
 
 
 def swarm_denovo_cluster(seq_path,
-                         output_dir,
                          d=1,
                          threads=1,
                          HALT_EXEC=False):
     """ Function  : launch the Swarm de novo OTU picker
 
         Parameters: seq_path, filepath to reads
-                    output_dir, output directory path
                     d, resolution
                     threads, number of threads to use
 
         Return    : clusters, list of lists
     """
 
-    # Sequence path is mandatory
+    # Check sequence file exists
     if not exists(seq_path):
         raise ValueError("%s does not exist" % seq_path)
-
-    # Output directory is mandatory
-    if not isdir(output_dir):
-        raise ValueError("%s does not exist" % output_dir)
 
     # Instantiate the object
     swarm = Swarm(HALT_EXEC=HALT_EXEC)
@@ -266,13 +261,17 @@ def swarm_denovo_cluster(seq_path,
     else:
         raise ValueError("Number of threads must be a positive integer.")
 
-    # Set the result path for Swarm output
-    swarm_OTU_map = join(output_dir, "swarm_otus_tmp.txt")
-    swarm.Parameters['-o'].on(swarm_OTU_map)
+    # create temporary file for Swarm OTU-map
+    f, tmp_swarm_otumap = mkstemp(prefix='temp_otumap_',
+                                     suffix='.swarm')
+    close(f)
+
+    swarm.Parameters['-o'].on(tmp_swarm_otumap)
 
     # Remove this file later, the final OTU-map
-    # is output by swarm_breaker.py
-    swarm.files_to_remove.append(swarm_OTU_map)
+    # is output by swarm_breaker.py and returned
+    # as a list of lists (clusters)
+    swarm.files_to_remove.append(tmp_swarm_otumap)
 
     # Launch Swarm
     # set the data string to include the read filepath

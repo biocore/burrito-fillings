@@ -6,10 +6,9 @@ Unit tests for the Swarm version 1.2.7 Application controller
 
 
 from unittest import TestCase, main
-import filecmp
 from tempfile import mkstemp, mkdtemp
 from os import close, rmdir
-from os.path import exists, getsize, join
+from os.path import getsize
 from shutil import rmtree
 
 from skbio.util.misc import remove_files
@@ -30,7 +29,6 @@ class SwarmTests(TestCase):
     """ Tests for Swarm version 1.2.7 functionality """
 
     def setUp(self):
-        self.output_dir = mkdtemp()
         self.read_seqs = reads_seqs
 
         # create temporary file with read sequences defined in read_seqs
@@ -47,14 +45,12 @@ class SwarmTests(TestCase):
 
     def tearDown(self):
         remove_files(self.files_to_remove)
-        rmtree(self.output_dir)
 
     def test_default_param(self):
         """ Swarm should return the correct clusters using
             default inputs
         """
         clusters = swarm_denovo_cluster(seq_path=self.file_read_seqs,
-                                        output_dir=self.output_dir,
                                         d=1,
                                         threads=1)
 
@@ -95,22 +91,6 @@ class SwarmTests(TestCase):
         self.assertRaises(ValueError,
                           swarm_denovo_cluster,
                           seq_path=tmp_file,
-                          output_dir=self.output_dir,
-                          d=1,
-                          threads=1)
-
-    def test_output_dir(self):
-        """ Swarm should raise a ValueError if the output
-            directory does not exist
-        """
-
-        tmp_dir = mkdtemp(prefix='temp_dir_')
-        rmdir(tmp_dir)
-
-        self.assertRaises(ValueError,
-                          swarm_denovo_cluster,
-                          seq_path=self.file_read_seqs,
-                          output_dir=tmp_dir,
                           d=1,
                           threads=1)
 
@@ -122,7 +102,6 @@ class SwarmTests(TestCase):
         self.assertRaises(ValueError,
                           swarm_denovo_cluster,
                           seq_path=self.file_read_seqs,
-                          output_dir=self.output_dir,
                           d=-2,
                           threads=1)
 
@@ -134,7 +113,6 @@ class SwarmTests(TestCase):
         self.assertRaises(ValueError,
                           swarm_denovo_cluster,
                           seq_path=self.file_read_seqs,
-                          output_dir=self.output_dir,
                           d=1,
                           threads=-2)
 

@@ -11,7 +11,7 @@ Application controller for Swarm version 1.2.7
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from os.path import isdir, exists, join
+from os.path import exists
 from tempfile import mkstemp
 from os import close, linesep
 from subprocess import Popen, PIPE
@@ -125,7 +125,7 @@ class Swarm(CommandLineApplication):
                 clusters.append(seq_ids)
         except OSError:
             raise ApplicationNotFoundError("Cannot find swarm_breaker.py "
-                          "in the $PATH directories.")
+                                           "in the $PATH directories.")
 
         return clusters
 
@@ -263,7 +263,7 @@ def swarm_denovo_cluster(seq_path,
 
     # create temporary file for Swarm OTU-map
     f, tmp_swarm_otumap = mkstemp(prefix='temp_otumap_',
-                                     suffix='.swarm')
+                                  suffix='.swarm')
     close(f)
 
     swarm.Parameters['-o'].on(tmp_swarm_otumap)

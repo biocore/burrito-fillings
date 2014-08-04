@@ -6,10 +6,8 @@ Unit tests for the Swarm version 1.2.7 Application controller
 
 
 from unittest import TestCase, main
-from tempfile import mkstemp, mkdtemp
-from os import close, rmdir
-from os.path import getsize
-from shutil import rmtree
+from tempfile import mkstemp
+from os import close
 
 from skbio.util.misc import remove_files
 

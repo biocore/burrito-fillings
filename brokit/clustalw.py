@@ -3,9 +3,9 @@
 CLUSTALW v1.83
 """
 from numpy.random import randint
-from skbio.app.parameters import (FlagParameter, ValuedParameter,
+from burrito.parameters import (FlagParameter, ValuedParameter,
                                   MixedParameter, FilePath)
-from skbio.app.util import CommandLineApplication, ResultPath, remove
+from burrito.util import CommandLineApplication, ResultPath, remove
 
 from cogent.core.alignment import SequenceCollection, Alignment
 from cogent.parse.tree import DndParser

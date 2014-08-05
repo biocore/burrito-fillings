@@ -17,9 +17,9 @@ from os import close, linesep
 from subprocess import Popen, PIPE
 import re
 
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.util import (CommandLineApplication, ResultPath,
                             ApplicationNotFoundError)
-from skbio.app.parameters import ValuedParameter
+from burrito.parameters import ValuedParameter
 from skbio.parse.sequences import parse_fasta
 from skbio.util.misc import remove_files
 

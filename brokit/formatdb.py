@@ -13,8 +13,8 @@ from os import remove
 from glob import glob
 from tempfile import mkstemp
 
-from skbio.app.util import CommandLineApplication, ResultPath
-from skbio.app.parameters import ValuedParameter, FilePath
+from burrito.util import CommandLineApplication, ResultPath
+from burrito.parameters import ValuedParameter, FilePath
 
 
 class FormatDb(CommandLineApplication):

@@ -15,8 +15,8 @@ from cogent.core.moltype import DNA, RNA, PROTEIN
 from cogent.parse.tree import DndParser
 from cogent.app.guppy import build_tree_from_json_using_params
 
-from skbio.app.parameters import FlagParameter, ValuedParameter, FilePath
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.parameters import FlagParameter, ValuedParameter, FilePath
+from burrito.util import (CommandLineApplication, ResultPath,
                             get_tmp_filename, ApplicationError)
 
 

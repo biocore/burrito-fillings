@@ -2,9 +2,9 @@
 """Provides an application controller for the commandline version of:
 Clearcut v1.0.8
 """
-from skbio.app.parameters import (FlagParameter, ValuedParameter,
+from burrito.parameters import (FlagParameter, ValuedParameter,
                                   MixedParameter)
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.util import (CommandLineApplication, ResultPath,
                             get_tmp_filename)
 
 from cogent.core.alignment import SequenceCollection, Alignment

@@ -6,8 +6,8 @@ from os import remove, access, F_OK, environ, path
 from random import choice
 from copy import copy
 
-from skbio.app.parameters import FlagParameter, ValuedParameter, MixedParameter
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.parameters import FlagParameter, ValuedParameter, MixedParameter
+from burrito.util import (CommandLineApplication, ResultPath,
                             get_tmp_filename, guess_input_handler,
                             ApplicationNotFoundError)
 from skbio.parse.sequences.fasta import FastaFinder, is_fasta_label

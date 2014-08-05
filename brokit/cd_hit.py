@@ -6,8 +6,8 @@ from os import remove
 from tempfile import mkstemp, mkdtemp
 
 from skbio.parse.sequences import parse_fasta
-from skbio.app.parameters import ValuedParameter
-from skbio.app.util import CommandLineApplication, ResultPath
+from burrito.parameters import ValuedParameter
+from burrito.util import CommandLineApplication, ResultPath
 
 from cogent.core.moltype import RNA, DNA, PROTEIN
 from cogent.core.alignment import SequenceCollection

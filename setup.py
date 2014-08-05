@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013--, scikit-bio development team.
+# Copyright (c) 2013--, brokit development team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -35,11 +35,11 @@ setup(name='brokit',
       license='BSD',
       description='brokit',
       long_description=long_description,
-      author="scikit-bio development team",
+      author="brokit development team",
       author_email="gregcaporaso@gmail.com",
-      maintainer="scikit-bio development team",
+      maintainer="brokit development team",
       maintainer_email="gregcaporaso@gmail.com",
       url='https://github.com/biocore/brokit',
       packages=find_packages(),
-      install_requires=['scikit-bio == 0.1.4'],
+      install_requires=['scikit-bio == 0.1.4', 'burrito'],
       classifiers=classifiers)

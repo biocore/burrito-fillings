@@ -5,8 +5,8 @@
 from os.path import isabs
 from tempfile import mkstemp
 
-from skbio.app.parameters import FlagParameter, ValuedParameter
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.parameters import FlagParameter, ValuedParameter
+from burrito.util import (CommandLineApplication, ResultPath,
                             ApplicationError)
 
 __author__ = "Adam Robbins-Pianka"

@@ -6,8 +6,8 @@ designed for ParsInsert v1.03 """
 from StringIO import StringIO
 from os.path import splitext, join, abspath
 
-from skbio.app.parameters import ValuedParameter, FlagParameter, MixedParameter
-from skbio.app.util import (CommandLineApplication, FilePath, system,
+from burrito.parameters import ValuedParameter, FlagParameter, MixedParameter
+from burrito.util import (CommandLineApplication, FilePath, system,
                             CommandLineAppResult, ResultPath, remove,
                             ApplicationError)
 

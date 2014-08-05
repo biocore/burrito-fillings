@@ -4,8 +4,8 @@
 from os.path import splitext, abspath, join, split
 from StringIO import StringIO
 
-from skbio.app.parameters import ValuedParameter, FlagParameter
-from skbio.app.util import (CommandLineApplication, FilePath, system,
+from burrito.parameters import ValuedParameter, FlagParameter
+from burrito.util import (CommandLineApplication, FilePath, system,
                              CommandLineAppResult, ResultPath, remove,
                              ApplicationError, get_tmp_filename)
 

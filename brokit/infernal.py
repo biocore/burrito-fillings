@@ -6,8 +6,8 @@ Infernal 1.0 and 1.0.2 only.
 from os import remove
 from tempfile import mkstemp
 
-from skbio.app.parameters import FlagParameter, ValuedParameter, FilePath
-from skbio.app.util import CommandLineApplication, ResultPath
+from burrito.parameters import FlagParameter, ValuedParameter, FilePath
+from burrito.util import CommandLineApplication, ResultPath
 
 from cogent.core.alignment import SequenceCollection, Alignment, DataError
 from cogent.parse.rfam import (MinimalRfamParser, ChangedSequence,

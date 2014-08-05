@@ -11,9 +11,9 @@ from cogent.core.genetic_code import GeneticCodes
 from cogent.parse.blast import MinimalBlatParser9
 
 from skbio.parse.sequences import parse_fasta
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.util import (CommandLineApplication, ResultPath,
                             ApplicationError)
-from skbio.app.parameters import FlagParameter, ValuedParameter, FilePath
+from burrito.parameters import FlagParameter, ValuedParameter, FilePath
 
 
 class Blat(CommandLineApplication):

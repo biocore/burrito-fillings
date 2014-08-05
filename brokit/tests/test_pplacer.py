@@ -7,7 +7,7 @@ from StringIO import StringIO
 from unittest import TestCase, main
 
 from skbio.parse.sequences import parse_fasta
-from skbio.app.util import ApplicationError, get_tmp_filename
+from burrito.util import ApplicationError, get_tmp_filename
 
 from cogent.util.misc import flatten
 from cogent.core.tree import PhyloNode

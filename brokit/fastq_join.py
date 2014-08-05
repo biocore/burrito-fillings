@@ -10,8 +10,8 @@ import os
 import tempfile
 import shutil
 
-from skbio.app.parameters import ValuedParameter
-from skbio.app.util import CommandLineApplication, ResultPath
+from burrito.parameters import ValuedParameter
+from burrito.util import CommandLineApplication, ResultPath
 
 
 class FastqJoin(CommandLineApplication):

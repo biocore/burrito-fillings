@@ -15,9 +15,9 @@ from tempfile import gettempdir, mkstemp
 
 from cogent import DNA
 
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.util import (CommandLineApplication, ResultPath,
                             ApplicationError, ApplicationNotFoundError)
-from skbio.app.parameters import ValuedParameter, FlagParameter
+from burrito.parameters import ValuedParameter, FlagParameter
 from skbio.parse.sequences import parse_fasta
 from skbio.util.misc import remove_files
 

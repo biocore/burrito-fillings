@@ -15,8 +15,8 @@ from os.path import splitext, abspath, join
 from tempfile import mkstemp
 
 from skbio.parse.sequences import parse_fasta
-from skbio.app.parameters import ValuedParameter, FlagParameter
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.parameters import ValuedParameter, FlagParameter
+from burrito.util import (CommandLineApplication, ResultPath,
                             ApplicationError, ApplicationNotFoundError)
 from skbio.util.misc import remove_files
 

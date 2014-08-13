@@ -129,7 +129,10 @@ class Sortmerna(CommandLineApplication):
     _command = 'sortmerna'
     _command_delimiter = ' '
     _parameters = {
-        # Fasta or Fastq input reads file
+        # Verbose (log to stdout)
+        '-v': FlagParameter('-', Name='v', Value=True),
+
+        # Fasta or Fastq input query sequences file
         '--reads': ValuedParameter('--', Name='reads', Delimiter=' ',
                                    IsPath=True, Value=None),
 
@@ -158,9 +161,20 @@ class Sortmerna(CommandLineApplication):
         '--blast': ValuedParameter('--', Name='blast', Delimiter=' ',
                                    IsPath=False, Value=None),
 
+        # Output SAM alignment file
+        '--sam': FlagParameter('--', Name='sam', Value=False),
+
+        # Output SQ tags in the SAM file (useful for whole-genome alignment)
+        '--SQ': FlagParameter('--', Name='SQ', Value=False),
+
         # Report the best INT number of alignments
         '--best': ValuedParameter('--', Name='best', Delimiter=' ',
                                   IsPath=False, Value="1"),
+
+        # Report first INT number of alignments
+        '--num_alignments': ValuedParameter('--', Name='num_alignments',
+                                            Delimiter=' ', IsPath=False,
+                                            Value=None),
 
         # Number of threads
         '-a': ValuedParameter('-', Name='a', Delimiter=' ',
@@ -183,7 +197,10 @@ class Sortmerna(CommandLineApplication):
         '--de_novo_otu': FlagParameter('--', Name='de_novo_otu', Value=True),
 
         # Output an OTU map
-        '--otu_map': FlagParameter('--', Name='otu_map', Value=True)
+        '--otu_map': FlagParameter('--', Name='otu_map', Value=True),
+
+        # Print a NULL alignment string for non-aligned reads
+        '--print_all_reads': FlagParameter('--', Name='print_all_reads', Value=False)
     }
     _synonyms = {}
     _input_handler = '_input_as_string'
@@ -208,25 +225,28 @@ class Sortmerna(CommandLineApplication):
         output_base = self.Parameters['--aligned'].Value
 
         # Blast alignments
-        if self.Parameters['--blast'].isOn():
-            result['BlastAlignments'] = ResultPath(Path=output_base + '.blast',
-                                                   IsWritten=True)
+        result['BlastAlignments'] = ResultPath(Path=output_base + '.blast',
+                                               IsWritten=self.Parameters['--blast'].isOn())
+
+        # SAM alignments
+        result['SAMAlignments'] = ResultPath(Path=output_base + '.sam',
+                                             IsWritten=self.Parameters['--sam'].isOn())
 
         # OTU map (mandatory output)
         result['OtuMap'] = ResultPath(Path=output_base + '_otus.txt',
-                                      IsWritten=True)
+                                      IsWritten=self.Parameters['--otu_map'].isOn())
 
         # FASTA file of sequences in the OTU map (madatory output)
         result['FastaMatches'] = ResultPath(Path=output_base + fileExtension,
-                                            IsWritten=True)
+                                            IsWritten=self.Parameters['--fastx'].isOn())
 
         # FASTA file of sequences not in the OTU map (mandatory output)
         result['FastaForDenovo'] = ResultPath(Path=output_base + '_denovo' +
-                                              fileExtension, IsWritten=True)
-
+                                              fileExtension,
+                                              IsWritten=self.Parameters['--de_novo_otu'].isOn())
         # Log file
         result['LogFile'] = ResultPath(Path=output_base + '.log',
-                                       IsWritten=True)
+                                       IsWritten=self.Parameters['--log'].isOn())
 
         return result
 
@@ -245,7 +265,6 @@ class Sortmerna(CommandLineApplication):
         return help_str
 
 
-# Start reference clustering functions
 def sortmerna_ref_cluster(seq_path=None,
                           sortmerna_db=None,
                           refseqs_fp=None,
@@ -260,42 +279,42 @@ def sortmerna_ref_cluster(seq_path=None,
                           ):
     """Launch sortmerna OTU picker
 
-       Parameters
-       ----------
-       seq_path     : str
-                      filepath to reads
-       sortmerna_db : str
-                      indexed reference database
-       refseqs_fp   : str
-                      filepath of reference sequences
-       result_path  : str
-                      filepath to output OTU map
-       max_e_value  : float, optional
-                      E-value threshold
-       similarity   : float, optional
-                      similarity %id threshold
-       coverage     : float, optional
-                      query coverage % threshold
-       threads      : int, optional
-                      number of threads to use (OpenMP)
-       tabular      : bool, optional
-                      output BLAST tabular alignments
-       best         : int, optional
-                      number of best alignments to output per read
+        Parameters
+        ----------
+        seq_path : str
+            filepath to query sequences.
+        sortmerna_db : str
+            indexed reference database.
+        refseqs_fp : str
+            filepath of reference sequences.
+        result_path : str
+            filepath to output OTU map.
+        max_e_value : float, optional
+            E-value threshold.
+        similarity : float, optional
+            similarity %id threshold.
+        coverage : float, optional
+            query coverage % threshold.
+        threads : int, optional
+            number of threads to use (OpenMP).
+        tabular : bool, optional
+            output BLAST tabular alignments.
+        best : int, optional
+            number of best alignments to output per read.
 
-       Returns
-       -------
-       clusters     : dict of lists
-                      OTU ids and reads mapping to them
+        Returns
+        -------
+        clusters : dict of lists
+            OTU ids and reads mapping to them
 
-       failures     : list
-                      reads which did not align
+        failures : list
+            reads which did not align
     """
 
     # Instantiate the object
     smr = Sortmerna(HALT_EXEC=HALT_EXEC)
 
-    # Set input reads path
+    # Set input query sequences path
     if seq_path is not None:
         smr.Parameters['--reads'].on(seq_path)
     else:
@@ -362,3 +381,120 @@ def sortmerna_ref_cluster(seq_path=None,
                            app_result['OtuMap'].name]
 
     return clusters, failures, smr_files_to_remove
+
+def sortmerna_map(seq_path,
+                  output_dir,
+                  refseqs_fp,
+                  sortmerna_db,
+                  e_value=1,
+                  threads=1,
+                  best=None,
+                  num_alignments=None,
+                  HALT_EXEC=False,
+                  output_sam=False,
+                  sam_SQ_tags=False,
+                  output_blast=True,
+                  print_all_reads=True,
+                  ):
+    """Launch sortmerna mapper
+
+        Parameters
+        ----------
+        seq_path : str, mandatory
+            filepath to reads.
+        output_dir : str, mandatory
+            dirpath to sortmerna output.
+        refseqs_fp : str, mandatory
+            filepath of reference sequences.
+        sortmerna_db : str, mandatory
+            indexed reference database.
+        e_value : float, optional
+            E-value threshold.
+        threads : int, optional
+            number of threads to use (OpenMP).
+        best : int, optional
+            number of best alignments to output per read.
+        num_alignments : int, optional
+            number of first alignments passing E-value threshold to
+            output per read.
+        HALT_EXEC : bool, debugging parameter
+            If passed, will exit just before the sortmerna command
+            is issued and will print out the command that would
+            have been called to stdout. 
+        output_sam : bool, optional
+            flag to set SAM output format
+        sam_SQ_tags : bool, optional
+            add SQ field to SAM output (if output_SAM is true)
+        output_blast : bool, optional
+            flag to set Blast tabular output
+        print_all_reads : bool, optional
+            output NULL alignments for non-aligned reads
+
+        Returns
+        -------
+        dict of result paths set in _get_result_paths()
+    """
+
+    if not (output_blast or output_sam):
+        raise ValueError("Either Blast or SAM output alignment "
+                         "format must be chosen.")
+
+    if (best and num_alignments):
+        raise ValueError("Only one of --best or --num_alignments "
+                         "options must be chosen.")
+
+    # Instantiate the object
+    smr = Sortmerna(HALT_EXEC=HALT_EXEC)
+
+    # Set the input reference sequence + indexed database path
+    smr.Parameters['--ref'].on("%s,%s" % (refseqs_fp, sortmerna_db))
+
+    # Set input query sequences path
+    smr.Parameters['--reads'].on(seq_path)
+
+    # Output alignments in Blast tabular format
+    if output_blast:
+        smr.Parameters['--blast'].on("3")
+
+    # Output alignments in SAM format
+    if output_sam:
+        smr.Parameters['--sam'].on()
+        if sam_SQ_tags:
+            smr.Parameters['--SQ'].on()
+
+    # Turn on NULL string alignment output
+    if print_all_reads:
+        smr.Parameters['--print_all_reads'].on()
+
+    # Set output results path (for Blast alignments and log file)
+    output_file = join(output_dir, "sortmerna_map")
+    smr.Parameters['--aligned'].on(output_file)
+
+    # Set E-value threshold
+    if e_value is not None:
+        smr.Parameters['-e'].on(e_value)
+
+    # Set number of best alignments to output per read
+    if best is not None:
+        smr.Parameters['--best'].on(best)
+
+    # Set number of first alignments passing E-value threshold
+    # to output per read
+    if num_alignments is not None:
+        smr.Parameters['--num_alignments'].on(num_alignments)
+
+    # Set number of threads
+    if threads is not None:
+        smr.Parameters['-a'].on(threads)
+
+    # Turn off parameters related to OTU-picking
+    smr.Parameters['--fastx'].off()
+    smr.Parameters['--otu_map'].off()
+    smr.Parameters['--de_novo_otu'].off()
+    smr.Parameters['--id'].off()
+    smr.Parameters['--coverage'].off()
+
+    # Run sortmerna
+    app_result = smr()
+
+    return app_result

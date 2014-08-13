@@ -18,7 +18,8 @@ from skbio.parse.sequences import parse_fasta
 from brokit.sortmerna_v2 import (IndexDB,
                                  build_database_sortmerna,
                                  Sortmerna,
-                                 sortmerna_ref_cluster)
+                                 sortmerna_ref_cluster,
+                                 sortmerna_map)
 
 # ----------------------------------------------------------------------------
 # Copyright (c) 2014--, brokit development team
@@ -37,6 +38,8 @@ class SortmernaV2Tests(TestCase):
         self.output_dir = mkdtemp()
         self.reference_seq_fp = reference_seqs_fp
         self.read_seqs_fp = read_seqs_fp
+        self.blast_alignments = blast_alignments
+        self.sam_alignments = sam_alignments
 
         # create temporary file with reference sequences defined
         # in reference_seqs_fp
@@ -59,9 +62,29 @@ class SortmernaV2Tests(TestCase):
             tmp.write(self.read_seqs_fp)
         tmp.close()
 
+        # create temporary file for blast alignments
+        f, self.file_blast_alignments_fp = mkstemp(prefix='temp_alignments_',
+                                                   suffix='.blast')
+        close(f)
+
+        with open(self.file_blast_alignments_fp, 'w') as tmp:
+            tmp.write(self.blast_alignments)
+        tmp.close()
+
+        # create temporary file for SAM alignments
+        f, self.file_sam_alignments_fp = mkstemp(prefix='temp_alignments_',
+                                                   suffix='.sam')
+        close(f)
+
+        with open(self.file_sam_alignments_fp, 'w') as tmp:
+            tmp.write(self.sam_alignments)
+        tmp.close()
+
         # list of files to remove
         self.files_to_remove = [self.file_reference_seq_fp,
-                                self.file_read_seqs_fp]
+                                self.file_read_seqs_fp,
+                                self.file_blast_alignments_fp,
+                                self.file_sam_alignments_fp]
 
     def tearDown(self):
         remove_files(self.files_to_remove)
@@ -298,13 +321,302 @@ class SortmernaV2Tests(TestCase):
         for line in f_log:
             if "Total OTUs" in line:
                 num_clusters = (re.split('Total OTUs = ', line)[1]).strip()
-            elif "non-aligned reads" in line:
-                num_failures = (re.split('non-aligned reads = | \(',
+            elif "Total reads for de novo clustering" in line:
+                num_failures = (re.split('Total reads for de novo clustering = | \(',
                                          line)[1]).strip()
         f_log.close()
 
         self.assertEqual(int(num_clusters), len(otu_clusters))
         self.assertEqual(int(num_failures), len(denovo_reads))
+
+    def test_sortmerna_map_default(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            using default parameters
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db)
+
+        # Check all sortmerna output files exist
+        output_files = [self.output_dir + ext
+                        for ext in ['/sortmerna_map.blast',
+                                    '/sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        blast_alignments_fp = app_result['BlastAlignments'].name
+
+        # Check there are 30 alignments (1 per read)
+        with open(blast_alignments_fp, 'U') as blast_actual:
+            entries = (line.strip().split('\t') for line in blast_actual)
+            actual_alignments = {r[0]:r[1:] for r in entries}
+
+        self.assertEqual(30,len(actual_alignments))
+
+        # Check this alignment exists
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47" in actual_alignments)
+        self.assertEqual("97.3", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][12])
+
+        # Check alignment for random read is NULL
+        self.assertTrue("simulated_random_reads.fa.000000000" in actual_alignments)
+        self.assertEqual("*", actual_alignments["simulated_random_reads.fa.000000000"][0])
+
+    def test_sortmerna_map_sam_alignments(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            outputting Blast and SAM alignments
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db,
+                                   output_sam=True)
+
+        # Check all sortmerna output files exist
+        output_files = [self.output_dir + ext
+                        for ext in ['/sortmerna_map.blast',
+                                    '/sortmerna_map.sam',
+                                    '/sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        sam_alignments_fp = app_result['SAMAlignments'].name
+
+        # Check there are 30 alignments in the SAM output (1 per read)
+        with open(sam_alignments_fp, 'U') as sam_actual:
+            entries = (line.strip().split('\t') for line in sam_actual)
+            actual_alignments = {r[0]:r[1:] for r in entries}
+
+        # 30 alignments expected + 2 lines for @HD and @PG fields
+        self.assertEqual(32,len(actual_alignments))
+
+        # Check this alignment exists
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47" in actual_alignments)
+        self.assertEqual("295053", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("AS:i:418", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][10])
+
+        # Check alignment for random read is NULL
+        self.assertTrue("simulated_random_reads.fa.000000000" in actual_alignments)
+        self.assertEqual("*", actual_alignments["simulated_random_reads.fa.000000000"][1])
+
+    def test_sortmerna_map_sam_alignments_with_tags(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            outputting SAM alignments with @SQ tags
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db,
+                                   output_sam=True,
+                                   sam_SQ_tags=True,
+                                   output_blast=False)
+
+        # Check all sortmerna output files exist
+        output_files = [self.output_dir + ext
+                        for ext in ['/sortmerna_map.sam',
+                                    '/sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        sam_alignments_fp = app_result['SAMAlignments'].name
+
+        # Check there are 30 alignments in the SAM output (1 per read)
+        with open(sam_alignments_fp, 'U') as sam_actual:
+            actual_entries = [line.strip().split('\t') for line in sam_actual]
+
+        # 30 alignments expected + 2 lines for @HD and @PG fields + 5 lines
+        # for the @SQ tags
+        self.assertEqual(37,len(actual_entries))
+
+        # Check all expected @SQ tags have been included
+        SQ_array = [['@SQ', 'SN:42684', 'LN:1501'],
+                    ['@SQ', 'SN:342684', 'LN:1486'],
+                    ['@SQ', 'SN:426848', 'LN:1486'],
+                    ['@SQ', 'SN:295053', 'LN:1389'],
+                    ['@SQ', 'SN:879972', 'LN:1371']]
+        for entry in SQ_array:
+            self.assertTrue(entry in actual_entries)
+
+    def test_sortmerna_map_blast_no_null_alignments(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            using Blast with --print_all_reads option set to False
+            (no NULL alignments output)
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db,
+                                   print_all_reads=False)
+
+        # Check all sortmerna output files exist
+        output_files = [self.output_dir + ext
+                        for ext in ['/sortmerna_map.blast',
+                                    '/sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        blast_alignments_fp = app_result['BlastAlignments'].name
+
+        # Check there are 20 alignments (1 per read)
+        with open(blast_alignments_fp, 'U') as blast_actual:
+            entries = (line.strip().split('\t') for line in blast_actual)
+            actual_alignments = {r[0]:r[1:] for r in entries}
+
+        self.assertEqual(20,len(actual_alignments))
+
+        # Check this alignment exists
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47" in actual_alignments)
+        self.assertEqual("97.3", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][12])
+
+        # Check alignment for random read does not exist
+        self.assertFalse("simulated_random_reads.fa.000000000" in actual_alignments)
+
+    def test_sortmerna_map_num_alignments(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            outputting first INT num_alignments passing the E-value threshold
+            (rather than first INT best alignments)
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db,
+                                   num_alignments=1)
+
+        # Check all sortmerna output files exist
+        output_files = [self.output_dir + ext
+                        for ext in ['/sortmerna_map.blast',
+                                    '/sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        blast_alignments_fp = app_result['BlastAlignments'].name
+
+        # Check there are 30 alignments (1 per read)
+        with open(blast_alignments_fp, 'U') as blast_actual:
+            entries = (line.strip().split('\t') for line in blast_actual)
+            actual_alignments = {r[0]:r[1:] for r in entries}
+
+        self.assertEqual(30,len(actual_alignments))
+
+        # Check this alignment exists
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47" in actual_alignments)
+        self.assertEqual("97.3", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][12])
+
+        # Check alignment for random read is NULL
+        self.assertTrue("simulated_random_reads.fa.000000000" in actual_alignments)
+        self.assertEqual("*", actual_alignments["simulated_random_reads.fa.000000000"][0])
+
+    def test_blast_or_sam(self):
+        """ SortMeRNA should fail with output_sam and output_blast both
+            set to False
+        """
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        self.assertRaises(ValueError,
+                          sortmerna_map,
+                          seq_path=self.file_read_seqs_fp,
+                          output_dir=self.output_dir,
+                          refseqs_fp=self.file_reference_seq_fp,
+                          sortmerna_db=sortmerna_db,
+                          output_sam=False,
+                          output_blast=False)
+
+    def test_best_or_num_alignments(self):
+        """ SortMeRNA should fail with "best" and "num_alignments" both
+            set to True
+        """
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        self.assertRaises(ValueError,
+                          sortmerna_map,
+                          seq_path=self.file_read_seqs_fp,
+                          output_dir=self.output_dir,
+                          refseqs_fp=self.file_reference_seq_fp,
+                          sortmerna_db=sortmerna_db,
+                          best=1,
+                          num_alignments=1)
 
 
 # Reference sequence database
@@ -537,6 +849,76 @@ ACATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTG
 GGGAT
 """
 
+# Blast tabular alignment file output by SortMeRNA for read_seqs_fp
+blast_alignments = """HMPMockV1.2.Staggered2.673827_47  295053  97.3    224 6   0   1   224 520 743 1.75e-102   363 224M    100 
+HMPMockV1.2.Staggered2.673827_115   295053  98.4    251 4   0   1   251 520 770 3.7e-119    418 251M    100 
+HMPMockV1.2.Staggered2.673827_122   295053  99.2    251 2   0   1   251 520 770 9.17e-122   427 251M    100 
+HMPMockV1.2.Staggered2.673827_161   295053  99.6    251 1   0   1   251 520 770 4.57e-123   431 251M    100 
+HMPMockV1.2.Staggered2.673827_180   295053  99.6    240 1   0   1   240 520 759 2.46e-117   412 240M    100 
+HMPMockV1.2.Staggered2.673827_203   295053  98.4    251 4   0   1   251 520 770 3.7e-119    418 251M    100 
+HMPMockV1.2.Staggered2.673827_207   295053  100 251 0   0   1   251 520 770 2.27e-124   436 251M    100 
+HMPMockV1.2.Staggered2.673827_215   295053  100 222 0   0   1   222 520 741 2.94e-109   385 222M    100 
+HMPMockV1.2.Staggered2.673827_218   295053  99.2    251 2   0   1   251 520 770 9.17e-122   427 251M    100 
+HMPMockV1.2.Staggered2.673827_220   295053  99.6    225 1   0   1   225 520 744 1.61e-109   386 225M    100 
+simulated_random_reads.fa.000000000 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000001 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000002 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000003 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000004 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000005 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000006 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000007 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000008 *   0   0   0   0   0   0   0   0   0   0   *   0
+simulated_random_reads.fa.000000009 *   0   0   0   0   0   0   0   0   0   0   *   0
+HMPMockV1.2.Staggered2.673827_0 879972  81.7    240 41  3   1   240 516 754 4.67e-61    225 93M1D5M2I140M   100 
+HMPMockV1.2.Staggered2.673827_1 879972  82.3    225 37  3   1   225 516 739 1.88e-58    217 93M1D5M2I125M   100 
+HMPMockV1.2.Staggered2.673827_2 879972  82.9    244 39  3   1   244 516 758 9.54e-66    241 93M1D5M2I144M   100 
+HMPMockV1.2.Staggered2.673827_3 879972  82.6    241 39  3   1   241 516 755 3.49e-64    236 93M1D5M2I141M   100 
+HMPMockV1.2.Staggered2.673827_4 879972  82.1    251 42  3   1   251 516 765 1.74e-65    240 93M1D5M2I151M   100 
+HMPMockV1.2.Staggered2.673827_5 879972  82.6    223 36  3   1   223 516 737 1.03e-58    217 93M1D5M2I123M   100 
+HMPMockV1.2.Staggered2.673827_6 879972  82.4    226 37  3   1   226 516 740 5.67e-59    218 93M1D5M2I126M10S    95.8    
+HMPMockV1.2.Staggered2.673827_7 879972  82.8    226 36  3   1   226 516 740 2.83e-60    223 93M1D5M2I126M3S 98.7    
+HMPMockV1.2.Staggered2.673827_8 879972  82.4    226 37  3   1   226 516 740 5.67e-59    218 93M1D5M2I126M   100 
+HMPMockV1.2.Staggered2.673827_9 879972  82.4    244 40  3   1   244 516 758 1.92e-64    237 93M1D5M2I144M1S 99.6
+"""
+
+# SAM alignments output by SortMeRNA for read_seqs_fp
+# (@PG field will have different filepaths for the --ref,
+# --aligned and --reads arguments in the actual file at
+# each test run)
+sam_alignments = """@HD VN:1.0  SO:unsorted
+@PG ID:sortmerna    VN:1.0  CL:sortmerna --ref /var/folders/8t/45181bbn06b69zkz3zcm9tp40000gn/T/temp_references_wNeeHY.fasta,/var/folders/8t/45181bbn06b69zkz3zcm9tp40000gn/T/tmpnlm6x2/temp_references_wNeeHY -e 1 --aligned /var/folders/8t/45181bbn06b69zkz3zcm9tp40000gn/T/tmpnlm6x2/sortmerna_map -a 1 --print_all_reads --log --blast 3 --reads /var/folders/8t/45181bbn06b69zkz3zcm9tp40000gn/T/temp_reads_7Otsen.fasta --best 1 --sam 
+HMPMockV1.2.Staggered2.673827_47    0   295053  520 255 224M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCAAGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATTTGATACTGGCAAGCTTGAGTCTCGTAGAGGAGGGTAGAATTCCAGGTGTAGCGGGGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCTCCATGGACGAAGACTGACGCT    *   AS:i:418    NM:i:6
+HMPMockV1.2.Staggered2.673827_115   0   295053  520 255 251M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCCGGCTCAACCTTGGAACTGCATCTGATACGGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCTCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACA *   AS:i:482    NM:i:4
+HMPMockV1.2.Staggered2.673827_122   0   295053  520 255 251M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGTGATCAAACA *   AS:i:492    NM:i:2
+HMPMockV1.2.Staggered2.673827_161   0   295053  520 255 251M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCTCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACA *   AS:i:497    NM:i:1
+HMPMockV1.2.Staggered2.673827_180   0   295053  520 255 240M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGTGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTG    *   AS:i:475    NM:i:1
+HMPMockV1.2.Staggered2.673827_203   0   295053  520 255 251M    *   0   0   TACGGAGGTTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCCGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCTCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGATCAAACA *   AS:i:482    NM:i:4
+HMPMockV1.2.Staggered2.673827_207   0   295053  520 255 251M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACA *   AS:i:502    NM:i:0
+HMPMockV1.2.Staggered2.673827_215   0   295053  520 255 222M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACG  *   AS:i:444    NM:i:0
+HMPMockV1.2.Staggered2.673827_218   0   295053  520 255 251M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTTCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCACACA *   AS:i:492    NM:i:2
+HMPMockV1.2.Staggered2.673827_220   0   295053  520 255 225M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCTCCTGGACGAAGACTGACGCTC   *   AS:i:445    NM:i:1
+simulated_random_reads.fa.000000000 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000001 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000002 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000003 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000004 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000005 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000006 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000007 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000008 4   *   0   255 *   *   0   0   *   *   *   *
+simulated_random_reads.fa.000000009 4   *   0   255 *   *   0   0   *   *   *   *
+HMPMockV1.2.Staggered2.673827_0 0   879972  516 255 93M1D5M2I140M   *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGCAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACCTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTG    *   AS:i:259    NM:i:44
+HMPMockV1.2.Staggered2.673827_1 0   879972  516 255 93M1D5M2I125M   *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTTACGCTG   *   AS:i:249    NM:i:40
+HMPMockV1.2.Staggered2.673827_2 0   879972  516 255 93M1D5M2I144M   *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTGGGGA    *   AS:i:277    NM:i:42
+HMPMockV1.2.Staggered2.673827_3 0   879972  516 255 93M1D5M2I141M   *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCGTAGAGATATGGAGGAACACCAGTGGCGAAGGCGACGTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTGG   *   AS:i:271    NM:i:42
+HMPMockV1.2.Staggered2.673827_4 0   879972  516 255 93M1D5M2I151M   *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGGCTGTAACTGACGCTGATGTGCGCAAGCGTGGTGATCAAACA *   AS:i:276    NM:i:45
+HMPMockV1.2.Staggered2.673827_5 0   879972  516 255 93M1D5M2I123M   *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGC *   AS:i:250    NM:i:39
+HMPMockV1.2.Staggered2.673827_6 0   879972  516 255 93M1D5M2I126M10S    *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCGCAGAGATATGGAGGAACAACAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGTAAG    *   AS:i:251    NM:i:40
+HMPMockV1.2.Staggered2.673827_7 0   879972  516 255 93M1D5M2I126M3S *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGT   *   AS:i:256    NM:i:39
+HMPMockV1.2.Staggered2.673827_8 0   879972  516 255 93M1D5M2I126M   *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGAAATGCACAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGA  *   AS:i:251    NM:i:40
+HMPMockV1.2.Staggered2.673827_9 0   879972  516 255 93M1D5M2I144M1S *   0   0   TACGTAGGTGGCAAGCGTTATCCGGAATTATTGGGCGTAAAGCGCGCGTAGGCGGTTTTTTAAGTCTGATGTGAAAGCCCACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTGACATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTGGGGAT   *   AS:i:272    NM:i:43
+"""
 
 if __name__ == '__main__':
     main()

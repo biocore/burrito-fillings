@@ -61,23 +61,31 @@ class IndexDB(CommandLineApplication):
         return result
 
 
-def build_database_sortmerna(fasta_path=None,
+def build_database_sortmerna(fasta_path,
                              max_pos=None,
                              output_dir=None,
                              HALT_EXEC=False):
-    """ Build sortmerna db from fasta_path; return db name and list
-        of files created
+    """ Build sortmerna db from fasta_path; return db name
+        and list of files created
 
-        **If using to create temporary blast databases, you can call
-        cogent.util.misc.remove_files(db_filepaths) to clean up all the
-        files created by indexdb_rna when you're done with the database.
+        Parameters
+        ----------
+        fasta_path : string, mandatory
+            path to fasta file of sequences to build database.
+        max_pos : integer, optional
+            maximum positions to store per seed in index.
+        output_dir : string, optional
+            directory where output should be written
+        HALT_EXEC : boolean, optional
+            halt just before running the indexdb_rna command and
+            print the command -- useful for debugging.
 
-        fasta_path: path to fasta file of sequences to build database from
-        max_pos: maximum positions to store per seed in index
-        output_dir: directory where output should be written
-         (default: directory containing fasta_path)
-        HALT_EXEC: halt just before running the indexdb_rna command and
-         print the command -- useful for debugging
+        Return
+        ------
+        db_name : string
+            filepath to indexed database.
+        db_filepaths : list
+            output files by indexdb_rna
     """
 
     if fasta_path is None:
@@ -200,7 +208,8 @@ class Sortmerna(CommandLineApplication):
         '--otu_map': FlagParameter('--', Name='otu_map', Value=True),
 
         # Print a NULL alignment string for non-aligned reads
-        '--print_all_reads': FlagParameter('--', Name='print_all_reads', Value=False)
+        '--print_all_reads': FlagParameter('--', Name='print_all_reads',
+                                           Value=False)
     }
     _synonyms = {}
     _input_handler = '_input_as_string'
@@ -225,28 +234,34 @@ class Sortmerna(CommandLineApplication):
         output_base = self.Parameters['--aligned'].Value
 
         # Blast alignments
-        result['BlastAlignments'] = ResultPath(Path=output_base + '.blast',
-                                               IsWritten=self.Parameters['--blast'].isOn())
+        result['BlastAlignments'] =\
+            ResultPath(Path=output_base + '.blast',
+                       IsWritten=self.Parameters['--blast'].isOn())
 
         # SAM alignments
-        result['SAMAlignments'] = ResultPath(Path=output_base + '.sam',
-                                             IsWritten=self.Parameters['--sam'].isOn())
+        result['SAMAlignments'] =\
+            ResultPath(Path=output_base + '.sam',
+                       IsWritten=self.Parameters['--sam'].isOn())
 
         # OTU map (mandatory output)
-        result['OtuMap'] = ResultPath(Path=output_base + '_otus.txt',
-                                      IsWritten=self.Parameters['--otu_map'].isOn())
+        result['OtuMap'] =\
+            ResultPath(Path=output_base + '_otus.txt',
+                       IsWritten=self.Parameters['--otu_map'].isOn())
 
         # FASTA file of sequences in the OTU map (madatory output)
-        result['FastaMatches'] = ResultPath(Path=output_base + fileExtension,
-                                            IsWritten=self.Parameters['--fastx'].isOn())
+        result['FastaMatches'] =\
+            ResultPath(Path=output_base + fileExtension,
+                       IsWritten=self.Parameters['--fastx'].isOn())
 
         # FASTA file of sequences not in the OTU map (mandatory output)
-        result['FastaForDenovo'] = ResultPath(Path=output_base + '_denovo' +
-                                              fileExtension,
-                                              IsWritten=self.Parameters['--de_novo_otu'].isOn())
+        result['FastaForDenovo'] =\
+            ResultPath(Path=output_base + '_denovo' +
+                       fileExtension,
+                       IsWritten=self.Parameters['--de_novo_otu'].isOn())
         # Log file
-        result['LogFile'] = ResultPath(Path=output_base + '.log',
-                                       IsWritten=self.Parameters['--log'].isOn())
+        result['LogFile'] =\
+            ResultPath(Path=output_base + '.log',
+                       IsWritten=self.Parameters['--log'].isOn())
 
         return result
 
@@ -366,7 +381,7 @@ def sortmerna_ref_cluster(seq_path=None,
     # Put clusters into a map of lists
     f_otumap = app_result['OtuMap']
     rows = (line.strip().split('\t') for line in f_otumap)
-    clusters = {r[0]:r[1:] for r in rows}
+    clusters = {r[0]: r[1:] for r in rows}
 
     # Put failures into a list
     f_failure = app_result['FastaForDenovo']
@@ -381,6 +396,7 @@ def sortmerna_ref_cluster(seq_path=None,
                            app_result['OtuMap'].name]
 
     return clusters, failures, smr_files_to_remove
+
 
 def sortmerna_map(seq_path,
                   output_dir,
@@ -420,7 +436,7 @@ def sortmerna_map(seq_path,
         HALT_EXEC : bool, debugging parameter
             If passed, will exit just before the sortmerna command
             is issued and will print out the command that would
-            have been called to stdout. 
+            have been called to stdout.
         output_sam : bool, optional
             flag to set SAM output format
         sam_SQ_tags : bool, optional

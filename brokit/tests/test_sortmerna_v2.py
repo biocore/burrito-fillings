@@ -7,17 +7,15 @@ Unit tests for the SortMeRNA version 2.0 Application controller
 
 from unittest import TestCase, main
 import re
-from os import close, walk
-from os.path import abspath, exists, getsize, join, dirname
+from os import close
+from os.path import abspath, exists, join, dirname
 from tempfile import mkstemp, mkdtemp
 from shutil import rmtree
 
 from skbio.util.misc import remove_files
 from skbio.parse.sequences import parse_fasta
 
-from brokit.sortmerna_v2 import (IndexDB,
-                                 build_database_sortmerna,
-                                 Sortmerna,
+from brokit.sortmerna_v2 import (build_database_sortmerna,
                                  sortmerna_ref_cluster,
                                  sortmerna_map)
 
@@ -72,8 +70,9 @@ class SortmernaV2Tests(TestCase):
         tmp.close()
 
         # create temporary file for SAM alignments
-        f, self.file_sam_alignments_fp = mkstemp(prefix='temp_alignments_',
-                                                   suffix='.sam')
+        f, self.file_sam_alignments_fp =\
+            mkstemp(prefix='temp_alignments_',
+                    suffix='.sam')
         close(f)
 
         with open(self.file_sam_alignments_fp, 'w') as tmp:
@@ -322,8 +321,9 @@ class SortmernaV2Tests(TestCase):
             if "Total OTUs" in line:
                 num_clusters = (re.split('Total OTUs = ', line)[1]).strip()
             elif "Total reads for de novo clustering" in line:
-                num_failures = (re.split('Total reads for de novo clustering = | \(',
-                                         line)[1]).strip()
+                num_failures =\
+                    (re.split('Total reads for de novo clustering = | \(',
+                              line)[1]).strip()
         f_log.close()
 
         self.assertEqual(int(num_clusters), len(otu_clusters))
@@ -363,18 +363,23 @@ class SortmernaV2Tests(TestCase):
         # Check there are 30 alignments (1 per read)
         with open(blast_alignments_fp, 'U') as blast_actual:
             entries = (line.strip().split('\t') for line in blast_actual)
-            actual_alignments = {r[0]:r[1:] for r in entries}
+            actual_alignments = {r[0]: r[1:] for r in entries}
 
-        self.assertEqual(30,len(actual_alignments))
+        self.assertEqual(30, len(actual_alignments))
 
         # Check this alignment exists
-        self.assertTrue("HMPMockV1.2.Staggered2.673827_47" in actual_alignments)
-        self.assertEqual("97.3", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][1])
-        self.assertEqual("100", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][12])
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47"
+                        in actual_alignments)
+        self.assertEqual("97.3", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][12])
 
         # Check alignment for random read is NULL
-        self.assertTrue("simulated_random_reads.fa.000000000" in actual_alignments)
-        self.assertEqual("*", actual_alignments["simulated_random_reads.fa.000000000"][0])
+        self.assertTrue("simulated_random_reads.fa.000000000"
+                        in actual_alignments)
+        self.assertEqual("*", actual_alignments[
+            "simulated_random_reads.fa.000000000"][0])
 
     def test_sortmerna_map_sam_alignments(self):
         """ SortMeRNA version 2.0 for mapping sequences onto a reference
@@ -412,19 +417,24 @@ class SortmernaV2Tests(TestCase):
         # Check there are 30 alignments in the SAM output (1 per read)
         with open(sam_alignments_fp, 'U') as sam_actual:
             entries = (line.strip().split('\t') for line in sam_actual)
-            actual_alignments = {r[0]:r[1:] for r in entries}
+            actual_alignments = {r[0]: r[1:] for r in entries}
 
         # 30 alignments expected + 2 lines for @HD and @PG fields
-        self.assertEqual(32,len(actual_alignments))
+        self.assertEqual(32, len(actual_alignments))
 
         # Check this alignment exists
-        self.assertTrue("HMPMockV1.2.Staggered2.673827_47" in actual_alignments)
-        self.assertEqual("295053", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][1])
-        self.assertEqual("AS:i:418", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][10])
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47"
+                        in actual_alignments)
+        self.assertEqual("295053", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("AS:i:418", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][10])
 
         # Check alignment for random read is NULL
-        self.assertTrue("simulated_random_reads.fa.000000000" in actual_alignments)
-        self.assertEqual("*", actual_alignments["simulated_random_reads.fa.000000000"][1])
+        self.assertTrue("simulated_random_reads.fa.000000000"
+                        in actual_alignments)
+        self.assertEqual("*", actual_alignments[
+            "simulated_random_reads.fa.000000000"][1])
 
     def test_sortmerna_map_sam_alignments_with_tags(self):
         """ SortMeRNA version 2.0 for mapping sequences onto a reference
@@ -466,7 +476,7 @@ class SortmernaV2Tests(TestCase):
 
         # 30 alignments expected + 2 lines for @HD and @PG fields + 5 lines
         # for the @SQ tags
-        self.assertEqual(37,len(actual_entries))
+        self.assertEqual(37, len(actual_entries))
 
         # Check all expected @SQ tags have been included
         SQ_array = [['@SQ', 'SN:42684', 'LN:1501'],
@@ -513,17 +523,21 @@ class SortmernaV2Tests(TestCase):
         # Check there are 20 alignments (1 per read)
         with open(blast_alignments_fp, 'U') as blast_actual:
             entries = (line.strip().split('\t') for line in blast_actual)
-            actual_alignments = {r[0]:r[1:] for r in entries}
+            actual_alignments = {r[0]: r[1:] for r in entries}
 
-        self.assertEqual(20,len(actual_alignments))
+        self.assertEqual(20, len(actual_alignments))
 
         # Check this alignment exists
-        self.assertTrue("HMPMockV1.2.Staggered2.673827_47" in actual_alignments)
-        self.assertEqual("97.3", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][1])
-        self.assertEqual("100", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][12])
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47"
+                        in actual_alignments)
+        self.assertEqual("97.3", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][12])
 
         # Check alignment for random read does not exist
-        self.assertFalse("simulated_random_reads.fa.000000000" in actual_alignments)
+        self.assertFalse("simulated_random_reads.fa.000000000"
+                         in actual_alignments)
 
     def test_sortmerna_map_num_alignments(self):
         """ SortMeRNA version 2.0 for mapping sequences onto a reference
@@ -561,18 +575,23 @@ class SortmernaV2Tests(TestCase):
         # Check there are 30 alignments (1 per read)
         with open(blast_alignments_fp, 'U') as blast_actual:
             entries = (line.strip().split('\t') for line in blast_actual)
-            actual_alignments = {r[0]:r[1:] for r in entries}
+            actual_alignments = {r[0]: r[1:] for r in entries}
 
-        self.assertEqual(30,len(actual_alignments))
+        self.assertEqual(30, len(actual_alignments))
 
         # Check this alignment exists
-        self.assertTrue("HMPMockV1.2.Staggered2.673827_47" in actual_alignments)
-        self.assertEqual("97.3", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][1])
-        self.assertEqual("100", actual_alignments["HMPMockV1.2.Staggered2.673827_47"][12])
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47"
+                        in actual_alignments)
+        self.assertEqual("97.3", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][12])
 
         # Check alignment for random read is NULL
-        self.assertTrue("simulated_random_reads.fa.000000000" in actual_alignments)
-        self.assertEqual("*", actual_alignments["simulated_random_reads.fa.000000000"][0])
+        self.assertTrue("simulated_random_reads.fa.000000000"
+                        in actual_alignments)
+        self.assertEqual("*", actual_alignments[
+            "simulated_random_reads.fa.000000000"][0])
 
     def test_blast_or_sam(self):
         """ SortMeRNA should fail with output_sam and output_blast both
@@ -850,7 +869,8 @@ GGGAT
 """
 
 # Blast tabular alignment file output by SortMeRNA for read_seqs_fp
-blast_alignments = """HMPMockV1.2.Staggered2.673827_47  295053  97.3    224 6   0   1   224 520 743 1.75e-102   363 224M    100 
+blast_alignments = """
+HMPMockV1.2.Staggered2.673827_47  295053  97.3    224 6   0   1   224 520 743 1.75e-102   363 224M    100 
 HMPMockV1.2.Staggered2.673827_115   295053  98.4    251 4   0   1   251 520 770 3.7e-119    418 251M    100 
 HMPMockV1.2.Staggered2.673827_122   295053  99.2    251 2   0   1   251 520 770 9.17e-122   427 251M    100 
 HMPMockV1.2.Staggered2.673827_161   295053  99.6    251 1   0   1   251 520 770 4.57e-123   431 251M    100 
@@ -886,7 +906,8 @@ HMPMockV1.2.Staggered2.673827_9 879972  82.4    244 40  3   1   244 516 758 1.92
 # (@PG field will have different filepaths for the --ref,
 # --aligned and --reads arguments in the actual file at
 # each test run)
-sam_alignments = """@HD VN:1.0  SO:unsorted
+sam_alignments = """
+@HD VN:1.0  SO:unsorted
 @PG ID:sortmerna    VN:1.0  CL:sortmerna --ref /var/folders/8t/45181bbn06b69zkz3zcm9tp40000gn/T/temp_references_wNeeHY.fasta,/var/folders/8t/45181bbn06b69zkz3zcm9tp40000gn/T/tmpnlm6x2/temp_references_wNeeHY -e 1 --aligned /var/folders/8t/45181bbn06b69zkz3zcm9tp40000gn/T/tmpnlm6x2/sortmerna_map -a 1 --print_all_reads --log --blast 3 --reads /var/folders/8t/45181bbn06b69zkz3zcm9tp40000gn/T/temp_reads_7Otsen.fasta --best 1 --sam 
 HMPMockV1.2.Staggered2.673827_47    0   295053  520 255 224M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCAAGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATTTGATACTGGCAAGCTTGAGTCTCGTAGAGGAGGGTAGAATTCCAGGTGTAGCGGGGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCTCCATGGACGAAGACTGACGCT    *   AS:i:418    NM:i:6
 HMPMockV1.2.Staggered2.673827_115   0   295053  520 255 251M    *   0   0   TACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCCGGCTCAACCTTGGAACTGCATCTGATACGGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCTCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACA *   AS:i:482    NM:i:4

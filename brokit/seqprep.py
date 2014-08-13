@@ -8,8 +8,8 @@
 import os
 import tempfile
 
-from skbio.app.parameters import ValuedParameter, FlagParameter
-from skbio.app.util import CommandLineApplication, ResultPath
+from burrito.parameters import ValuedParameter, FlagParameter
+from burrito.util import CommandLineApplication, ResultPath
 
 # SeqPrep help:
 # Usage:

@@ -13,8 +13,8 @@ Application controller for SumaClust version 1.0
 
 from os.path import split, isdir, dirname, isfile, exists, realpath
 
-from skbio.app.util import CommandLineApplication, ResultPath
-from skbio.app.parameters import ValuedParameter, FlagParameter
+from burrito.util import CommandLineApplication, ResultPath
+from burrito.parameters import ValuedParameter, FlagParameter
 
 
 class Sumaclust(CommandLineApplication):

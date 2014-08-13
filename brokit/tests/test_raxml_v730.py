@@ -16,7 +16,7 @@ from cogent.core.moltype import RNA, DNA
 from cogent.util.misc import app_path
 from cogent.core.alignment import Alignment
 
-from skbio.app.util import ApplicationError, get_tmp_filename
+from burrito.util import ApplicationError, get_tmp_filename
 
 from brokit.raxml_v730 import (Raxml, raxml_alignment,
                                build_tree_from_alignment,

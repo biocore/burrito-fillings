@@ -12,8 +12,8 @@ from subprocess import Popen
 from tempfile import NamedTemporaryFile
 
 from skbio.parse.sequences import parse_fasta
-from skbio.app.parameters import ValuedParameter
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.parameters import ValuedParameter
+from burrito.util import (CommandLineApplication, ResultPath,
                             CommandLineAppResult, ApplicationError)
 
 

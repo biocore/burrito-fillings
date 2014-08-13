@@ -4,9 +4,9 @@
 designed for FastTree v1.1.0 .  Also functions with v2.0.1, v2.1.0, and v2.1.3
 though only with basic functionality"""
 
-from skbio.app.parameters import (ValuedParameter, FlagParameter,
+from burrito.parameters import (ValuedParameter, FlagParameter,
                                   MixedParameter)
-from skbio.app.util import (CommandLineApplication, FilePath, system,
+from burrito.util import (CommandLineApplication, FilePath, system,
                             CommandLineAppResult, ResultPath, remove,
                             ApplicationError)
 

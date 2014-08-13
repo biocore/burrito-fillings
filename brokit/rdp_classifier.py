@@ -11,12 +11,12 @@ from shutil import rmtree
 import tempfile
 import warnings
 
-from skbio.app.parameters import ValuedParameter
+from burrito.parameters import ValuedParameter
 from skbio.parse.sequences import parse_fasta
-from skbio.app.util import (CommandLineApplication, FilePath, ResultPath,
+from burrito.util import (CommandLineApplication, FilePath, ResultPath,
                             ApplicationNotFoundError, ApplicationError)
 
-from skbio.app.util import which
+from burrito.util import which
 
 
 class RdpClassifier(CommandLineApplication):

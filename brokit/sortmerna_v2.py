@@ -16,8 +16,8 @@ from os.path import split, splitext, dirname, join
 from glob import glob
 import re
 
-from skbio.app.util import CommandLineApplication, ResultPath
-from skbio.app.parameters import ValuedParameter, FlagParameter
+from burrito.util import CommandLineApplication, ResultPath
+from burrito.parameters import ValuedParameter, FlagParameter
 from skbio.parse.sequences import parse_fasta
 
 

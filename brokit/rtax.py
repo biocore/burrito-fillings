@@ -15,8 +15,8 @@ from sys import stderr
 from shutil import rmtree
 
 from skbio.parse.sequences import parse_fasta
-from skbio.app.parameters import ValuedParameter, FlagParameter
-from skbio.app.util import (CommandLineApplication, ResultPath,
+from burrito.parameters import ValuedParameter, FlagParameter
+from burrito.util import (CommandLineApplication, ResultPath,
                             get_tmp_filename, ApplicationError,
                             ApplicationNotFoundError)
 from skbio.util.misc import remove_files

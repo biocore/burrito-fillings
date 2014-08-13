@@ -6,8 +6,8 @@ MAFFT v6.602
 from random import choice
 from os import remove
 
-from skbio.app.parameters import FlagParameter, ValuedParameter, FilePath
-from skbio.app.util import CommandLineApplication, ResultPath, get_tmp_filename
+from burrito.parameters import FlagParameter, ValuedParameter, FilePath
+from burrito.util import CommandLineApplication, ResultPath, get_tmp_filename
 from skbio.parse.sequences import parse_fasta
 
 from cogent.core.moltype import DNA, RNA, PROTEIN

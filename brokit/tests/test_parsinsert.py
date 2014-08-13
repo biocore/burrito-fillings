@@ -12,7 +12,7 @@ from cogent.parse.tree import DndParser
 from cogent.core.moltype import DNA
 
 from skbio.parse.sequences import parse_fasta
-from skbio.app.util import get_tmp_filename
+from burrito.util import get_tmp_filename
 
 from brokit.parsinsert import ParsInsert, insert_sequences_into_tree
 

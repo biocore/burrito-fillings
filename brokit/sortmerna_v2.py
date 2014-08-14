@@ -70,15 +70,18 @@ def build_database_sortmerna(fasta_path,
 
         Parameters
         ----------
-        fasta_path : string, mandatory
+        fasta_path : string
             path to fasta file of sequences to build database.
         max_pos : integer, optional
-            maximum positions to store per seed in index.
+            maximum positions to store per seed in index
+            [default: 10000].
         output_dir : string, optional
             directory where output should be written
+            [default: same directory as fasta_path]
         HALT_EXEC : boolean, optional
-            halt just before running the indexdb_rna command and
-            print the command -- useful for debugging.
+            halt just before running the indexdb_rna command
+            and print the command -- useful for debugging
+            [default: False].
 
         Return
         ------
@@ -305,17 +308,18 @@ def sortmerna_ref_cluster(seq_path=None,
         result_path : str
             filepath to output OTU map.
         max_e_value : float, optional
-            E-value threshold.
+            E-value threshold [default: 1].
         similarity : float, optional
-            similarity %id threshold.
+            similarity %id threshold [default: 0.97].
         coverage : float, optional
-            query coverage % threshold.
+            query coverage % threshold [default: 0.97].
         threads : int, optional
-            number of threads to use (OpenMP).
+            number of threads to use (OpenMP) [default: 1].
         tabular : bool, optional
-            output BLAST tabular alignments.
+            output BLAST tabular alignments [default: False].
         best : int, optional
-            number of best alignments to output per read.
+            number of best alignments to output per read
+            [default: 1].
 
         Returns
         -------
@@ -416,35 +420,38 @@ def sortmerna_map(seq_path,
 
         Parameters
         ----------
-        seq_path : str, mandatory
+        seq_path : str
             filepath to reads.
-        output_dir : str, mandatory
+        output_dir : str
             dirpath to sortmerna output.
-        refseqs_fp : str, mandatory
+        refseqs_fp : str
             filepath of reference sequences.
-        sortmerna_db : str, mandatory
+        sortmerna_db : str
             indexed reference database.
         e_value : float, optional
-            E-value threshold.
+            E-value threshold [default: 1].
         threads : int, optional
-            number of threads to use (OpenMP).
+            number of threads to use (OpenMP) [default: 1].
         best : int, optional
-            number of best alignments to output per read.
+            number of best alignments to output per read
+            [default: None].
         num_alignments : int, optional
             number of first alignments passing E-value threshold to
-            output per read.
+            output per read [default: None].
         HALT_EXEC : bool, debugging parameter
             If passed, will exit just before the sortmerna command
             is issued and will print out the command that would
-            have been called to stdout.
+            have been called to stdout [default: False].
         output_sam : bool, optional
-            flag to set SAM output format
+            flag to set SAM output format [default: False].
         sam_SQ_tags : bool, optional
-            add SQ field to SAM output (if output_SAM is true)
+            add SQ field to SAM output (if output_SAM is True)
+            [default: False].
         output_blast : bool, optional
-            flag to set Blast tabular output
+            flag to set Blast tabular output [default: True].
         print_all_reads : bool, optional
             output NULL alignments for non-aligned reads
+            [default: True].
 
         Returns
         -------

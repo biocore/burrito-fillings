@@ -181,11 +181,11 @@ class SortmernaV2Tests(TestCase):
             result_path=join(self.output_dir, "sortmerna_otus.txt"))
 
         # Check all sortmerna output files exist
-        output_files = [self.output_dir + ext
-                        for ext in ['/sortmerna_otus_otus.txt',
-                                    '/sortmerna_otus.log',
-                                    '/sortmerna_otus_denovo.fasta',
-                                    '/sortmerna_otus.fasta']]
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_otus_otus.txt',
+                                    'sortmerna_otus.log',
+                                    'sortmerna_otus_denovo.fasta',
+                                    'sortmerna_otus.fasta']]
 
         # Check output files exist
         for fp in output_files:
@@ -295,11 +295,11 @@ class SortmernaV2Tests(TestCase):
         num_clusters = 0
         num_failures = 0
         for line in f_log:
-            if "Total OTUs" in line:
+            if line.startswith(" Total OTUs"):
                 num_clusters = (re.split('Total OTUs = ', line)[1]).strip()
-            elif "Total reads for de novo clustering" in line:
+            elif line.startswith("    Total reads for de novo clustering"):
                 num_failures =\
-                    (re.split('Total reads for de novo clustering = | \(',
+                    (re.split('Total reads for de novo clustering = ',
                               line)[1]).strip()
         f_log.close()
 
@@ -327,9 +327,9 @@ class SortmernaV2Tests(TestCase):
                                    sortmerna_db=sortmerna_db)
 
         # Check all sortmerna output files exist
-        output_files = [self.output_dir + ext
-                        for ext in ['/sortmerna_map.blast',
-                                    '/sortmerna_map.log']]
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.blast',
+                                    'sortmerna_map.log']]
 
         # Check output files exist
         for fp in output_files:
@@ -380,10 +380,10 @@ class SortmernaV2Tests(TestCase):
                                    output_sam=True)
 
         # Check all sortmerna output files exist
-        output_files = [self.output_dir + ext
-                        for ext in ['/sortmerna_map.blast',
-                                    '/sortmerna_map.sam',
-                                    '/sortmerna_map.log']]
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.blast',
+                                    'sortmerna_map.sam',
+                                    'sortmerna_map.log']]
 
         # Check output files exist
         for fp in output_files:
@@ -437,9 +437,9 @@ class SortmernaV2Tests(TestCase):
                                    output_blast=False)
 
         # Check all sortmerna output files exist
-        output_files = [self.output_dir + ext
-                        for ext in ['/sortmerna_map.sam',
-                                    '/sortmerna_map.log']]
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.sam',
+                                    'sortmerna_map.log']]
 
         # Check output files exist
         for fp in output_files:
@@ -487,9 +487,9 @@ class SortmernaV2Tests(TestCase):
                                    print_all_reads=False)
 
         # Check all sortmerna output files exist
-        output_files = [self.output_dir + ext
-                        for ext in ['/sortmerna_map.blast',
-                                    '/sortmerna_map.log']]
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.blast',
+                                    'sortmerna_map.log']]
 
         # Check output files exist
         for fp in output_files:
@@ -539,9 +539,9 @@ class SortmernaV2Tests(TestCase):
                                    num_alignments=1)
 
         # Check all sortmerna output files exist
-        output_files = [self.output_dir + ext
-                        for ext in ['/sortmerna_map.blast',
-                                    '/sortmerna_map.log']]
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.blast',
+                                    'sortmerna_map.log']]
 
         # Check output files exist
         for fp in output_files:

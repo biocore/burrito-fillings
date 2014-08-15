@@ -296,11 +296,9 @@ class SortmernaV2Tests(TestCase):
         num_failures = 0
         for line in f_log:
             if line.startswith(" Total OTUs"):
-                num_clusters = (re.split('Total OTUs = ', line)[1]).strip()
+                num_clusters = (re.split(' = ', line)[1]).strip()
             elif line.startswith("    Total reads for de novo clustering"):
-                num_failures =\
-                    (re.split('Total reads for de novo clustering = ',
-                              line)[1]).strip()
+                num_failures = (re.split(' = ', line)[1]).strip()
         f_log.close()
 
         self.assertEqual(int(num_clusters), len(otu_clusters))
@@ -434,7 +432,7 @@ class SortmernaV2Tests(TestCase):
                                    sortmerna_db=sortmerna_db,
                                    output_sam=True,
                                    sam_SQ_tags=True,
-                                   output_blast=False)
+                                   blast_format=None)
 
         # Check all sortmerna output files exist
         output_files = [join(self.output_dir, ext)
@@ -571,7 +569,7 @@ class SortmernaV2Tests(TestCase):
             "simulated_random_reads.fa.000000000"][0])
 
     def test_blast_or_sam(self):
-        """ SortMeRNA should fail with output_sam and output_blast both
+        """ SortMeRNA should fail with output_sam and blast_format both
             set to False
         """
         # Rebuild the index
@@ -590,7 +588,7 @@ class SortmernaV2Tests(TestCase):
                           refseqs_fp=self.file_reference_seq_fp,
                           sortmerna_db=sortmerna_db,
                           output_sam=False,
-                          output_blast=False)
+                          blast_format=None)
 
     def test_best_or_num_alignments(self):
         """ SortMeRNA should fail with "best" and "num_alignments" both

@@ -163,12 +163,11 @@ class Sortmerna(CommandLineApplication):
         # Output Fasta or Fastq file of aligned reads (flag)
         '--fastx': FlagParameter('--', Name='fastx', Value=True),
 
-        # Output BLAST alignment file (BLAST tabular format
-        # including two trailing columns for CIGAR string and
-        # % query coverage)
-        # If BLAST output is set (pick_otus.py --sortmerna_tabular
-        # flag) then '--blast INT' is set to '--blast 3',
-        # otherwise it is not passed to the command (Value=None)
+        # Output BLAST alignment file, options include [0,3] where:
+        # 0: Blast-like pairwise alignment,
+        # 1: Blast tabular format,
+        # 2: 1 + extra column for CIGAR string,
+        # 3: 2 + extra column for query coverage
         '--blast': ValuedParameter('--', Name='blast', Delimiter=' ',
                                    IsPath=False, Value=None),
 
@@ -372,6 +371,11 @@ def sortmerna_ref_cluster(seq_path=None,
     if best is not None:
         smr.Parameters['--best'].on(best)
 
+    # Set Blast tabular output
+    # The option --blast 3 represents an
+    # m8 blast tabular output + two extra
+    # columns containing the CIGAR string
+    # and the query coverage
     if tabular:
         smr.Parameters['--blast'].on("3")
 
@@ -413,7 +417,7 @@ def sortmerna_map(seq_path,
                   HALT_EXEC=False,
                   output_sam=False,
                   sam_SQ_tags=False,
-                  output_blast=True,
+                  blast_format=3,
                   print_all_reads=True,
                   ):
     """Launch sortmerna mapper
@@ -447,8 +451,9 @@ def sortmerna_map(seq_path,
         sam_SQ_tags : bool, optional
             add SQ field to SAM output (if output_SAM is True)
             [default: False].
-        output_blast : bool, optional
-            flag to set Blast tabular output [default: True].
+        blast_format : int, optional
+            Output Blast m8 tabular + 2 extra columns for CIGAR
+            string and query coverge [default: 3].
         print_all_reads : bool, optional
             output NULL alignments for non-aligned reads
             [default: True].
@@ -458,7 +463,7 @@ def sortmerna_map(seq_path,
         dict of result paths set in _get_result_paths()
     """
 
-    if not (output_blast or output_sam):
+    if not (blast_format or output_sam):
         raise ValueError("Either Blast or SAM output alignment "
                          "format must be chosen.")
 
@@ -475,9 +480,13 @@ def sortmerna_map(seq_path,
     # Set input query sequences path
     smr.Parameters['--reads'].on(seq_path)
 
-    # Output alignments in Blast tabular format
-    if output_blast:
-        smr.Parameters['--blast'].on("3")
+    # Set Blast tabular output
+    # The option --blast 3 represents an
+    # m8 blast tabular output + two extra
+    # columns containing the CIGAR string
+    # and the query coverage
+    if blast_format:
+        smr.Parameters['--blast'].on(blast_format)
 
     # Output alignments in SAM format
     if output_sam:

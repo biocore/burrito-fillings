@@ -7,18 +7,17 @@ Unit tests for the SortMeRNA version 2.0 Application controller
 
 from unittest import TestCase, main
 import re
-from os import close, walk
-from os.path import abspath, exists, getsize, join, dirname
+from os import close
+from os.path import abspath, exists, join, dirname
 from tempfile import mkstemp, mkdtemp
 from shutil import rmtree
 
 from skbio.util.misc import remove_files
 from skbio.parse.sequences import parse_fasta
 
-from brokit.sortmerna_v2 import (IndexDB,
-                                 build_database_sortmerna,
-                                 Sortmerna,
-                                 sortmerna_ref_cluster)
+from brokit.sortmerna_v2 import (build_database_sortmerna,
+                                 sortmerna_ref_cluster,
+                                 sortmerna_map)
 
 # ----------------------------------------------------------------------------
 # Copyright (c) 2014--, brokit development team
@@ -182,11 +181,11 @@ class SortmernaV2Tests(TestCase):
             result_path=join(self.output_dir, "sortmerna_otus.txt"))
 
         # Check all sortmerna output files exist
-        output_files = [self.output_dir + ext
-                        for ext in ['/sortmerna_otus_otus.txt',
-                                    '/sortmerna_otus.log',
-                                    '/sortmerna_otus_denovo.fasta',
-                                    '/sortmerna_otus.fasta']]
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_otus_otus.txt',
+                                    'sortmerna_otus.log',
+                                    'sortmerna_otus_denovo.fasta',
+                                    'sortmerna_otus.fasta']]
 
         # Check output files exist
         for fp in output_files:
@@ -296,15 +295,322 @@ class SortmernaV2Tests(TestCase):
         num_clusters = 0
         num_failures = 0
         for line in f_log:
-            if "Total OTUs" in line:
-                num_clusters = (re.split('Total OTUs = ', line)[1]).strip()
-            elif "non-aligned reads" in line:
-                num_failures = (re.split('non-aligned reads = | \(',
-                                         line)[1]).strip()
+            if line.startswith(" Total OTUs"):
+                num_clusters = (re.split(' = ', line)[1]).strip()
+            elif line.startswith("    Total reads for de novo clustering"):
+                num_failures = (re.split(' = ', line)[1]).strip()
         f_log.close()
 
         self.assertEqual(int(num_clusters), len(otu_clusters))
         self.assertEqual(int(num_failures), len(denovo_reads))
+
+    def test_sortmerna_map_default(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            using default parameters
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db)
+
+        # Check all sortmerna output files exist
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.blast',
+                                    'sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        blast_alignments_fp = app_result['BlastAlignments'].name
+
+        # Check there are 30 alignments (1 per read)
+        with open(blast_alignments_fp, 'U') as blast_actual:
+            entries = (line.strip().split('\t') for line in blast_actual)
+            actual_alignments = {r[0]: r[1:] for r in entries}
+
+        self.assertEqual(30, len(actual_alignments))
+
+        # Check this alignment exists
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47"
+                        in actual_alignments)
+        self.assertEqual("97.3", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][12])
+
+        # Check alignment for random read is NULL
+        self.assertTrue("simulated_random_reads.fa.000000000"
+                        in actual_alignments)
+        self.assertEqual("*", actual_alignments[
+            "simulated_random_reads.fa.000000000"][0])
+
+    def test_sortmerna_map_sam_alignments(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            outputting Blast and SAM alignments
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db,
+                                   output_sam=True)
+
+        # Check all sortmerna output files exist
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.blast',
+                                    'sortmerna_map.sam',
+                                    'sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        sam_alignments_fp = app_result['SAMAlignments'].name
+
+        # Check there are 30 alignments in the SAM output (1 per read)
+        with open(sam_alignments_fp, 'U') as sam_actual:
+            entries = (line.strip().split('\t') for line in sam_actual)
+            actual_alignments = {r[0]: r[1:] for r in entries}
+
+        # 30 alignments expected + 2 lines for @HD and @PG fields
+        self.assertEqual(32, len(actual_alignments))
+
+        # Check this alignment exists
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47"
+                        in actual_alignments)
+        self.assertEqual("295053", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("AS:i:418", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][10])
+
+        # Check alignment for random read is NULL
+        self.assertTrue("simulated_random_reads.fa.000000000"
+                        in actual_alignments)
+        self.assertEqual("*", actual_alignments[
+            "simulated_random_reads.fa.000000000"][1])
+
+    def test_sortmerna_map_sam_alignments_with_tags(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            outputting SAM alignments with @SQ tags
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db,
+                                   output_sam=True,
+                                   sam_SQ_tags=True,
+                                   blast_format=None)
+
+        # Check all sortmerna output files exist
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.sam',
+                                    'sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        sam_alignments_fp = app_result['SAMAlignments'].name
+
+        # Check there are 30 alignments in the SAM output (1 per read)
+        with open(sam_alignments_fp, 'U') as sam_actual:
+            actual_entries = [line.strip().split('\t') for line in sam_actual]
+
+        # 30 alignments expected + 2 lines for @HD and @PG fields + 5 lines
+        # for the @SQ tags
+        self.assertEqual(37, len(actual_entries))
+
+        # Check all expected @SQ tags have been included
+        SQ_array = [['@SQ', 'SN:42684', 'LN:1501'],
+                    ['@SQ', 'SN:342684', 'LN:1486'],
+                    ['@SQ', 'SN:426848', 'LN:1486'],
+                    ['@SQ', 'SN:295053', 'LN:1389'],
+                    ['@SQ', 'SN:879972', 'LN:1371']]
+        for entry in SQ_array:
+            self.assertTrue(entry in actual_entries)
+
+    def test_sortmerna_map_blast_no_null_alignments(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            using Blast with --print_all_reads option set to False
+            (no NULL alignments output)
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db,
+                                   print_all_reads=False)
+
+        # Check all sortmerna output files exist
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.blast',
+                                    'sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        blast_alignments_fp = app_result['BlastAlignments'].name
+
+        # Check there are 20 alignments (1 per read)
+        with open(blast_alignments_fp, 'U') as blast_actual:
+            entries = (line.strip().split('\t') for line in blast_actual)
+            actual_alignments = {r[0]: r[1:] for r in entries}
+
+        self.assertEqual(20, len(actual_alignments))
+
+        # Check this alignment exists
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47"
+                        in actual_alignments)
+        self.assertEqual("97.3", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][12])
+
+        # Check alignment for random read does not exist
+        self.assertFalse("simulated_random_reads.fa.000000000"
+                         in actual_alignments)
+
+    def test_sortmerna_map_num_alignments(self):
+        """ SortMeRNA version 2.0 for mapping sequences onto a reference
+            outputting first INT num_alignments passing the E-value threshold
+            (rather than first INT best alignments)
+        """
+
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        # Run SortMeRNA mapper
+        app_result = sortmerna_map(seq_path=self.file_read_seqs_fp,
+                                   output_dir=self.output_dir,
+                                   refseqs_fp=self.file_reference_seq_fp,
+                                   sortmerna_db=sortmerna_db,
+                                   num_alignments=1)
+
+        # Check all sortmerna output files exist
+        output_files = [join(self.output_dir, ext)
+                        for ext in ['sortmerna_map.blast',
+                                    'sortmerna_map.log']]
+
+        # Check output files exist
+        for fp in output_files:
+            self.assertTrue(exists(fp))
+
+        blast_alignments_fp = app_result['BlastAlignments'].name
+
+        # Check there are 30 alignments (1 per read)
+        with open(blast_alignments_fp, 'U') as blast_actual:
+            entries = (line.strip().split('\t') for line in blast_actual)
+            actual_alignments = {r[0]: r[1:] for r in entries}
+
+        self.assertEqual(30, len(actual_alignments))
+
+        # Check this alignment exists
+        self.assertTrue("HMPMockV1.2.Staggered2.673827_47"
+                        in actual_alignments)
+        self.assertEqual("97.3", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][1])
+        self.assertEqual("100", actual_alignments[
+            "HMPMockV1.2.Staggered2.673827_47"][12])
+
+        # Check alignment for random read is NULL
+        self.assertTrue("simulated_random_reads.fa.000000000"
+                        in actual_alignments)
+        self.assertEqual("*", actual_alignments[
+            "simulated_random_reads.fa.000000000"][0])
+
+    def test_blast_or_sam(self):
+        """ SortMeRNA should fail with output_sam and blast_format both
+            set to False
+        """
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        self.assertRaises(ValueError,
+                          sortmerna_map,
+                          seq_path=self.file_read_seqs_fp,
+                          output_dir=self.output_dir,
+                          refseqs_fp=self.file_reference_seq_fp,
+                          sortmerna_db=sortmerna_db,
+                          output_sam=False,
+                          blast_format=None)
+
+    def test_best_or_num_alignments(self):
+        """ SortMeRNA should fail with "best" and "num_alignments" both
+            set to True
+        """
+        # Rebuild the index
+        sortmerna_db, db_files_to_remove = build_database_sortmerna(
+            abspath(self.file_reference_seq_fp),
+            max_pos=250,
+            output_dir=self.output_dir)
+
+        # Files created by indexdb_rna to be deleted
+        self.files_to_remove.extend(db_files_to_remove)
+
+        self.assertRaises(ValueError,
+                          sortmerna_map,
+                          seq_path=self.file_read_seqs_fp,
+                          output_dir=self.output_dir,
+                          refseqs_fp=self.file_reference_seq_fp,
+                          sortmerna_db=sortmerna_db,
+                          best=1,
+                          num_alignments=1)
 
 
 # Reference sequence database
@@ -536,7 +842,6 @@ ACGGCTCAACCGTGGAGGGTCATTGGAAACTGGAAAACTTGAGTGCAGAAGAGGAAAGTGGAATTCCATGTGTAGCGGTG
 ACATGCGCAGAGATATGGAGGAACACCAGTGGCGAAGGCGACTTTCTGGTCTGTAACTGACGCTGATGTGCGAAAGCGTG
 GGGAT
 """
-
 
 if __name__ == '__main__':
     main()

@@ -1366,6 +1366,10 @@ def usearch_qf(
             # have been removed
             if verbose:
                 print "Filtering by cluster size..."
+            # chimera detection was not performed, use output file of step 4 as input
+            # to filtering by cluster size
+            if not (reference_chimera_detection and de_novo_chimera_detection):
+                output_fp = error_clustered_output_fp
             app_result, output_fp =\
                 usearch_sort_by_abundance(output_fp, output_filepath=
                                           join(output_dir, 'abundance_sorted_minsize_' + str(minsize) +

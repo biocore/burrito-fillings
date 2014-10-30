@@ -21,7 +21,7 @@ from burrito.util import (CommandLineApplication, ResultPath,
                             ApplicationNotFoundError)
 from burrito.parameters import ValuedParameter
 from skbio.parse.sequences import parse_fasta
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 
 
 class Swarm(CommandLineApplication):

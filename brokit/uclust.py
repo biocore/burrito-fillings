@@ -19,7 +19,7 @@ from burrito.util import (CommandLineApplication, ResultPath,
                             ApplicationError, ApplicationNotFoundError)
 from burrito.parameters import ValuedParameter, FlagParameter
 from skbio.parse.sequences import parse_fasta
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 
 
 class UclustParseError(Exception):

@@ -10,7 +10,7 @@ from tempfile import mkstemp
 
 from unittest import TestCase, main
 
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 
 from brokit.uclust import (Uclust,
                            uclust_fasta_sort_from_filepath,

@@ -11,7 +11,7 @@ from glob import glob
 from unittest import TestCase, main
 from tempfile import mkstemp, mkdtemp
 
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 from skbio.parse.sequences import parse_fasta
 
 from brokit.usearch import (clusters_from_blast_uc_file,

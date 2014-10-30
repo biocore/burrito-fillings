@@ -2,7 +2,7 @@
 from unittest import TestCase, main
 from tempfile import mkstemp
 
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 
 from brokit.rtax import Rtax, assign_taxonomy
 

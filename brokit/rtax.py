@@ -19,7 +19,7 @@ from burrito.parameters import ValuedParameter, FlagParameter
 from burrito.util import (CommandLineApplication, ResultPath,
                             get_tmp_filename, ApplicationError,
                             ApplicationNotFoundError)
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 
 from cogent.util.misc import app_path
 from cogent import DNA

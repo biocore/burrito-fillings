@@ -12,7 +12,7 @@ from os.path import abspath, exists, join, dirname
 from tempfile import mkstemp, mkdtemp
 from shutil import rmtree
 
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 from skbio.parse.sequences import parse_fasta
 
 from brokit.sortmerna_v2 import (build_database_sortmerna,

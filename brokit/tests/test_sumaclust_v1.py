@@ -12,7 +12,7 @@ from os import close
 from os.path import exists, getsize, join
 from shutil import rmtree
 
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 
 from brokit.sumaclust_v1 import sumaclust_denovo_cluster
 

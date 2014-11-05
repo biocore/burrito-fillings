@@ -9,7 +9,7 @@ from unittest import TestCase, main
 from tempfile import mkstemp
 from os import close
 
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 
 from brokit.swarm_v127 import swarm_denovo_cluster
 

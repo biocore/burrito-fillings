@@ -18,7 +18,7 @@ from skbio.parse.sequences import parse_fasta
 from burrito.parameters import ValuedParameter, FlagParameter
 from burrito.util import (CommandLineApplication, ResultPath,
                             ApplicationError, ApplicationNotFoundError)
-from skbio.util.misc import remove_files
+from skbio.util import remove_files
 
 
 class UsearchParseError(Exception):

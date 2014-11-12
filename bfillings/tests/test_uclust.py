@@ -12,7 +12,7 @@ from unittest import TestCase, main
 
 from skbio.util import remove_files
 
-from brokit.uclust import (Uclust,
+from bfillings.uclust import (Uclust,
                            uclust_fasta_sort_from_filepath,
                            uclust_cluster_from_sorted_fasta_filepath,
                            get_output_filepaths, clusters_from_uc_file,

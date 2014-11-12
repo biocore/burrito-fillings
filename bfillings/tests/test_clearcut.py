@@ -10,7 +10,7 @@ from cogent.core.alignment import DataError
 from cogent.util.misc import flatten
 from cogent.util.dict2d import Dict2D
 
-from brokit.clearcut import (Clearcut, build_tree_from_alignment,
+from bfillings.clearcut import (Clearcut, build_tree_from_alignment,
                              _matrix_input_from_dict2d,
                              build_tree_from_distance_matrix)
 

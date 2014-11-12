@@ -7,7 +7,7 @@ from unittest import TestCase, main
 
 from cogent.parse.blast import QMEBlast9
 
-from brokit.blast import (seqs_to_stream, make_subject_match_scorer,
+from bfillings.blast import (seqs_to_stream, make_subject_match_scorer,
                           make_shotgun_scorer, keep_everything_scorer,
                           ids_from_seq_lower_threshold, PsiBlast,
                           psiblast_n_neighbors)

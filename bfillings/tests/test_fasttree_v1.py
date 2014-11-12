@@ -11,7 +11,7 @@ from cogent.core.alignment import Alignment
 from cogent.parse.tree import DndParser
 from cogent.core.moltype import DNA
 
-from brokit.fasttree_v1 import FastTree, build_tree_from_alignment
+from bfillings.fasttree_v1 import FastTree, build_tree_from_alignment
 
 
 class FastTreeTests(TestCase):

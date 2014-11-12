@@ -4,7 +4,7 @@ Application controller for Swarm version 1.2.7
 """
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2014--, brokit development team
+# Copyright (c) 2014--, bfillings development team
 #
 # Distributed under the terms of the Modified BSD License.
 #

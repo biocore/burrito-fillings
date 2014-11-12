@@ -14,7 +14,7 @@ from cogent.core.tree import PhyloNode
 from cogent.core.moltype import RNA, DNA
 from cogent.core.alignment import Alignment
 
-from brokit.pplacer import Pplacer, insert_sequences_into_tree
+from bfillings.pplacer import Pplacer, insert_sequences_into_tree
 
 
 class Genericpplacer(TestCase):

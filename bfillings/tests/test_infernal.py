@@ -14,7 +14,7 @@ from cogent.parse.rfam import (MinimalRfamParser, ChangedRnaSequence,
 from cogent.format.stockholm import stockholm_from_alignment
 from cogent.struct.rna2d import ViennaStructure, wuss_to_vienna
 
-from brokit.infernal import (Cmalign, Cmbuild, Cmcalibrate, Cmemit, Cmscore,
+from bfillings.infernal import (Cmalign, Cmbuild, Cmcalibrate, Cmemit, Cmscore,
                              Cmsearch, Cmstat, cmbuild_from_alignment,
                              cmbuild_from_file, cmalign_from_alignment,
                              cmalign_from_file, cmsearch_from_alignment,

@@ -14,7 +14,7 @@ from tempfile import mkstemp, mkdtemp
 from skbio.util import remove_files
 from skbio.parse.sequences import parse_fasta
 
-from brokit.usearch import (clusters_from_blast_uc_file,
+from bfillings.usearch import (clusters_from_blast_uc_file,
                             usearch_fasta_sort_from_filepath,
                             usearch_dereplicate_exact_subseqs,
                             usearch_dereplicate_exact_seqs,

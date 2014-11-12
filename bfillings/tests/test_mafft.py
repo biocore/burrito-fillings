@@ -7,7 +7,7 @@ from unittest import TestCase, main
 
 from cogent.core.moltype import RNA
 from cogent.util.misc import flatten
-from brokit.mafft import (Mafft, align_unaligned_seqs, add_seqs_to_alignment,
+from bfillings.mafft import (Mafft, align_unaligned_seqs, add_seqs_to_alignment,
                           align_two_alignments)
 
 

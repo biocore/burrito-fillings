@@ -8,7 +8,7 @@ targeted either for complete re-write or removal pending benchmarks. The basic
 idea is that it's not worth porting this code anywhere now because it's days are
 numbered, but we still need to be able to access it for the time being.
 
-May The Biological Research (application controller) Obsolescence Kit (brokit)
+May The Biological Research (application controller) Obsolescence Kit (bfillings)
 be as short-lived as its name is awesome.
 
 """

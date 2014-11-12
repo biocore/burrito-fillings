@@ -4,7 +4,7 @@ from tempfile import mkstemp
 
 from skbio.util import remove_files
 
-from brokit.rtax import Rtax, assign_taxonomy
+from bfillings.rtax import Rtax, assign_taxonomy
 
 
 class RtaxClassifierTests(TestCase):

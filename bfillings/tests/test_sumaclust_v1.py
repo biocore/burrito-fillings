@@ -14,11 +14,11 @@ from shutil import rmtree
 
 from skbio.util import remove_files
 
-from brokit.sumaclust_v1 import sumaclust_denovo_cluster
+from bfillings.sumaclust_v1 import sumaclust_denovo_cluster
 
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2014--, brokit development team
+# Copyright (c) 2014--, bfillings development team
 #
 # Distributed under the terms of the Modified BSD License.
 #

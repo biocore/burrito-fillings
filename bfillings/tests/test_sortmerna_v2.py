@@ -15,12 +15,12 @@ from shutil import rmtree
 from skbio.util import remove_files
 from skbio.parse.sequences import parse_fasta
 
-from brokit.sortmerna_v2 import (build_database_sortmerna,
+from bfillings.sortmerna_v2 import (build_database_sortmerna,
                                  sortmerna_ref_cluster,
                                  sortmerna_map)
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2014--, brokit development team
+# Copyright (c) 2014--, bfillings development team
 #
 # Distributed under the terms of the Modified BSD License.
 #

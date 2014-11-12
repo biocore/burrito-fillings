@@ -9,7 +9,7 @@ from unittest import TestCase, main
 from cogent.core.moltype import RNA, DNA
 from cogent.util.misc import flatten
 
-from brokit.muscle_v38 import (Muscle, muscle_seqs, aln_tree_seqs,
+from bfillings.muscle_v38 import (Muscle, muscle_seqs, aln_tree_seqs,
                                align_unaligned_seqs, build_tree_from_alignment,
                                align_and_build_tree, add_seqs_to_alignment,
                                align_two_alignments)

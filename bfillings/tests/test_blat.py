@@ -6,7 +6,7 @@ from os import remove
 from re import search
 from tempfile import mkstemp
 
-from brokit.blat import (Blat, assign_reads_to_database,
+from bfillings.blat import (Blat, assign_reads_to_database,
                          assign_dna_reads_to_dna_database,
                          assign_dna_reads_to_protein_database)
 

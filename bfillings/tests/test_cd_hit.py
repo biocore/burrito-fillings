@@ -5,7 +5,7 @@ from unittest import TestCase, main
 
 from cogent.core.moltype import PROTEIN, DNA
 
-from brokit.cd_hit import (CD_HIT, CD_HIT_EST, cdhit_from_seqs,
+from bfillings.cd_hit import (CD_HIT, CD_HIT_EST, cdhit_from_seqs,
                            cdhit_clusters_from_seqs, clean_cluster_seq_id,
                            parse_cdhit_clstr_file)
 

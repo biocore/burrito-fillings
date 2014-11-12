@@ -8,7 +8,7 @@ from os import remove, rmdir
 from tempfile import mkdtemp, mkstemp, NamedTemporaryFile
 from unittest import TestCase, main
 
-from brokit.mothur import (Mothur, mothur_from_file, MothurClassifySeqs,
+from bfillings.mothur import (Mothur, mothur_from_file, MothurClassifySeqs,
                            mothur_classify_file)
 
 

@@ -15,8 +15,8 @@ from skbio.util import remove_files
 from cogent import LoadSeqs
 from cogent.app.util import get_tmp_filename
 
-from brokit.blast import blastn
-from brokit.formatdb import (FormatDb, build_blast_db_from_seqs,
+from bfillings.blast import blastn
+from bfillings.formatdb import (FormatDb, build_blast_db_from_seqs,
                              build_blast_db_from_fasta_path,
                              build_blast_db_from_fasta_file)
 

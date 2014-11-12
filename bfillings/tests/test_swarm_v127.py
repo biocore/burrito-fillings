@@ -11,11 +11,11 @@ from os import close
 
 from skbio.util import remove_files
 
-from brokit.swarm_v127 import swarm_denovo_cluster
+from bfillings.swarm_v127 import swarm_denovo_cluster
 
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2014--, brokit development team
+# Copyright (c) 2014--, bfillings development team
 #
 # Distributed under the terms of the Modified BSD License.
 #

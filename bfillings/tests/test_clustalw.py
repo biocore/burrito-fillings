@@ -8,7 +8,7 @@ from cogent.core.moltype import RNA
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from skbio.parse.sequences import parse_fasta
-from brokit.clustalw import (Clustalw, alignUnalignedSeqsFromFile,
+from bfillings.clustalw import (Clustalw, alignUnalignedSeqsFromFile,
                              alignUnalignedSeqs, alignTwoAlignments,
                              addSeqsToAlignment, buildTreeFromAlignment,
                              build_tree_from_alignment,

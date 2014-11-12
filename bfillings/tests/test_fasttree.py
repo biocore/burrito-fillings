@@ -12,7 +12,7 @@ from cogent.core.moltype import DNA
 
 from skbio.parse.sequences import parse_fasta
 
-from brokit.fasttree import FastTree, build_tree_from_alignment
+from bfillings.fasttree import FastTree, build_tree_from_alignment
 
 
 class FastTreeTests(TestCase):

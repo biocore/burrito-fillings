@@ -14,7 +14,7 @@ from cogent.core.moltype import DNA
 from skbio.parse.sequences import parse_fasta
 from burrito.util import get_tmp_filename
 
-from brokit.parsinsert import ParsInsert, insert_sequences_into_tree
+from bfillings.parsinsert import ParsInsert, insert_sequences_into_tree
 
 
 class ParsInsertTests(TestCase):

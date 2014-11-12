@@ -42,5 +42,5 @@ setup(name='burrito-fillings',
       maintainer_email="gregcaporaso@gmail.com",
       url='https://github.com/biocore/burrito-fillings',
       packages=find_packages(),
-      install_requires=['scikit-bio == 0.2.1', 'burrito'],
+      install_requires=['scikit-bio >= 0.2.1, < 0.3.0', 'burrito  < 1.0.0'],
       classifiers=classifiers)

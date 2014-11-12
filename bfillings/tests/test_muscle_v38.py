@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from os import getcwd, remove, rmdir, mkdir, path
 from subprocess import Popen, PIPE, STDOUT
 import tempfile
@@ -38,7 +46,7 @@ class GeneralSetUp(TestCase):
 
         self.seqs1 = ['ACUGCUAGCUAGUAGCGUACGUA','GCUACGUAGCUAC',
             'GCGGCUAUUAGAUCGUA']
-        
+
         self.labels1 = ['>1','>2','>3']
         self.lines1 = flatten(zip(self.labels1,self.seqs1))
 
@@ -46,7 +54,7 @@ class GeneralSetUp(TestCase):
             'UGACUACGCAU']
         self.labels2=['>a','>b','>c']
         self.lines2 = flatten(zip(self.labels2,self.seqs2))
-        
+
         self.temp_dir = tempfile.mkdtemp()
         self.temp_dir_spaces = '/tmp/test for muscle/'
         try:
@@ -64,7 +72,7 @@ class GeneralSetUp(TestCase):
         except OSError:
             pass
 
-    def tearDown(self): 
+    def tearDown(self):
         """cleans up all files initially created"""
         # remove the tempdir and contents
         shutil.rmtree(self.temp_dir)
@@ -92,7 +100,7 @@ class MuscleTests(GeneralSetUp):
         app.Parameters['-maxmb'].on('250')
         outfile = tempfile.NamedTemporaryFile()
         app.Parameters['-out'].on(outfile.name)
-        
+
         infile = tempfile.NamedTemporaryFile()
         infile.write(
             ">Seq1\nAAAGGGTTTCCCCT\n"
@@ -116,15 +124,15 @@ class MuscleTests(GeneralSetUp):
         c.WorkingDir = '/tmp/muscle_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/muscle_test2','/"; ','muscle']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/muscle_test')
         rmdir('/tmp/muscle_test2')
-    
+
     def test_aln_tree_seqs(self):
         "aln_tree_seqs returns the muscle alignment and tree from iteration2"
-        tree, aln = aln_tree_seqs(path.join(self.temp_dir, 'seq1.txt'), 
+        tree, aln = aln_tree_seqs(path.join(self.temp_dir, 'seq1.txt'),
                                    tree_type="neighborjoining",
                                    WorkingDir=self.temp_dir,
                                    clean_up=True)
@@ -143,7 +151,7 @@ class MuscleTests(GeneralSetUp):
         except OSError:
             pass
         tree, aln = aln_tree_seqs(path.join(self.temp_dir_spaces,\
-                                    'muscle_test_seq1.txt'), 
+                                    'muscle_test_seq1.txt'),
                                     tree_type="neighborjoining",
                                     WorkingDir=getcwd(),
                                     clean_up=True)

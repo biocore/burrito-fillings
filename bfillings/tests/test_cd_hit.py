@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from os import getcwd, rmdir
 from unittest import TestCase, main
 
@@ -81,12 +89,12 @@ class CD_HIT_EST_Tests(TestCase):
         """CD_HIT should return expected seqs"""
         res = cdhit_from_seqs(dna_seqs, DNA, {'-c':0.8})
         self.assertEqual(res.toFasta(), dna_expected)
-        
+
     def test_cdhit_from_seqs_synonym(self):
         """CD_HIT should return expected seqs with -c synonym"""
         res = cdhit_from_seqs(dna_seqs, DNA, {'Similarity':0.8})
         self.assertEqual(res.toFasta(), dna_expected)
-        
+
 
 class CD_HIT_SupportMethodTests(TestCase):
     """Tests for supporting methods"""
@@ -187,18 +195,18 @@ MGNAWSKSKFAGWSEVRDRMRRSSSDPQQPCAPGVGAVSRELATRGGISSSALAFLDSHKDEDVGFPVRPQVP
 >seq9
 MGNVLGKDKFKGWAAVRERMRKTSSDPDPQPCAPGVGPVSRELSYTPQNNAALAFLESHEDEDVGFPVXPQV"""
 
-cdhit_clstr_file = """>Cluster 0 
-0       2799aa, >seq0... * 
->Cluster 1 
-0       2214aa, >seq1... at 80% 
-1       2215aa, >seq10... at 84% 
-2       2217aa, >seq3... * 
-3       2216aa, >seq23... at 84% 
-4       527aa, >seq145... at 63% 
->Cluster 2 
-0       2202aa, >seq7... at 60% 
-1       2208aa, >seq17... * 
-2       2207aa, >seq69... at 73% 
+cdhit_clstr_file = """>Cluster 0
+0       2799aa, >seq0... *
+>Cluster 1
+0       2214aa, >seq1... at 80%
+1       2215aa, >seq10... at 84%
+2       2217aa, >seq3... *
+3       2216aa, >seq23... at 84%
+4       527aa, >seq145... at 63%
+>Cluster 2
+0       2202aa, >seq7... at 60%
+1       2208aa, >seq17... *
+2       2207aa, >seq69... at 73%
 3       2208aa, >seq1231... at 69%"""
 
 

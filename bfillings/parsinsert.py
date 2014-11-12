@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 """Application controller for ParsInsert
 
 designed for ParsInsert v1.03 """
@@ -26,14 +34,14 @@ class ParsInsert(CommandLineApplication):
     _parameters = {
                     # read mask from this file
                     '-m':ValuedParameter('-',Name='m',Delimiter=' '),
-                    
+
                     # read core tree sequences from this file
                     '-s':ValuedParameter('-',Name='s',Delimiter=' '),
-                    
+
                     # read core tree from this file
                     '-t':ValuedParameter('-',Name='t',Delimiter=' '),
 
-                    # read core tree taxomony from this file 
+                    # read core tree taxomony from this file
                     '-x':ValuedParameter('-',Name='x',Delimiter=' '),
 
                     # output taxonomy for each insert sequence to this file
@@ -41,7 +49,7 @@ class ParsInsert(CommandLineApplication):
 
                     # create log file
                     '-l':ValuedParameter('-',Name='l',Delimiter=' '),
-                    
+
                     # number of best matches to display
                     '-n':ValuedParameter('-',Name='n',Delimiter=' '),
 
@@ -74,12 +82,11 @@ def insert_sequences_into_tree(aln, moltype, params={}):
 
     parsinsert_app = ParsInsert(params=params)
     result = parsinsert_app(seqs)
-    
+
     # parse tree
     tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
-    
+
     # cleanup files
     result.cleanUp()
-    
+
     return tree
-    

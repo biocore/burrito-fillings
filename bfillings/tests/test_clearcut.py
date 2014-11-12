@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from os import getcwd, remove, rmdir, mkdir, path
 import tempfile
 import shutil
@@ -21,7 +29,7 @@ class GeneralSetUp(TestCase):
         """Clearcut general setUp method for all tests"""
         self.seqs1 = ['ACUGCUAGCUAGUAGCGUACGUA','GCUACGUAGCUAC',
             'GCGGCUAUUAGAUCGUA']
-        
+
         self.labels1 = ['>1','>2','>3']
         self.lines1 = flatten(zip(self.labels1,self.seqs1))
 
@@ -29,7 +37,7 @@ class GeneralSetUp(TestCase):
             'UGACUACGCAU']
         self.labels2=['>a','>b','>c']
         self.lines2 = flatten(zip(self.labels2,self.seqs2))
-        
+
         self.temp_dir = tempfile.mkdtemp()
         #self.temp_dir_spaces = '/tmp/test for clearcut/'
         #try:
@@ -46,7 +54,7 @@ class GeneralSetUp(TestCase):
             g.close()
         except OSError:
             pass
-    
+
 
 class ClearcutTests(GeneralSetUp):
     """Tests for the Clearcut application controller"""
@@ -70,7 +78,7 @@ class ClearcutTests(GeneralSetUp):
         c.WorkingDir = '/tmp/clearcut_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/clearcut_test2','/"; ','clearcut -d -q']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/clearcut_test')
@@ -110,7 +118,7 @@ class ClearcutTests(GeneralSetUp):
         for node in tree_long.tips():
             if node.Name not in seq_names:
                 self.fail()
-        
+
         #build_tree_from_alignment should raise DataError when constructing
         # an Alignment from unaligned sequences. Clearcut only allows aligned
         # or a distance matrix as input.
@@ -134,7 +142,7 @@ class ClearcutTests(GeneralSetUp):
         self.assertEqual(int_map['env_1'], 'sample2')
         self.assertEqual(int_map['env_0'], 'sample1aaaaaaa')
         self.assertEqual(int_map['env_2'], 'sample3')
-        
+
     def test_build_tree_from_distance_matrix(self):
         """build_tree_from_distance_matrix builds a tree from a dict2d
         """
@@ -143,7 +151,7 @@ class ClearcutTests(GeneralSetUp):
         result = build_tree_from_distance_matrix(data_dict2d)
         self.assertEqual(str(result), '((sample1aaaaaaa:0.59739,sample2:0.84061),sample3:1.85939);')
 
-        
+
 align1 = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
 
 build_tree_seqs_short = """>clearcut_test_seqs_0

@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 """
 Unit tests for the Swarm version 1.2.7 Application controller
 =============================================================
@@ -15,7 +23,7 @@ from bfillings.swarm_v127 import swarm_denovo_cluster
 
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2014--, bfillings development team
+# Copyright (c) 2014--, biocore development team
 #
 # Distributed under the terms of the Modified BSD License.
 #

@@ -18,7 +18,7 @@ from bfillings.sumaclust_v1 import sumaclust_denovo_cluster
 
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2014--, bfillings development team
+# Copyright (c) 2014--, biocore development team
 #
 # Distributed under the terms of the Modified BSD License.
 #

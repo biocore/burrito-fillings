@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2014--, bfillings development team
+# Copyright (c) 2014--, biocore development team
 #
 # Distributed under the terms of the Modified BSD License.
 #

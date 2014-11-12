@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013--, brokit development team.
+# Copyright (c) 2013--, biocore development team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -27,19 +27,20 @@ classes = """
 """
 classifiers = [s.strip() for s in classes.split('\n') if s]
 
-long_description = """The brokit project"""
+long_description = """The burrito-fillings project"""
 
-setup(name='brokit',
+setup(name='burrito-fillings',
       cmdclass={'build_py': build_py},
       version=__version__,
       license='BSD',
-      description='brokit',
+      description=\
+        'burrito-fillings: burrito application controllers for bioinformatics',
       long_description=long_description,
-      author="brokit development team",
+      author="biocore",
       author_email="gregcaporaso@gmail.com",
-      maintainer="brokit development team",
+      maintainer="biocore",
       maintainer_email="gregcaporaso@gmail.com",
-      url='https://github.com/biocore/brokit',
+      url='https://github.com/biocore/burrito-fillings',
       packages=find_packages(),
       install_requires=['scikit-bio == 0.2.1', 'burrito'],
       classifiers=classifiers)

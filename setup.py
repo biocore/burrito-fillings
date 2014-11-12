@@ -29,7 +29,7 @@ classifiers = [s.strip() for s in classes.split('\n') if s]
 
 long_description = """The burrito-fillings project"""
 
-setup(name='bfillings',
+setup(name='burrito-fillings',
       cmdclass={'build_py': build_py},
       version=__version__,
       license='BSD',

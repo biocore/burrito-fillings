@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 """Application controller for RAxML (v7.3.0).
 
 WARNING: Because of the use of the -x option, this version is no longer

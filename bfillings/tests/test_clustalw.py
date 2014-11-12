@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 """Tests for application controller for ClustalW v1.83"""
 import re
 from os import getcwd, remove, rmdir, mkdir, path
@@ -31,21 +40,21 @@ class GeneralSetUp(TestCase):
         self.stdout1 = STDOUT1
         self.aln1 = ALIGN1
         self.dnd1 = DND1
-        
+
         self.multiline1 = '\n'.join(flatten(zip(self.labels1, self.seqs1)))
-       
+
         self.seqs2=['UAGGCUCUGAUAUAAUAGCUCUC','UAUCGCUUCGACGAUUCUCUGAUAGAGA',
             'UGACUACGCAU']
         self.labels2=['>a','>b','>c']
         self.lines2 = flatten(zip(self.labels2,self.seqs2))
         self.aln2 = ALIGN2
         self.dnd2 = DND2
-        
+
         self.twoalign = TWOALIGN
         self.alignseqs = ALIGNSEQS
         self.treeduringalignseqs = TREEDURINGALIGNSEQS
         self.treefromalignseqs = TREEFROMALIGNSEQS
-        
+
         self.temp_dir_space = "/tmp/clustalw test"
 
         self.build_tree_seqs_short = """>clustal_test_seqs_0
@@ -114,7 +123,7 @@ TGCTTTAAATCCTGACAGCG
             mkdir('/tmp/ct')
         except OSError: #dir already exists
             pass
-        
+
         try:
             #create sequence files
             f = open('/tmp/ct/seq1.txt','w')
@@ -171,12 +180,12 @@ class ClustalwTests(GeneralSetUp):
         c.WorkingDir = '/tmp/clustaltest2/'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/clustaltest2/','/"; ','clustalw -align']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/clustaltest')
         rmdir('/tmp/clustaltest2')
-    
+
     def test_stdout_input_as_string(self):
         """Clustalw input_as_string shoud function as expected"""
         c = Clustalw(WorkingDir='/tmp/ct')
@@ -240,7 +249,7 @@ class ClustalwTests(GeneralSetUp):
             'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
         out[23] =\
             'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
-        
+
         self.assertEqual(cw_vers.sub("", res['StdOut'].read()),
                             cw_vers.sub("", '\n'.join(out)))
         self.assertEqual(res['StdErr'].read(),'')
@@ -260,7 +269,7 @@ class ClustalwTests(GeneralSetUp):
             'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
         out[23] =\
             'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
-        
+
         self.assertEqual(cw_vers.sub("", res['StdOut'].read()),
                             cw_vers.sub("", '\n'.join(out)))
         self.assertEqual(res['StdErr'].read(),'')
@@ -289,7 +298,7 @@ class ClustalwTests(GeneralSetUp):
         self.assertEqual(res['Align'].name, c.WorkingDir + 'outfile')
         self.assertEqual(res['Dendro'].name, c.WorkingDir + 'newtree')
         res.cleanUp()
-    
+
     def test_profile_newtree(self):
         """Clustalw profile should work correctly with new/usetree"""
         c = Clustalw(params={'-profile':None,'-profile1':'/tmp/ct/seq1.txt',\
@@ -312,7 +321,7 @@ class ClustalwTests(GeneralSetUp):
         self.assertEqual(res['Align'],None)
         self.assertEqual(res['Dendro'].name,'/tmp/ct/lala')
         res.cleanUp()
-        
+
         #is this a bug in clustal. It's creating an empty file 'seq2.aln'
         #but doesn't report it in the stdout
         remove('/tmp/ct/seq2.aln')
@@ -330,8 +339,8 @@ class ClustalwTests(GeneralSetUp):
 
 class clustalwTests(GeneralSetUp):
     """Tests for module level functions in clustalw.py"""
-   
-       
+
+
     def test_alignUnalignedSeqs(self):
         """Clustalw alignUnalignedSeqs should work as expected"""
         res = alignUnalignedSeqs(self.seqs1,WorkingDir='/tmp/ct')
@@ -340,7 +349,7 @@ class clustalwTests(GeneralSetUp):
                             cw_vers.sub("", self.aln1))
         self.assertEqual(res['Dendro'].read(),self.dnd1)
         res.cleanUp()
-        
+
         #suppress stderr and stdout
         res = alignUnalignedSeqs(self.seqs1,WorkingDir='/tmp/ct',\
             SuppressStderr=True,SuppressStdout=True)
@@ -350,7 +359,7 @@ class clustalwTests(GeneralSetUp):
                             cw_vers.sub("", self.aln1))
         self.assertEqual(res['Dendro'].read(),self.dnd1)
         res.cleanUp()
-    
+
     def test_alignUnalignedSeqsFromFile(self):
         """Clustalw alignUnalignedSeqsFromFile should work as expected"""
         #make temp file
@@ -384,8 +393,8 @@ class clustalwTests(GeneralSetUp):
         #the produced trees are not the same as when aligning individually
         #self.assertEqual(res['Dendro1'].read(),self.dnd)
         #self.assertEqual(res['Dendro2'].read(),self.dnd2)
-        res.cleanUp() 
-       
+        res.cleanUp()
+
     def test_addSeqsToAlignment(self):
         """Clustalw addSeqsToAlignment shoudl work as expected"""
         res = addSeqsToAlignment('/tmp/ct/align1','/tmp/ct/seq2.txt',\
@@ -394,14 +403,14 @@ class clustalwTests(GeneralSetUp):
                             cw_vers.sub("", self.alignseqs))
         self.assertEqual(res['Dendro'].read(),self.treeduringalignseqs)
         res.cleanUp()
-        
+
     def test_buildTreeFromAlignment(self):
         """Clustalw buildTreeFromAlignment shoudl work as expected"""
         pre_res = addSeqsToAlignment('/tmp/ct/align1','/tmp/ct/seq2.txt',\
             'alignseqs',WorkingDir='/tmp/ct')
         res = buildTreeFromAlignment('/tmp/ct/alignseqs',WorkingDir='/tmp/ct')
         self.assertEqual(res['Tree'].read(),self.treefromalignseqs)
-        
+
         res.cleanUp()
         pre_res.cleanUp()
 
@@ -411,7 +420,7 @@ class clustalwTests(GeneralSetUp):
                 RNA, best_tree=False)
         num_seqs = flatten(self.build_tree_seqs_short).count('>')
         self.assertEqual(len(tree_short.tips()), num_seqs)
-        
+
         tree_long = build_tree_from_alignment(self.build_tree_seqs_long, \
                 RNA, best_tree=False)
         seq_names = []
@@ -427,18 +436,18 @@ class clustalwTests(GeneralSetUp):
                 RNA, best_tree=True, params={'-bootstrap':3})
         num_seqs = flatten(self.build_tree_seqs_short).count('>')
         self.assertEqual(len(tree_short.tips()), num_seqs)
-     
+
     def test_align_unaligned_seqs(self):
         """Clustalw align_unaligned_seqs should work as expected"""
         res = align_unaligned_seqs(self.seqs1, RNA)
         self.assertEqual(res.toFasta(), self.aln1_fasta)
-        
+
     def test_bootstrap_tree_from_alignment(self):
         """Clustalw should return a bootstrapped tree from the passed aln"""
         tree_short = bootstrap_tree_from_alignment(self.build_tree_seqs_short)
         num_seqs = flatten(self.build_tree_seqs_short).count('>')
         self.assertEqual(len(tree_short.tips()), num_seqs)
-        
+
         tree_long = bootstrap_tree_from_alignment(self.build_tree_seqs_long)
         seq_names = []
         for line in self.build_tree_seqs_long.split('\n'):
@@ -458,25 +467,25 @@ class clustalwTests(GeneralSetUp):
         for line in self.aln1_fasta.split('\n'):
             if line.startswith('>'):
                 seq_names.append(line[1:])
-                
+
         for node in tree.tips():
             if node.Name not in seq_names:
                 self.fail()
-    
+
     def test_add_seqs_to_alignment(self):
         """Clustalw add_seqs_to_alignment should work as expected."""
         seq2 = dict(parse_fasta(self.lines2))
         align1 = dict(parse_fasta(ALIGN1_FASTA.split('\n')))
         res = add_seqs_to_alignment(seq2,align1,RNA)
         self.assertEqual(res.toFasta(), SEQ_PROFILE_ALIGN)
-    
+
     def test_align_two_alignments(self):
         """Clustalw align_two_alignments should work as expected."""
         align1 = dict(parse_fasta(ALIGN1_FASTA.split('\n')))
         align2 = dict(parse_fasta(ALIGN2_FASTA.split('\n')))
         res = align_two_alignments(align1,align2,RNA)
         self.assertEqual(res.toFasta(), PROFILE_PROFILE_ALIGN)
-    
+
     def test_zzz_general_cleanUp(self):
         """Last test executed: cleans up all files initially created"""
         remove('/tmp/ct/seq1.txt')
@@ -512,7 +521,7 @@ Group 1: Sequences:   2      Score:171
 Group 2: Sequences:   3      Score:162
 Alignment Score 33
 CLUSTAL-Alignment file created  [/tmp/ct/seq1.aln]
-""" 
+"""
 
 ALIGN1=\
 """CLUSTAL W (1.83) multiple sequence alignment
@@ -521,7 +530,7 @@ ALIGN1=\
 1               ACUGCUAGCUAGUAGCGUACGUA
 2               ---GCUACGUAGCUAC-------
 3               GCGGCUAUUAGAUCGUA------
-                   ****                
+                   ****
 """
 
 ALIGN1_FASTA = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
@@ -540,7 +549,7 @@ ALIGN2 =\
 a               UAGGCUCUGAUAUAAUAGCUCUC---------
 b               ----UAUCGCUUCGACGAUUCUCUGAUAGAGA
 c               ------------UGACUACGCAU---------
-                              *     *           
+                              *     *
 """
 
 ALIGN2_FASTA = ">a\nUAGGCUCUGAUAUAAUAGCUCUC---------\n>b\n----UAUCGCUUCGACGAUUCUCUGAUAGAGA\n>c\n------------UGACUACGCAU---------"
@@ -562,7 +571,7 @@ TWOALIGN=\
 a               UAGGCUCUGAUAUAAUAGCUCUC---------
 b               ----UAUCGCUUCGACGAUUCUCUGAUAGAGA
 c               ------------UGACUACGCAU---------
-                                                
+
 """
 
 ALIGNSEQS=\
@@ -575,7 +584,7 @@ ALIGNSEQS=\
 a               -------UAGGCUCUGAUAUAAUAGCUCUC---
 c               -------------------UGACUACGCAU---
 b               UAUCGCUUCGACGAUUCUCUGAUAGAGA-----
-                                                 
+
 """
 
 TREEDURINGALIGNSEQS=\

@@ -1,9 +1,15 @@
 #!/usr/bin/env python
-# file: seqprep.py
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
 # Application controller for SeqPrep
 # https://github.com/jstjohn/SeqPrep
-#
 
 import os
 import tempfile

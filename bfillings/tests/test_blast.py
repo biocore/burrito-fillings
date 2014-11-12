@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from string import split, strip
 from os import popen, remove
 from glob import glob
@@ -135,7 +143,7 @@ MSGNIKKIVEPNSGIDYSLEKDFKIFTLSKELPITTYPSYIRLGIVIYCVKGNAKIDIYSNKHIITPKELIIILPGQLVA
             '_input_as_lines')),\
             [['>a','TG'],['>b','WW']])
         self.assertRaises(TypeError, sts, 'abc', 'xyz')
-   
+
     def test_make_subject_match_scorer(self):
         """make_subject_match_scorer should keep ids matching n queries"""
         qm1 = make_subject_match_scorer(1)
@@ -145,7 +153,7 @@ MSGNIKKIVEPNSGIDYSLEKDFKIFTLSKELPITTYPSYIRLGIVIYCVKGNAKIDIYSNKHIITPKELIIILPGQLVA
         self.assertItemsEqual(qm1(qmes), ['ece:Z4181','ece:Z4182','ece:Z4183'])
         self.assertItemsEqual(qm3(qmes), ['ece:Z4181','ece:Z4183'])
         self.assertItemsEqual(qm5(qmes), [])
-   
+
     def test_make_shotgun_scorer(self):
         """make_shotgun_scorer should keep ids matching n queries"""
         sg1 = make_shotgun_scorer(1)
@@ -162,7 +170,7 @@ MSGNIKKIVEPNSGIDYSLEKDFKIFTLSKELPITTYPSYIRLGIVIYCVKGNAKIDIYSNKHIITPKELIIILPGQLVA
         self.assertItemsEqual(sg4(qmes), \
             ['ece:Z4182'])
         self.assertItemsEqual(sg5(qmes), [])
-     
+
     def test_keep_everything_scorer(self):
         """keep_everything_scorer should keep all ids found."""
         k = keep_everything_scorer(wrap_qmes(QMEBlast9(self.rec2)))
@@ -179,7 +187,7 @@ MSGNIKKIVEPNSGIDYSLEKDFKIFTLSKELPITTYPSYIRLGIVIYCVKGNAKIDIYSNKHIITPKELIIILPGQLVA
         params = {'-j':2,
                 '-d':'test_bdb'}
         query = self.query_1.split('\n')
-        app = PsiBlast(params=params, 
+        app = PsiBlast(params=params,
                 InputHandler='_input_as_lines')
         #the command below should result in finding itself and 2554
         #it should run for max_iterations
@@ -233,7 +241,7 @@ MSGNIKKIVEPNSGIDYSLEKDFKIFTLSKELPITTYPSYIRLGIVIYCVKGNAKIDIYSNKHIITPKELIIILPGQLVA
             self.assertEqual(results[i][1], 11)
         for fname in ['formatdb.log'] + glob('test_bdb*'):
             remove(fname)
-        
+
 
 def wrap_qmes(qmes):
     """Converts qmes into a dict of {q:{m:e}}"""

@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 """
 Unit tests for the SumaClust version 1.0 Application controller
 ===============================================================
@@ -61,7 +69,7 @@ class SumaclustV1Tests(TestCase):
         size = getsize(result_path)
         self.assertTrue(size, 270)
 
-        with open(result_path, "U") as f_otumap: 
+        with open(result_path, "U") as f_otumap:
             otu_map = [line.strip().split('\t') for line in f_otumap]
 
         self.assertTrue(len(otu_map),3)

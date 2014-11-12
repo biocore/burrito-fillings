@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from os import getcwd, remove, rmdir, mkdir, path
 import tempfile
 import shutil
@@ -17,27 +25,27 @@ class GeneralSetUp(TestCase):
         """Mafft general setUp method for all tests"""
         self.seqs1 = ['ACUGCUAGCUAGUAGCGUACGUA','GCUACGUAGCUAC',
             'GCGGCUAUUAGAUCGUA']
-        
+
         self.labels1 = ['>1','>2','>3']
         self.lines1 = flatten(zip(self.labels1,self.seqs1))
-        
+
         self.aligned1 = {'1': 'acugcuagcuaguagcguacgua',\
                          '2': 'gcuacguagcuac----------',\
                          '3': 'gcggcuauuagau------cgua',\
                          }
 
-        
+
         self.seqs2=['UAGGCUCUGAUAUAAUAGCUCUC','UAUCGCUUCGACGAUUCUCUGAUAGAGA',
             'UGACUACGCAU']
         self.labels2=['>a','>b','>c']
         self.lines2 = flatten(zip(self.labels2,self.seqs2))
-        
+
         self.aligned2 = {'a': 'UAGGCUCUGAUAUAAUAGCUCUC---------',\
                          'b': 'UA----UCGCUUCGACGAUUCUCUGAUAGAGA',\
                          'c': 'UG------------ACUACGCAU---------',\
                          }
 
-        
+
         self.temp_dir = tempfile.mkdtemp()
         self.temp_dir_spaces = '/tmp/test for mafft/'
         try:
@@ -54,7 +62,7 @@ class GeneralSetUp(TestCase):
             g.close()
         except OSError:
             pass
-    
+
 
 class MafftTests(GeneralSetUp):
     """Tests for the Mafft application controller"""
@@ -83,25 +91,25 @@ class MafftTests(GeneralSetUp):
         c.WorkingDir = '/tmp/mafft_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/mafft_test2','/"; ','mafft']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/mafft_test')
         rmdir('/tmp/mafft_test2')
-    
+
     def test_general_cleanUp(self):
         """Last test executed: cleans up all files initially created"""
         # remove the tempdir and contents
         shutil.rmtree(self.temp_dir)
         shutil.rmtree(self.temp_dir_spaces)
-    
+
     def test_align_unaligned_seqs(self):
         """align_unaligned_seqs should work as expected"""
         res = align_unaligned_seqs(self.seqs1, RNA)
         self.assertEqual(res.toFasta(), align1)
         res = align_unaligned_seqs(self.lines2, RNA)
         self.assertEqual(res.toFasta(), align2)
-    
+
     def test_add_seqs_to_alignment(self):
         """add_seqs_to_alignment should work as expected."""
         res = add_seqs_to_alignment(self.lines1,self.aligned2, RNA)
@@ -111,7 +119,7 @@ class MafftTests(GeneralSetUp):
         """align_two_alignments should work as expected."""
         res = align_two_alignments(self.aligned1, self.aligned2, RNA)
         self.assertEqual(res.toFasta(), align_two_align)
-    
+
 align1 = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\nGCUACGUAGCUAC----------\n>seq_2\nGCGGCUAUUAGAU------CGUA"
 
 align2 = ">a\nUAGGCUCUGAUAUAAUAGCUCUC---------\n>b\nUA----UCGCUUCGACGAUUCUCUGAUAGAGA\n>c\nUG------------ACUACGCAU---------"

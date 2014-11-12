@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 """Tests for FastTree v1.0.0 application controller"""
 
 from shutil import rmtree
@@ -17,7 +26,7 @@ from bfillings.fasttree_v1 import FastTree, build_tree_from_alignment
 class FastTreeTests(TestCase):
     def setUp(self):
         self.seqs = Alignment(dict(parse_fasta(test_seqs.split())))
-    
+
     def test_base_command(self):
         app = FastTree()
         self.assertEqual(app.BaseCommand, \

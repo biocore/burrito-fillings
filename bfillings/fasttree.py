@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 """Application controller for FastTree
 
 designed for FastTree v1.1.0 .  Also functions with v2.0.1, v2.1.0, and v2.1.3

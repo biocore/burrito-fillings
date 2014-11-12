@@ -1,6 +1,13 @@
 #!/usr/bin/env python
-"""Application controllers for blast family
-"""
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from string import strip
 from os import remove, access, F_OK, environ, path
 from random import choice
@@ -25,20 +32,20 @@ class Blast(CommandLineApplication):
         # defaults to non-redundant database
         #WARNING: This will only work if BLASTDB environment variable is set
         '-d':ValuedParameter('-',Name='d',Delimiter=' ', Value="nr"),
-        
+
         # query file
         '-i':ValuedParameter('-',Name='i',Delimiter=' '),
 
         # Multiple Hits window size [Integer]
         '-A':ValuedParameter('-',Name='A',Delimiter=' '),
 
-        # Threshold for extending hits [Integer] 
+        # Threshold for extending hits [Integer]
         '-f':ValuedParameter('-',Name='f',Delimiter=' '),
 
-        # Expectation value (E) [Real] 
+        # Expectation value (E) [Real]
         '-e':ValuedParameter('-',Name='e',Delimiter=' ', Value="10.0"),
 
-        # alignment view options: 
+        # alignment view options:
         # 0 = pairwise,
         # 1 = query-anchored showing identities,
         # 2 = query-anchored no identities,
@@ -56,77 +63,77 @@ class Blast(CommandLineApplication):
         # Output File for Alignment [File Out]  Optional
         '-o':ValuedParameter('-',Name='o',Delimiter=' '),
 
-         # Filter query sequence with SEG [String] 
+         # Filter query sequence with SEG [String]
         '-F':ValuedParameter('-',Name='F',Delimiter=' '),
 
-         #  Cost to open a gap [Integer] 
+         #  Cost to open a gap [Integer]
         '-G':ValuedParameter('-',Name='G',Delimiter=' '),
 
-        # Cost to extend a gap [Integer] 
+        # Cost to extend a gap [Integer]
         '-E':ValuedParameter('-',Name='E',Delimiter=' '),
 
         # X dropoff value for gapped alignment (in bits) [Integer]
         # blastn 30, megablast 20, tblastx 0, all others 15 [Integer]
         '-X':ValuedParameter('-',Name='X',Delimiter=' '),
 
-         # Show GI's in deflines [T/F] 
+         # Show GI's in deflines [T/F]
         '-I':ValuedParameter('-',Name='I',Delimiter=' '),
-   
-        # Number of database seqs to show one-line descriptionss for [Integer] 
+
+        # Number of database seqs to show one-line descriptionss for [Integer]
         '-v':ValuedParameter('-',Name='v',Delimiter=' '),
 
-        # Number of database sequence to show alignments for (B) [Integer] 
+        # Number of database sequence to show alignments for (B) [Integer]
         '-b':ValuedParameter('-',Name='b',Delimiter=' '),
 
-        # Perform gapped alignment (not available with tblastx) [T/F] 
+        # Perform gapped alignment (not available with tblastx) [T/F]
         '-g':ValuedParameter('-',Name='g',Delimiter=' '),
 
-        # Number of processors to use [Integer] 
+        # Number of processors to use [Integer]
         '-a':ValuedParameter('-',Name='a',Delimiter=' ', Value="1"),
 
-        # Believe the query defline [T/F] 
+        # Believe the query defline [T/F]
         '-J':ValuedParameter('-',Name='J',Delimiter=' '),
 
         # SeqAlign file ('Believe the query defline' must be TRUE) [File Out]
-        # Optional 
+        # Optional
         '-O':ValuedParameter('-',Name='O',Delimiter=' '),
 
-        # Matrix [String] 
+        # Matrix [String]
         '-M':ValuedParameter('-',Name='M',Delimiter=' ', Value="BLOSUM62"),
 
         # Word size [Integer]  (blastn 11, megablast 28, all others 3)
         '-W':ValuedParameter('-',Name='W',Delimiter=' '),
 
-        # Effective length of the database (use zero for the real size) [Real] 
+        # Effective length of the database (use zero for the real size) [Real]
         '-z':ValuedParameter('-',Name='z',Delimiter=' '),
 
-        # Number of best hits from a region to keep [Integer] 
+        # Number of best hits from a region to keep [Integer]
         '-K':ValuedParameter('-',Name='K',Delimiter=' '),
 
-        # 0 for multiple hit, 1 for single hit [Integer] 
+        # 0 for multiple hit, 1 for single hit [Integer]
         '-P':ValuedParameter('-',Name='P',Delimiter=' '),
 
-        # Effective length of the search space (use zero for real size) [Real] 
+        # Effective length of the search space (use zero for real size) [Real]
         '-Y':ValuedParameter('-',Name='Y',Delimiter=' '),
 
-        # Produce HTML output [T/F] 
+        # Produce HTML output [T/F]
         '-T':ValuedParameter('-',Name='T',Delimiter=' ', Value="F"),
 
-        # Restrict search of database to list of GI's [String]  Optional 
+        # Restrict search of database to list of GI's [String]  Optional
         '-l':ValuedParameter('-',Name='l',Delimiter=' '),
 
-        # Use lower case filtering of FASTA sequence [T/F] Optional  
+        # Use lower case filtering of FASTA sequence [T/F] Optional
         '-U':ValuedParameter('-',Name='U',Delimiter=' '),
 
-        # Dropoff (X) for blast extensions in bits (default if zero) [Real] 
+        # Dropoff (X) for blast extensions in bits (default if zero) [Real]
         # blastn 20, megablast 10, all others 7
         '-y':ValuedParameter('-',Name='y',Delimiter=' '),
 
-        # X dropoff value for final gapped alignment (in bits) [Integer] 
+        # X dropoff value for final gapped alignment (in bits) [Integer]
         # blastn/megablast 50, tblastx 0, all others 25
         '-Z':ValuedParameter('-',Name='Z',Delimiter=' '),
 
-        # Input File for PSI-BLAST Restart [File In]  Optional 
+        # Input File for PSI-BLAST Restart [File In]  Optional
         '-R':ValuedParameter('-',Name='R',Delimiter=' '),
 
     }
@@ -147,14 +154,14 @@ class Blast(CommandLineApplication):
 
         # check if need to set env variable (for cgi calls)
         if blast_mat_root:
-            self._command = "export BLASTMAT=%s;%s%s" % (blast_mat_root, 
+            self._command = "export BLASTMAT=%s;%s%s" % (blast_mat_root,
                                                     extra_env, command)
         else:
-            # Determine if blast is installed and raise an ApplicationError 
-            # if not -- this is done here so the user will get the most 
-            # informative error message available.  
+            # Determine if blast is installed and raise an ApplicationError
+            # if not -- this is done here so the user will get the most
+            # informative error message available.
             self._error_on_missing_application(params)
-                 
+
             # Otherwise raise error about $BLASTMAT not being set
             if not ('BLASTMAT' in environ or \
                     access(path.expanduser("~/.ncbirc"), F_OK) or \
@@ -182,7 +189,7 @@ class Blast(CommandLineApplication):
             lines.append(''.join(['>',str(i+1)]))
             lines.append(s)
         return self._input_as_lines(lines)
-        
+
     def _input_as_seq_id_seq_pairs(self,data):
         lines = []
         for seq_id,seq in data:
@@ -199,7 +206,7 @@ class Blast(CommandLineApplication):
 
     def _input_as_string(self,data):
         """Makes data the value of a specific parameter
-    
+
         This method returns the empty string. The parameter will be printed
         automatically once set.
         """
@@ -218,11 +225,11 @@ class Blast(CommandLineApplication):
         if self.Parameters['-o'].isOn():
             aln_filename = self._absolute(str(self.Parameters['-o'].Value))
         else:
-            raise ValueError, "No output file specified." 
+            raise ValueError, "No output file specified."
         return aln_filename
 
     def _get_result_paths(self,data):
-        
+
         result = {}
         if self.Parameters['-o'].isOn():
             out_name = self._align_out_filename()
@@ -242,11 +249,11 @@ From help file:
 2) Create a .ncbirc file. In order for Standalone BLAST to operate, you
 have will need to have a .ncbirc file that contains the following lines:
 
-[NCBI] 
+[NCBI]
 Data="path/data/"
 
 Where "path/data/" is the path to the location of the Standalone BLAST
-"data" subdirectory. For Example: 
+"data" subdirectory. For Example:
 
 Data=/root/blast/data
 
@@ -264,58 +271,58 @@ class PsiBlast(Blast):
     """PSI-BLAST application controller - Prototype"""
     _options ={
 
-        # ASN.1 Scoremat input of checkpoint data: 
+        # ASN.1 Scoremat input of checkpoint data:
         # 0: no scoremat input
         # 1: Restart is from ASCII scoremat checkpoint file,
         # 2: Restart is from binary scoremat checkpoint file [Integer]  Optional
         '-q':ValuedParameter('-',Name='q',Delimiter=' '),
 
-        # Output File for PSI-BLAST Matrix in ASCII [File Out] Optional 
+        # Output File for PSI-BLAST Matrix in ASCII [File Out] Optional
         '-Q':ValuedParameter('-',Name='Q',Delimiter=' '),
 
-        # Start of required region in query [Integer] 
+        # Start of required region in query [Integer]
         '-S':ValuedParameter('-',Name='S',Delimiter=' ', Value="1"),
 
-        # ASN.1 Scoremat output of checkpoint data: 
+        # ASN.1 Scoremat output of checkpoint data:
         # 0: no scoremat output
         # 1: Output is ASCII scoremat checkpoint file (requires -J),
         # 2: Output is binary scoremat checkpoint file (requires -J) Optional
         '-u':ValuedParameter('-',Name='u',Delimiter=' '),
 
-        # Cost to decline alignment (disabled when 0) [Integer] 
+        # Cost to decline alignment (disabled when 0) [Integer]
         '-L':ValuedParameter('-',Name='L',Delimiter=' ', Value="0"),
 
-        # program option for PHI-BLAST [String] 
+        # program option for PHI-BLAST [String]
         '-p':ValuedParameter('-',Name='p',Delimiter=' ', Value="blastpgp"),
 
-        # Use composition based statistics [T/F] 
+        # Use composition based statistics [T/F]
         '-t':ValuedParameter('-',Name='t',Delimiter=' ', Value="T"),
 
-        # Input Alignment File for PSI-BLAST Restart [File In] Optional 
+        # Input Alignment File for PSI-BLAST Restart [File In] Optional
         '-B':ValuedParameter('-',Name='B',Delimiter=' '),
 
-        # Number of bits to trigger gapping [Real] 
+        # Number of bits to trigger gapping [Real]
         '-N':ValuedParameter('-',Name='N',Delimiter=' ', Value="22.0"),
 
-        # End of required region in query (-1 indicates end of query) [Integer] 
+        # End of required region in query (-1 indicates end of query) [Integer]
         '-H':ValuedParameter('-',Name='H',Delimiter=' ', Value="-1"),
 
-        # e-value threshold for inclusion in multipass model [Real] 
+        # e-value threshold for inclusion in multipass model [Real]
         '-h':ValuedParameter('-',Name='h',Delimiter=' ', Value="0.001"),
 
-        # Constant in pseudocounts for multipass version [Integer] 
+        # Constant in pseudocounts for multipass version [Integer]
         '-c':ValuedParameter('-',Name='c',Delimiter=' ', Value="9"),
 
-        # Maximum number of passes to use in  multipass version [Integer] 
+        # Maximum number of passes to use in  multipass version [Integer]
         '-j':ValuedParameter('-',Name='j',Delimiter=' ', Value="1"),
 
-        # Output File for PSI-BLAST Checkpointing [File Out]  Optional 
+        # Output File for PSI-BLAST Checkpointing [File Out]  Optional
         '-C':ValuedParameter('-',Name='C',Delimiter=' '),
 
-        # Compute locally optimal Smith-Waterman alignments [T/F] 
+        # Compute locally optimal Smith-Waterman alignments [T/F]
         '-s':ValuedParameter('-',Name='s',Delimiter=' ', Value="F"),
 
-        # Hit File for PHI-BLAST [File In] 
+        # Hit File for PHI-BLAST [File In]
         '-k':ValuedParameter('-',Name='k',Delimiter=' '),
 
     }
@@ -338,40 +345,40 @@ class PsiBlast(Blast):
 
 # should probably go into blastall superclass. it's late, works for now
 BLASTALL_OPTIONS ={
-        # Use lower case filtering of FASTA sequence [T/F] Optional  
+        # Use lower case filtering of FASTA sequence [T/F] Optional
         '-U':ValuedParameter('-',Name='U',Delimiter=' '),
 
-        # Penalty for a nucleotide mismatch (blastn only) [Integer] 
-        # default = -3 
+        # Penalty for a nucleotide mismatch (blastn only) [Integer]
+        # default = -3
         '-q':ValuedParameter('-',Name='q',Delimiter=' '),
 
-        # Reward for a nucleotide match (blastn only) [Integer] 
+        # Reward for a nucleotide match (blastn only) [Integer]
         '-r':ValuedParameter('-',Name='r',Delimiter=' '),
 
         # Query Genetic code to use [Integer] default = 1
         '-Q':ValuedParameter('-',Name='Q',Delimiter=' '),
 
-        # DB Genetic code (for tblast[nx] only) [Integer] 
+        # DB Genetic code (for tblast[nx] only) [Integer]
         '-D':ValuedParameter('-',Name='D',Delimiter=' '),
 
         # Query strands to search against database (for blast[nx], and tblastx)
-        # 3 is both, 1 is top, 2 is bottom [Integer] 
+        # 3 is both, 1 is top, 2 is bottom [Integer]
         '-S':ValuedParameter('-',Name='S',Delimiter=' '),
 
-        # Program Name 
+        # Program Name
         '-p':ValuedParameter('-',Name='p',Delimiter=' '),
 
-        # MegaBlast search [T/F] 
+        # MegaBlast search [T/F]
         '-n':ValuedParameter('-',Name='n',Delimiter=' '),
 
-        # Location on query sequence [String]  Option 
+        # Location on query sequence [String]  Option
         '-L':ValuedParameter('-',Name='L',Delimiter=' '),
 
-        # Frame shift penalty (OOF algorithm for blastx) [Integer] 
+        # Frame shift penalty (OOF algorithm for blastx) [Integer]
         '-w':ValuedParameter('-',Name='w',Delimiter=' '),
 
-        # Length of the largest intron allowed in tblastn for linking HSPs 
-        #(0 disables linking) [Integer] 
+        # Length of the largest intron allowed in tblastn for linking HSPs
+        #(0 disables linking) [Integer]
         '-t':ValuedParameter('-',Name='t',Delimiter=' '),
 
         # Number of concatenated queries, for blastn and tblastn [Integer]
@@ -389,7 +396,7 @@ class Blastall(Blast):
                  HALT_EXEC=False):
         """ Initialize the blastall"""
         super(Blastall, self).__init__(BLASTALL_OPTIONS,
-                    "blastall", 
+                    "blastall",
                     blast_mat_root=blast_mat_root,
                     extra_env=extra_env,
                     params=params,
@@ -400,33 +407,33 @@ class MpiBlast(Blast):
     """mpblast application controller - Prototype """
 
     _mpi_options ={
-        # Produces verbose debugging output for each node, optionally logs the 
+        # Produces verbose debugging output for each node, optionally logs the
         # output to a file
         '--debug':ValuedParameter('-',Name='--debug',Delimiter='='),
 
-        # Set the scheduler process' MPI Rank (default is 1). Because the 
-        # scheduler uses very little CPU it can be useful to force the 
+        # Set the scheduler process' MPI Rank (default is 1). Because the
+        # scheduler uses very little CPU it can be useful to force the
         # scheduler to run on the same physical machine as the writer (rank 0).
         '--scheduler-rank':ValuedParameter('-',Name='--scheduler-rank',
                                            Delimiter='='),
 
-        # Print the Altschul. et. al. 1997 paper reference instead of the 
-        # mpiBLAST paper reference. With this option mpiblast output is nearly 
+        # Print the Altschul. et. al. 1997 paper reference instead of the
+        # mpiBLAST paper reference. With this option mpiblast output is nearly
         # identical to NCBI-BLAST output.
         '--altschul-reference':FlagParameter(Prefix='--',
                                              Name='altschul-reference'),
 
-        #Removes the local copy of the database from each node before 
+        #Removes the local copy of the database from each node before
         # terminating execution
         '--removedb':FlagParameter(Prefix='--', Name='removedb'),
 
-        # Sets the method of copying files that each worker will use. 
+        # Sets the method of copying files that each worker will use.
         #  Default = "cp"
-        # * cp : use standard file system "cp" command. 
+        # * cp : use standard file system "cp" command.
         #        Additional option is --concurrent.
         # * rcp : use rsh "rcp" command. Additonal option is --concurrent.
         # * scp : use ssh "scp" command. Additional option is --concurrent.
-        # * mpi : use MPI_Send/MPI_Recv to copy files. 
+        # * mpi : use MPI_Send/MPI_Recv to copy files.
         #         Additional option is --mpi-size.
         # * none : do not copy files,instead use shared storage as local storage
         '--copy-via':ValuedParameter('-',Name='--copy-via', Delimiter='='),
@@ -435,19 +442,19 @@ class MpiBlast(Blast):
         # set the number of concurrent accesses to shared storage. Default = 1
         '--concurrent':ValuedParameter('-',Name='--concurrent', Delimiter='='),
 
-    
-        # in bytes, set the maximum buffer size that MPI will use to send data 
+
+        # in bytes, set the maximum buffer size that MPI will use to send data
         # when transferring files. Default = 65536
         '--mpi-size':ValuedParameter('-',Name='--mpi-size', Delimiter='='),
 
 
-        # set whether file locking should be used to manage local fragment 
+        # set whether file locking should be used to manage local fragment
         # lists. Defaults to off. When --concurrency > 1 defaults to on
         # [on|off]
         '--lock':ValuedParameter('-',Name='--lock', Delimiter='='),
 
-        # When set, the writer will use the database on shared storage for 
-        # sequence lookup. Can drastically reduce overhead for some blastn 
+        # When set, the writer will use the database on shared storage for
+        # sequence lookup. Can drastically reduce overhead for some blastn
         # searches.
         '--disable-mpi-db':FlagParameter(Prefix='--', Name='disable-mpi-db'),
 
@@ -458,7 +465,7 @@ class MpiBlast(Blast):
         '--config-file':ValuedParameter('--',Name='config-file', Delimiter='='),
 
 
-        # Experimental. When set, mpiblast will read the output file and 
+        # Experimental. When set, mpiblast will read the output file and
         # attempt to continue a previously aborted run where it left off
         '--resume-run':FlagParameter(Prefix='--', Name='resume-run'),
 
@@ -481,7 +488,7 @@ class MpiBlast(Blast):
         if config_file:
             params["--config-file"] = config_file
         super(MpiBlast, self).__init__(self._mpi_options,
-                    "mpirun -np %d %smpiblast" % ((num_db_frags + 2),  
+                    "mpirun -np %d %smpiblast" % ((num_db_frags + 2),
                                                     mpiblast_root),
                     blast_mat_root=blast_mat_root,
                     extra_env="export Local=%s; export Shared=%s;" %(local_root,
@@ -495,61 +502,61 @@ class FastaCmd(CommandLineApplication):
     """FastaCmd application controller - Prototype"""
 
     _options ={
-        # Database [String]  Optional 
+        # Database [String]  Optional
         '-d':ValuedParameter('-',Name='d',Delimiter=' '),
 
-        # Type of file 
+        # Type of file
         # G - guess mode (look for protein, then nucleotide)
         # T - protein
         # F - nucleotide [String]  Optional
         '-p':ValuedParameter('-',Name='p',Delimiter=' ', Value="G"),
 
-        # Search str: GIs, accessions and loci may be used delimited by comma 
+        # Search str: GIs, accessions and loci may be used delimited by comma
         '-s':ValuedParameter('-',Name='s',Delimiter=' '),
 
-        # Input file wilth GIs/accessions/loci for batch retrieval Optional 
+        # Input file wilth GIs/accessions/loci for batch retrieval Optional
         '-i':ValuedParameter('-',Name='i',Delimiter=' '),
 
-        # Retrieve duplicate accessions [T/F]  Optional 
+        # Retrieve duplicate accessions [T/F]  Optional
         '-a':ValuedParameter('-',Name='a',Delimiter=' ', Value='F'),
 
-        # Line length for sequence [Integer]  Optional 
+        # Line length for sequence [Integer]  Optional
         '-l':ValuedParameter('-',Name='l',Delimiter=' '),
 
-        # Definition line should contain target gi only [T/F]  Optional 
+        # Definition line should contain target gi only [T/F]  Optional
         '-t':ValuedParameter('-',Name='t',Delimiter=' '),
 
         # Output file [File Out]  Optional
         '-o':ValuedParameter('-',Name='o',Delimiter=' '),
 
-        # Use Ctrl-A's as non-redundant defline separator [T/F]  Optional 
+        # Use Ctrl-A's as non-redundant defline separator [T/F]  Optional
         '-c':ValuedParameter('-',Name='c',Delimiter=' '),
 
-        # Dump the entire database in fasta format [T/F]  Optional 
+        # Dump the entire database in fasta format [T/F]  Optional
         '-D':ValuedParameter('-',Name='D',Delimiter=' '),
 
-        # Range of sequence to extract (Format: start,stop) 
+        # Range of sequence to extract (Format: start,stop)
         # 0 in 'start' refers to the beginning of the sequence
         # 0 in 'stop' refers to the end of the sequence [String]  Optional
         '-L':ValuedParameter('-',Name='L',Delimiter=' '),
 
-        # Strand on subsequence (nucleotide only): 1 is top, 2 is bottom [Int] 
+        # Strand on subsequence (nucleotide only): 1 is top, 2 is bottom [Int]
         '-S':ValuedParameter('-',Name='S',Delimiter=' '),
 
-        # Print taxonomic information for requested sequence(s) [T/F] 
+        # Print taxonomic information for requested sequence(s) [T/F]
         '-T':ValuedParameter('-',Name='T',Delimiter=' '),
 
         # Print database information only (overrides all other options) [T/F]
         '-I':ValuedParameter('-',Name='I',Delimiter=' '),
 
-        #  Retrieve sequences with this PIG [Integer]  Optional 
+        #  Retrieve sequences with this PIG [Integer]  Optional
         '-P':ValuedParameter('-',Name='P',Delimiter=' '),
-        
+
     }
     _parameters = {}
     _parameters.update(_options)
     _command = 'fastacmd'
-  
+
     def _input_as_lines(self,data):
         if data:
             self.Parameters['-i']\
@@ -566,7 +573,7 @@ class FastaCmd(CommandLineApplication):
 
     def _input_as_string(self,data):
         """Makes data the value of a specific parameter
-    
+
         This method returns the empty string. The parameter will be printed
         automatically once set.
         """
@@ -579,11 +586,11 @@ class FastaCmd(CommandLineApplication):
         if self.Parameters['-o'].isOn():
             aln_filename = self._absolute(str(self.Parameters['-o'].Value))
         else:
-            raise ValueError, "No output file specified." 
+            raise ValueError, "No output file specified."
         return aln_filename
 
     def _get_result_paths(self,data):
-        
+
         result = {}
         if self.Parameters['-o'].isOn():
             out_name = self._out_filename()
@@ -606,7 +613,7 @@ def seqs_to_stream(seqs, ih):
     else:
         raise TypeError, "Unknown input handler %s" % ih
     return recs
- 
+
 #SOME FUNCTIONS TO EXECUTE THE MOST COMMON TASKS
 def blast_seqs(seqs,
                  blast_constructor,
@@ -625,9 +632,9 @@ def blast_seqs(seqs,
 
     seqs: either file name or list of sequence objects or list of strings or
     single multiline string containing sequences.
-    
-    WARNING: DECISION RULES FOR INPUT HANDLING HAVE CHANGED. Decision rules 
-    for data are as follows. If it's s list, treat as lines, unless 
+
+    WARNING: DECISION RULES FOR INPUT HANDLING HAVE CHANGED. Decision rules
+    for data are as follows. If it's s list, treat as lines, unless
     add_seq_names is true (in which case treat as list of seqs). If it's a
     string, test whether it has newlines. If it doesn't have newlines, assume
     it's a filename. If it does have newlines, it can't be a filename, so
@@ -635,14 +642,14 @@ def blast_seqs(seqs,
 
     If you want to skip the detection and force a specific type of input
     handler, use input_handler='your_favorite_handler'.
-   
+
     add_seq_names: boolean. if True, sequence names are inserted in the list
         of sequences. if False, it assumes seqs is a list of lines of some
         proper format that the program can handle
     """
 
     # set num keep
-    
+
     if blast_db:
         params["-d"] = blast_db
 
@@ -650,7 +657,7 @@ def blast_seqs(seqs,
         params["-o"] = out_filename
 
     ih = input_handler or guess_input_handler(seqs, add_seq_names)
-           
+
     blast_app = blast_constructor(
                    params=params,
                    blast_mat_root=blast_mat_root,
@@ -674,11 +681,11 @@ def fasta_cmd_get_seqs(acc_list,
     """Retrieve sequences for list of accessions """
 
     if is_protein is None:
-        params["-p"] = 'G' 
+        params["-p"] = 'G'
     elif is_protein:
-        params["-p"] = 'T' 
+        params["-p"] = 'T'
     else:
-        params["-p"] = 'F' 
+        params["-p"] = 'F'
 
     if blast_db:
         params["-d"] = blast_db
@@ -747,21 +754,21 @@ def psiblast_n_neighbors(seqs,
     single multiline string containing sequences.
     If you want to skip the detection and force a specific type of input
     handler, use input_handler='your_favorite_handler'.
-   
+
     add_seq_names: boolean. if True, sequence names are inserted in the list
         of sequences. if False, it assumes seqs is a list of lines of some
         proper format that the program can handle
     """
     if blast_db:
         params["-d"] = blast_db
-    
+
     ih = input_handler or guess_input_handler(seqs, add_seq_names)
     recs = seqs_to_stream(seqs, ih) #checkpointing can only handle one seq...
-    
+
     #set up the parameters for the core and additional runs
     max_iterations = params['-j']
     params['-j'] = 2    #won't checkpoint with single iteration
-    
+
     app = PsiBlast(params=params,
                    blast_mat_root=blast_mat_root,
                    InputHandler='_input_as_lines',
@@ -783,14 +790,14 @@ def psiblast_n_neighbors(seqs,
                QMEPsiBlast9, scorer, params['-j'], n)
         else:
             raise TypeError, "Got unknown method %s" % method
-            
+
     params['-j'] = max_iterations
     return result
 
 def ids_from_seq_two_step(seq, n, max_iterations, app, core_threshold, \
     extra_threshold, lower_threshold, second_db=None):
     """Returns ids that match a seq, using a 2-tiered strategy.
-    
+
     Optionally uses a second database for the second search.
     """
     #first time through: reset 'h' and 'e' to core
@@ -831,7 +838,7 @@ def ids_from_seq_two_step(seq, n, max_iterations, app, core_threshold, \
     #if we got too many ids and don't have a second database, return the ids we got
     if (not second_db) and num_ids >= n:
         return ids
-    
+
     #second time through: reset 'h' and 'e' to get extra hits, and switch the
     #database if appropriate
     app.Parameters['-h'].on(extra_threshold)
@@ -861,7 +868,7 @@ def ids_from_seq_two_step(seq, n, max_iterations, app, core_threshold, \
     for c in checkpoints:
         remove(c)
     return ids
-    
+
 class ThresholdFound(Exception): pass
 
 def ids_from_seq_lower_threshold(seq, n, max_iterations, app, core_threshold, \
@@ -929,7 +936,7 @@ def make_unique_str(num_chars=20):
 def make_subject_match_scorer(count):
     def subject_match_scorer(checked_ids):
         """From {subject:{query:score}} returns subject ids w/ >= count hits.
-        
+
         Useful for elminating subjects with few homologs.
         """
         return [key for key, val in checked_ids.items() if len(val) >= count]
@@ -938,7 +945,7 @@ def make_subject_match_scorer(count):
 def make_shotgun_scorer(count):
     def shotgun_scorer(checked_ids):
         """From {subject:{query:score}} returns any ids w/ >= count hits.
-        
+
         A hit counts towards a sequence's score if it was either the subject
         or the query, but we don't double-count (subject, query) pairs, i.e.
         if A hits B and B hits A, only one (A,B) hit will be counted, although
@@ -1009,12 +1016,12 @@ def ids_from_seqs_iterative(seqs, app, query_parser, \
     return scorer(checked_ids)  #scorer should return list of good ids
 
 
-def blastp(seqs, blast_db="nr", e_value="1e-20", max_hits=200, 
+def blastp(seqs, blast_db="nr", e_value="1e-20", max_hits=200,
            working_dir="/tmp", blast_mat_root=None, extra_params={}):
     """
     Returns BlastResult from input seqs, using blastp.
-    
-    Need to add doc string   
+
+    Need to add doc string
     """
 
     # set up params to use with blastp
@@ -1038,13 +1045,13 @@ def blastp(seqs, blast_db="nr", e_value="1e-20", max_hits=200,
         "-p":"blastp"
     }
     params.update(extra_params)
- 
+
     # blast
-    blast_res =  blast_seqs(seqs, 
+    blast_res =  blast_seqs(seqs,
         Blastall,
         blast_mat_root=blast_mat_root,
         blast_db=blast_db,
-        params=params, 
+        params=params,
         add_seq_names=False,
         WorkingDir=working_dir
         )
@@ -1054,14 +1061,14 @@ def blastp(seqs, blast_db="nr", e_value="1e-20", max_hits=200,
         lines = [x for x in blast_res['StdOut']]
         return BlastResult(lines)
 
-    return None 
+    return None
 
-def blastn(seqs, blast_db="nt", e_value="1e-20", max_hits=200, 
+def blastn(seqs, blast_db="nt", e_value="1e-20", max_hits=200,
            working_dir="/tmp", blast_mat_root=None, extra_params={}):
     """
     Returns BlastResult from input seqs, using blastn.
-    
-    Need to add doc string   
+
+    Need to add doc string
     """
 
     # set up params to use with blastp
@@ -1085,13 +1092,13 @@ def blastn(seqs, blast_db="nt", e_value="1e-20", max_hits=200,
         "-p":"blastn"
     }
     params.update(extra_params)
- 
+
     # blast
-    blast_res =  blast_seqs(seqs, 
+    blast_res =  blast_seqs(seqs,
         Blastall,
         blast_mat_root=blast_mat_root,
         blast_db=blast_db,
-        params=params, 
+        params=params,
         add_seq_names=False,
         WorkingDir=working_dir
         )
@@ -1101,7 +1108,7 @@ def blastn(seqs, blast_db="nt", e_value="1e-20", max_hits=200,
         lines = [x for x in blast_res['StdOut']]
         return BlastResult(lines)
 
-    return None 
+    return None
 
 
 
@@ -1120,8 +1127,8 @@ def psiblast(seqs, params=None):
 def reciprocal_best_blast_hit(query_id, db_1, db_2, exclude_self_hits=True,\
     params=None):
     """Returns best hit in db_2 that maps back to query_id in db_1, or None.
-    
-    exclude_self_hits: if True (the default), returns the best hit that 
+
+    exclude_self_hits: if True (the default), returns the best hit that
     doesn't have the same id. Otherwise, will return the same id if it is in
     both databases (assuming it's the same sequence in both).
     """
@@ -1133,7 +1140,7 @@ def reciprocal_best_blast_hit(query_id, db_1, db_2, exclude_self_hits=True,\
 if __name__ == "__main__":
 
     print "Debug. examples of how i've been using."
-    
+
     print "Example of straightforward BLAST"
 
 # WARNING: I changed a bunch of stuff to make testing easier, since nr doesn't
@@ -1143,14 +1150,14 @@ if __name__ == "__main__":
 # Because we're blasting an archaeal sequence against one bacterial genome, I
 # relaxed the inclusion thresholds substantially. DO NOT USE THESE AGAINST NR!
 
-    in_filename = "test_seq.fasta" 
-    out_filename = "test.out" 
+    in_filename = "test_seq.fasta"
+    out_filename = "test.out"
     # if blast env variable set, can just say 'nr'
-    #BLAST_DB = "/home/hamady/quicksand/data/blast/db/nr"  
+    #BLAST_DB = "/home/hamady/quicksand/data/blast/db/nr"
     BLAST_DB = 'nr' #'nr'
     BLAST_MAT_ROOT="/home/hamady/apps/blast-2.2.9/data"
     #BLAST_MAT_ROOT='/Users/rob/ncbi/data'
-    # set up params to use with iterative 
+    # set up params to use with iterative
 
     #print seqs_from_fastacmd(['16766313'], 'nr', True)
     #raise ValueError, "dbug"
@@ -1158,26 +1165,26 @@ if __name__ == "__main__":
 
         # matrix
         "-M":"PAM70",
-        # max procs 
+        # max procs
         "-a":2,
-         # expect 
+         # expect
         "-e":1e-15,
- 
-# blastall  
-#        # program   
+
+# blastall
+#        # program
 #        "-p":"blastp",
- 
+
 # psi-blast
-        # max iterations 
+        # max iterations
         "-j":2,
-       
-        # max seqs to show 
+
+        # max seqs to show
         "-b":50,
-         # inclusion 
+         # inclusion
         "-h":1e-2,
     }
-   
-    in_seqs = """>stm:STMabcdef  thrA; aspartokinase I 
+
+    in_seqs = """>stm:STMabcdef  thrA; aspartokinase I
     MRVLKFGGTSVANAERFLRVADILESNARQGQVATVLSAPAKITNHLVAMIEKTIGGQDA
     LPNISDAERIFSDLLAGLASAQPGFPLARLKMVVEQEFAQIKHVLHGISLLGQCPDSINA
     ALICRGEKMSIAIMAGLLEARGHRVTVIDPVEKLLAVGHYLESTVDIAESTRRIAASQIP
@@ -1195,14 +1202,14 @@ if __name__ == "__main__":
 #MSVMYKKILYPTDFSETAEIALKHVKAFKTLKAEEVILLHVIDEREIKKRDIFSLLLGVAGLNKSVEEFE
 #NELKNKLTEEAKNKMENIKKELEDVGFKVKDIIVVGIPHEEIVKIAEDEGVDIIIMGSHGKTNLKEILLG
 #SVTENVIKKSNKPVLVVKRKNS""".split()  #lines instead of multiline string
-#   
+#
     blast_res =  blast_seqs(in_seqs, Blastall,
                         blast_mat_root=BLAST_MAT_ROOT,
                         add_seq_names=False,
-                        blast_db=BLAST_DB, 
+                        blast_db=BLAST_DB,
                         params={'-p': 'blastp','-e': '1','-m': 9},
                         out_filename=out_filename)
-                            
+
     print [x for x in blast_res['StdOut']]
     print [x for x in blast_res['StdErr']]
     print blast_res
@@ -1225,10 +1232,9 @@ if __name__ == "__main__":
     #print psiblast_n_neighbors(in_seqs, n=10, blast_db=BLAST_DB, \
     #    method="iterative", blast_mat_root=BLAST_MAT_ROOT,params=params,
     #    core_threshold=1e-5, lower_threshold=1e-2)
-    #print 
+    #print
     #print "Method 4: two-step with high- and low-confidence matches, diff dbs"
     #print psiblast_n_neighbors(in_seqs, n=10, blast_db=BLAST_DB, \
     #    method="two-step", blast_mat_root=BLAST_MAT_ROOT,params=params,\
     #    core_threshold=1e-5, extra_threshold=1e-2, lower_threshold=1e-1, second_db='stm')
     #print
-

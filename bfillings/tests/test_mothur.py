@@ -1,6 +1,12 @@
 #!/usr/bin/env python
-# test_mothur.py
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
 from __future__ import with_statement
 from cStringIO import StringIO
@@ -175,7 +181,7 @@ class TestMothurClassifySeqs(TestCase):
 
         summary = res['summary'].read()
         self.assertEqual(summary, mothur_summary)
-        
+
 
     def test_format_function_arguments(self):
         app = MothurClassifySeqs({
@@ -237,26 +243,26 @@ Very	k__Bacteria(100);p__Bacteriodetes(100);unclassified;unclassified;unclassifi
 """
 
 mothur_summary = """\
-taxlevel	 rankID	 taxon	 daughterlevels	 total	
-0	0	Root	1	3	
-1	0.1	k__Bacteria	2	3	
-2	0.1.1	p__Bacteriodetes	1	1	
-3	0.1.1.1	unclassified	1	1	
-4	0.1.1.1.1	unclassified	1	1	
-5	0.1.1.1.1.1	unclassified	1	1	
-6	0.1.1.1.1.1.1	unclassified	1	1	
-7	0.1.1.1.1.1.1.1	unclassified	0	1	
-2	0.1.2	p__Firmicutes	2	2	
-3	0.1.2.1	c__Clostridia	1	1	
-4	0.1.2.1.1	o__Clostridale	1	1	
-5	0.1.2.1.1.1	f__Eubacteriaceae	1	1	
-6	0.1.2.1.1.1.1	g__Eubacterium	1	1	
-7	0.1.2.1.1.1.1.1	s__Eubacteriumfoedans	0	1	
-3	0.1.2.2	unclassified	1	1	
-4	0.1.2.2.1	unclassified	1	1	
-5	0.1.2.2.1.1	unclassified	1	1	
-6	0.1.2.2.1.1.1	unclassified	1	1	
-7	0.1.2.2.1.1.1.1	unclassified	0	1	
+taxlevel	 rankID	 taxon	 daughterlevels	 total
+0	0	Root	1	3
+1	0.1	k__Bacteria	2	3
+2	0.1.1	p__Bacteriodetes	1	1
+3	0.1.1.1	unclassified	1	1
+4	0.1.1.1.1	unclassified	1	1
+5	0.1.1.1.1.1	unclassified	1	1
+6	0.1.1.1.1.1.1	unclassified	1	1
+7	0.1.1.1.1.1.1.1	unclassified	0	1
+2	0.1.2	p__Firmicutes	2	2
+3	0.1.2.1	c__Clostridia	1	1
+4	0.1.2.1.1	o__Clostridale	1	1
+5	0.1.2.1.1.1	f__Eubacteriaceae	1	1
+6	0.1.2.1.1.1.1	g__Eubacterium	1	1
+7	0.1.2.1.1.1.1.1	s__Eubacteriumfoedans	0	1
+3	0.1.2.2	unclassified	1	1
+4	0.1.2.2.1	unclassified	1	1
+5	0.1.2.2.1.1	unclassified	1	1
+6	0.1.2.2.1.1.1	unclassified	1	1
+7	0.1.2.2.1.1.1.1	unclassified	0	1
 """
 
 mothur_seqs = """\

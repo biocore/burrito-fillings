@@ -1,5 +1,12 @@
 #!/usr/bin/env python
-# test_infernal.py
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
 from os import getcwd, remove, rmdir, mkdir, path
 import tempfile
@@ -32,23 +39,23 @@ class GeneralSetUp(TestCase):
         self.seqs1_unaligned_gaps = {'1':'ACUGCUAGCUAGU-AGCGUAC--GUA',\
                                      '2':'--GCUACGUAGCUAC',\
                                      '3':'GCGGCUAUUAGAUCGUA--'}
-        
-        
-        
+
+
+
         self.seqs2_aligned = {'a': 'UAGGCUCUGAUAUAAUAGCUCUC---------',\
                               'c': '------------UGACUACGCAU---------',\
                               'b': '----UAUCGCUUCGACGAUUCUCUGAUAGAGA'}
-        
+
         self.seqs2_unaligned = {'a': 'UAGGCUCUGAUAUAAUAGCUCUC',\
                                 'c': 'UGACUACGCAU',\
                                 'b': 'UAUCGCUUCGACGAUUCUCUGAUAGAGA'}
-        
+
         self.struct2_aligned_string = '............((.(...)))..........'
         self.struct2_aligned_dict = {'SS_cons':self.struct2_aligned_string}
-        
+
         self.lines2 = stockholm_from_alignment(aln=self.seqs2_aligned,\
             GC_annotation=self.struct2_aligned_dict)
-        
+
         #self.seqs1 aligned to self.seqs2 with self.seqs2 included.
         self.seqs1_and_seqs2_aligned = \
             {'a': 'UAGGCUCUGAUAUAAUAGC-UCUC---------',\
@@ -58,20 +65,20 @@ class GeneralSetUp(TestCase):
              '2': '----------GCUACGUAG-CUAC---------',\
              '3': '-----GCGGCUAUUAG-AU-CGUA---------',\
              }
-             
+
         self.seqs1_and_seqs2_aligned_struct_string = \
             '............((.(....)))..........'
-        
+
         #self.seqs1 aligned to self.seqs2 without self.seqs2 included.
         self.seqs1_aligned = \
             {'1': 'ACUGCUAGCUAGUAGCGUACGUA',\
              '2': '---------GCUACGUAG-CUAC',\
              '3': '----GCGGCUAUUAG-AU-CGUA',\
              }
-             
+
         self.seqs1_aligned_struct_string = \
             '...........((.(....))).'
-        
+
         self.temp_dir = tempfile.mkdtemp()
         self.temp_dir_spaces = '/tmp/test for infernal/'
         try:
@@ -95,7 +102,7 @@ class GeneralSetUp(TestCase):
             af.close()
         except OSError:
             pass
-    
+
 
 class CmalignTests(GeneralSetUp):
     """Tests for the Cmalign application controller"""
@@ -119,7 +126,7 @@ class CmalignTests(GeneralSetUp):
         c.WorkingDir = '/tmp/cmalign_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/cmalign_test2','/"; ','cmalign']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/cmalign_test')
@@ -130,7 +137,7 @@ class CmalignTests(GeneralSetUp):
         # remove the tempdir and contents
         shutil.rmtree(self.temp_dir)
         shutil.rmtree(self.temp_dir_spaces)
-    
+
     def test_cmalign_from_alignment(self):
         """cmalign_from_alignment should work as expected.
         """
@@ -154,7 +161,7 @@ class CmalignTests(GeneralSetUp):
         #structure should be correct
         self.assertEqual(wuss_to_vienna(str(struct)),\
             self.seqs1_and_seqs2_aligned_struct_string)
-        
+
         #should work with ungapped seqs.
         aln, struct = cmalign_from_alignment(aln=self.seqs2_aligned,\
             structure_string=self.struct2_aligned_string,\
@@ -164,7 +171,7 @@ class CmalignTests(GeneralSetUp):
         #structure should be correct
         self.assertEqual(wuss_to_vienna(str(struct)),\
             self.seqs1_and_seqs2_aligned_struct_string)
-        
+
         #should return standard out
         aln, struct,stdout = cmalign_from_alignment(aln=self.seqs2_aligned,\
             structure_string=self.struct2_aligned_string,\
@@ -173,7 +180,7 @@ class CmalignTests(GeneralSetUp):
         #Test that standard out is same length as expected
         self.assertEqual(len(stdout.split('\n')),\
             len(CMALIGN_STDOUT.split('\n')))
-    
+
     def test_cmalign_from_file(self):
         """cmalign_from_file should work as expected.
         """
@@ -186,7 +193,7 @@ class CmalignTests(GeneralSetUp):
         #Check correct struct
         self.assertEqual(wuss_to_vienna(str(struct)),\
             self.seqs1_aligned_struct_string)
-        
+
         #Align with cmalign_from_file using original alignment.
         aln,struct = cmalign_from_file(cm_file_path=self.cmfile,\
             seqs=self.seqs1_unaligned,\
@@ -198,7 +205,7 @@ class CmalignTests(GeneralSetUp):
         #structure should be correct
         self.assertEqual(wuss_to_vienna(str(struct)),\
             self.seqs1_and_seqs2_aligned_struct_string)
-    
+
 
 class CmbuildTests(GeneralSetUp):
     """Tests for the Cmbuild application controller"""
@@ -221,7 +228,7 @@ class CmbuildTests(GeneralSetUp):
         c.WorkingDir = '/tmp/cmbuild_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/cmbuild_test2','/"; ','cmbuild']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/cmbuild_test')
@@ -232,7 +239,7 @@ class CmbuildTests(GeneralSetUp):
         # remove the tempdir and contents
         shutil.rmtree(self.temp_dir)
         shutil.rmtree(self.temp_dir_spaces)
-    
+
     def test_cmbuild_from_alignment(self):
         """cmbuild_from_alignment should work as expected.
         """
@@ -240,11 +247,11 @@ class CmbuildTests(GeneralSetUp):
         #DataError should be raised with Alignment is constructed
         self.assertRaises(DataError,cmbuild_from_alignment,\
             self.seqs1_unaligned,self.struct1_unaligned_string)
-            
+
         #Test aligned seqs and unaligned struct fail.
         self.assertRaises(ValueError,cmbuild_from_alignment,\
             self.seqs2_aligned,self.struct1_unaligned_string)
-        
+
         #Test get cm back without alignment.
         cm_res = cmbuild_from_alignment(self.seqs2_aligned,\
             self.struct2_aligned_string)
@@ -252,16 +259,16 @@ class CmbuildTests(GeneralSetUp):
         ALN1_CM_lines = ALN1_CM.split('\n')
         #Check that the same number of lines are in both CMs
         self.assertEqual(len(cm_lines),len(ALN1_CM_lines))
-        
+
         #The first 13 lines are unique to the specific run.  The res of the
         # CM should be the same, since built from the same data.
         self.assertEqual(cm_lines[13:],ALN1_CM_lines[13:])
-        
+
         #Make sure same alignment is returned if return_alignment=True
         cm_res, cm_aln = cmbuild_from_alignment(self.seqs2_aligned,\
             self.struct2_aligned_string,return_alignment=True)
         self.assertEqual(cm_aln,self.lines2)
-    
+
     def test_cmbuild_from_file(self):
         """cmbuild_from_file should work as expected.
         """
@@ -270,11 +277,11 @@ class CmbuildTests(GeneralSetUp):
         ALN1_CM_lines = ALN1_CM.split('\n')
         #Check that the same number of lines are in both CMs
         self.assertEqual(len(cm_lines),len(ALN1_CM_lines))
-        
+
         #The first 13 lines are unique to the specific run.  The res of the
         # CM should be the same, since built from the same data.
         self.assertEqual(cm_lines[13:],ALN1_CM_lines[13:])
-        
+
         #Make sure same alignment is returned if return_alignment=True
         cm_res, cm_aln = cmbuild_from_alignment(self.seqs2_aligned,\
             self.struct2_aligned_string,return_alignment=True)
@@ -302,7 +309,7 @@ class CmcalibrateTests(GeneralSetUp):
         c.WorkingDir = '/tmp/cmcalibrate_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/cmcalibrate_test2','/"; ','cmcalibrate']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/cmcalibrate_test')
@@ -336,7 +343,7 @@ class CmemitTests(GeneralSetUp):
         c.WorkingDir = '/tmp/cmemit_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/cmemit_test2','/"; ','cmemit']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/cmemit_test')
@@ -370,7 +377,7 @@ class CmscoreTests(GeneralSetUp):
         c.WorkingDir = '/tmp/cmscore_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/cmscore_test2','/"; ','cmscore']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/cmscore_test')
@@ -405,7 +412,7 @@ class CmsearchTests(GeneralSetUp):
         c.WorkingDir = '/tmp/cmsearch_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/cmsearch_test2','/"; ','cmsearch']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/cmsearch_test')
@@ -416,7 +423,7 @@ class CmsearchTests(GeneralSetUp):
         # remove the tempdir and contents
         shutil.rmtree(self.temp_dir)
         shutil.rmtree(self.temp_dir_spaces)
-    
+
     def test_cmsearch_from_alignment_no_hits(self):
         """cmsearch_from_alignment should work as expected
         """
@@ -424,7 +431,7 @@ class CmsearchTests(GeneralSetUp):
             structure_string=self.struct2_aligned_string,\
             seqs=self.seqs1_unaligned,moltype=RNA)
         self.assertEqual(search_res,[])
-            
+
     def test_cmsearch_from_alignment(self):
         """cmsearch_from_alignment should work as expected
         """
@@ -435,14 +442,14 @@ class CmsearchTests(GeneralSetUp):
             seqs=self.seqs2_unaligned,moltype=RNA)
         for search, exp in zip(search_res, exp_search_res):
             self.assertEqual(search[1:],exp)
-    
+
     def test_cmsearch_from_file_no_hits(self):
         """cmsearch_from_file should work as expected
         """
         search_res = cmsearch_from_file(cm_file_path=self.cmfile,\
             seqs=self.seqs1_unaligned,moltype=RNA)
         self.assertEqual(search_res,[])
-    
+
     def test_cmsearch_from_file(self):
         """cmsearch_from_file should work as expected
         """
@@ -452,7 +459,7 @@ class CmsearchTests(GeneralSetUp):
             seqs=self.seqs2_unaligned,moltype=RNA)
         for search, exp in zip(search_res, exp_search_res):
             self.assertEqual(search[1:],exp)
-        
+
 class CmstatTests(GeneralSetUp):
     """Tests for the Cmstat application controller"""
 
@@ -475,7 +482,7 @@ class CmstatTests(GeneralSetUp):
         c.WorkingDir = '/tmp/cmstat_test2'
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/cmstat_test2','/"; ','cmstat']))
-        
+
         #removing the dirs is proof that they were created at the same time
         #if the dirs are not there, an OSError will be raised
         rmdir('/tmp/cmstat_test')
@@ -499,87 +506,87 @@ EFFNSEQ  3.000
 CLEN     19
 BCOM     cmbuild aln1.cm aln1.sto
 BDATE    Sun Oct 5 18:45:35 2008
-NULL     0.000  0.000  0.000  0.000 
+NULL     0.000  0.000  0.000  0.000
 MODEL:
 				[ ROOT    0 ]
-     S     0    -1 0     1     4  -2.071  -2.210  -1.649  -2.140                 
-    IL     1     1 2     1     4  -0.556  -5.022  -1.818  -7.508                  0.000  0.000  0.000  0.000 
-    IR     2     2 3     2     3  -0.310  -2.439  -6.805                          0.000  0.000  0.000  0.000 
+     S     0    -1 0     1     4  -2.071  -2.210  -1.649  -2.140
+    IL     1     1 2     1     4  -0.556  -5.022  -1.818  -7.508                  0.000  0.000  0.000  0.000
+    IR     2     2 3     2     3  -0.310  -2.439  -6.805                          0.000  0.000  0.000  0.000
 				[ MATL    1 ]
-    ML     3     2 3     5     3  -8.003  -0.020  -6.657                         -0.389  0.377 -1.236  0.597 
-     D     4     2 3     5     3  -7.923  -3.436  -0.146                         
-    IL     5     5 3     5     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML     3     2 3     5     3  -8.003  -0.020  -6.657                         -0.389  0.377 -1.236  0.597
+     D     4     2 3     5     3  -7.923  -3.436  -0.146
+    IL     5     5 3     5     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL    2 ]
-    ML     6     5 3     8     3  -8.003  -0.020  -6.657                          0.711 -1.015 -1.162  0.507 
-     D     7     5 3     8     3  -7.923  -3.436  -0.146                         
-    IL     8     8 3     8     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML     6     5 3     8     3  -8.003  -0.020  -6.657                          0.711 -1.015 -1.162  0.507
+     D     7     5 3     8     3  -7.923  -3.436  -0.146
+    IL     8     8 3     8     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL    3 ]
-    ML     9     8 3    11     3  -8.003  -0.020  -6.657                         -0.389  0.377 -1.236  0.597 
-     D    10     8 3    11     3  -7.923  -3.436  -0.146                         
-    IL    11    11 3    11     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML     9     8 3    11     3  -8.003  -0.020  -6.657                         -0.389  0.377 -1.236  0.597
+     D    10     8 3    11     3  -7.923  -3.436  -0.146
+    IL    11    11 3    11     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL    4 ]
-    ML    12    11 3    14     3  -8.003  -0.020  -6.657                         -0.392  0.246 -1.238  0.703 
-     D    13    11 3    14     3  -7.923  -3.436  -0.146                         
-    IL    14    14 3    14     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML    12    11 3    14     3  -8.003  -0.020  -6.657                         -0.392  0.246 -1.238  0.703
+     D    13    11 3    14     3  -7.923  -3.436  -0.146
+    IL    14    14 3    14     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL    5 ]
-    ML    15    14 3    17     3  -8.003  -0.020  -6.657                         -1.340 -2.411  1.644 -1.777 
-     D    16    14 3    17     3  -7.923  -3.436  -0.146                         
-    IL    17    17 3    17     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML    15    14 3    17     3  -8.003  -0.020  -6.657                         -1.340 -2.411  1.644 -1.777
+     D    16    14 3    17     3  -7.923  -3.436  -0.146
+    IL    17    17 3    17     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL    6 ]
-    ML    18    17 3    20     3  -8.003  -0.020  -6.657                          0.830  0.106 -1.204 -0.492 
-     D    19    17 3    20     3  -7.923  -3.436  -0.146                         
-    IL    20    20 3    20     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML    18    17 3    20     3  -8.003  -0.020  -6.657                          0.830  0.106 -1.204 -0.492
+     D    19    17 3    20     3  -7.923  -3.436  -0.146
+    IL    20    20 3    20     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL    7 ]
-    ML    21    20 3    23     3  -8.003  -0.020  -6.657                         -1.143 -1.575 -1.925  1.560 
-     D    22    20 3    23     3  -7.923  -3.436  -0.146                         
-    IL    23    23 3    23     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML    21    20 3    23     3  -8.003  -0.020  -6.657                         -1.143 -1.575 -1.925  1.560
+     D    22    20 3    23     3  -7.923  -3.436  -0.146
+    IL    23    23 3    23     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL    8 ]
-    ML    24    23 3    26     3  -8.391  -0.018  -6.709                          0.821 -1.044 -1.178  0.385 
-     D    25    23 3    26     3  -6.905  -0.258  -2.688                         
-    IL    26    26 3    26     3  -1.925  -0.554  -4.164                          0.000  0.000  0.000  0.000 
+    ML    24    23 3    26     3  -8.391  -0.018  -6.709                          0.821 -1.044 -1.178  0.385
+     D    25    23 3    26     3  -6.905  -0.258  -2.688
+    IL    26    26 3    26     3  -1.925  -0.554  -4.164                          0.000  0.000  0.000  0.000
 				[ MATR    9 ]
-    MR    27    26 3    29     5  -7.411  -0.031  -7.227  -7.439  -8.330         -0.726  0.967 -1.567  0.142 
-     D    28    26 3    29     5  -5.352  -0.707  -2.978  -4.409  -2.404         
-    IR    29    29 3    29     5  -2.408  -0.496  -5.920  -4.087  -5.193          0.000  0.000  0.000  0.000 
+    MR    27    26 3    29     5  -7.411  -0.031  -7.227  -7.439  -8.330         -0.726  0.967 -1.567  0.142
+     D    28    26 3    29     5  -5.352  -0.707  -2.978  -4.409  -2.404
+    IR    29    29 3    29     5  -2.408  -0.496  -5.920  -4.087  -5.193          0.000  0.000  0.000  0.000
 				[ MATP   10 ]
-    MP    30    29 3    34     6  -9.266  -9.205  -0.019  -7.982  -8.261  -8.656 -1.570 -1.865 -1.898  0.327 -1.331 -2.318  0.651  0.994 -1.872  0.282 -2.224 -0.666  1.972 -1.608 -0.242  1.187 
-    ML    31    29 3    34     6  -6.250  -6.596  -1.310  -1.005  -6.446  -3.975  0.660 -0.612 -0.293 -0.076 
-    MR    32    29 3    34     6  -6.988  -5.717  -1.625  -5.695  -0.829  -3.908  0.660 -0.612 -0.293 -0.076 
-     D    33    29 3    34     6  -9.049  -7.747  -3.544  -4.226  -4.244  -0.319 
-    IL    34    34 5    34     6  -2.579  -2.842  -0.760  -4.497  -5.274  -4.934  0.000  0.000  0.000  0.000 
-    IR    35    35 6    35     5  -2.408  -0.496  -5.920  -4.087  -5.193          0.000  0.000  0.000  0.000 
+    MP    30    29 3    34     6  -9.266  -9.205  -0.019  -7.982  -8.261  -8.656 -1.570 -1.865 -1.898  0.327 -1.331 -2.318  0.651  0.994 -1.872  0.282 -2.224 -0.666  1.972 -1.608 -0.242  1.187
+    ML    31    29 3    34     6  -6.250  -6.596  -1.310  -1.005  -6.446  -3.975  0.660 -0.612 -0.293 -0.076
+    MR    32    29 3    34     6  -6.988  -5.717  -1.625  -5.695  -0.829  -3.908  0.660 -0.612 -0.293 -0.076
+     D    33    29 3    34     6  -9.049  -7.747  -3.544  -4.226  -4.244  -0.319
+    IL    34    34 5    34     6  -2.579  -2.842  -0.760  -4.497  -5.274  -4.934  0.000  0.000  0.000  0.000
+    IR    35    35 6    35     5  -2.408  -0.496  -5.920  -4.087  -5.193          0.000  0.000  0.000  0.000
 				[ MATP   11 ]
-    MP    36    35 6    40     4  -7.331  -7.538  -0.041  -5.952                 -4.114  0.397 -4.664  0.815 -4.665 -4.015 -0.462 -4.315 -3.939  3.331 -3.732 -0.830 -0.398 -3.640 -1.958 -3.517 
-    ML    37    35 6    40     4  -3.758  -3.940  -0.507  -2.670                  0.660 -0.612 -0.293 -0.076 
-    MR    38    35 6    40     4  -4.809  -3.838  -1.706  -0.766                  0.660 -0.612 -0.293 -0.076 
-     D    39    35 6    40     4  -4.568  -4.250  -2.265  -0.520                 
-    IL    40    40 5    40     4  -1.686  -2.369  -1.117  -4.855                  0.000  0.000  0.000  0.000 
-    IR    41    41 6    41     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    MP    36    35 6    40     4  -7.331  -7.538  -0.041  -5.952                 -4.114  0.397 -4.664  0.815 -4.665 -4.015 -0.462 -4.315 -3.939  3.331 -3.732 -0.830 -0.398 -3.640 -1.958 -3.517
+    ML    37    35 6    40     4  -3.758  -3.940  -0.507  -2.670                  0.660 -0.612 -0.293 -0.076
+    MR    38    35 6    40     4  -4.809  -3.838  -1.706  -0.766                  0.660 -0.612 -0.293 -0.076
+     D    39    35 6    40     4  -4.568  -4.250  -2.265  -0.520
+    IL    40    40 5    40     4  -1.686  -2.369  -1.117  -4.855                  0.000  0.000  0.000  0.000
+    IR    41    41 6    41     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL   12 ]
-    ML    42    41 6    44     5  -7.411  -0.031  -7.227  -7.439  -8.330          1.826 -2.947 -2.856 -2.413 
-     D    43    41 6    44     5  -4.959  -0.803  -4.221  -2.596  -2.508         
-    IL    44    44 3    44     5  -2.408  -0.496  -4.087  -5.920  -5.193          0.000  0.000  0.000  0.000 
+    ML    42    41 6    44     5  -7.411  -0.031  -7.227  -7.439  -8.330          1.826 -2.947 -2.856 -2.413
+     D    43    41 6    44     5  -4.959  -0.803  -4.221  -2.596  -2.508
+    IL    44    44 3    44     5  -2.408  -0.496  -4.087  -5.920  -5.193          0.000  0.000  0.000  0.000
 				[ MATP   13 ]
-    MP    45    44 3    49     4  -7.331  -7.538  -0.041  -5.952                 -1.592 -1.722 -1.807  0.471 -1.387 -2.146  1.822  0.774 -1.836  0.505 -2.076 -0.521  1.055 -1.515 -0.260  0.958 
-    ML    46    44 3    49     4  -3.758  -3.940  -0.507  -2.670                  0.660 -0.612 -0.293 -0.076 
-    MR    47    44 3    49     4  -4.809  -3.838  -1.706  -0.766                  0.660 -0.612 -0.293 -0.076 
-     D    48    44 3    49     4  -4.568  -4.250  -2.265  -0.520                 
-    IL    49    49 5    49     4  -1.686  -2.369  -1.117  -4.855                  0.000  0.000  0.000  0.000 
-    IR    50    50 6    50     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    MP    45    44 3    49     4  -7.331  -7.538  -0.041  -5.952                 -1.592 -1.722 -1.807  0.471 -1.387 -2.146  1.822  0.774 -1.836  0.505 -2.076 -0.521  1.055 -1.515 -0.260  0.958
+    ML    46    44 3    49     4  -3.758  -3.940  -0.507  -2.670                  0.660 -0.612 -0.293 -0.076
+    MR    47    44 3    49     4  -4.809  -3.838  -1.706  -0.766                  0.660 -0.612 -0.293 -0.076
+     D    48    44 3    49     4  -4.568  -4.250  -2.265  -0.520
+    IL    49    49 5    49     4  -1.686  -2.369  -1.117  -4.855                  0.000  0.000  0.000  0.000
+    IR    50    50 6    50     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL   14 ]
-    ML    51    50 6    53     3  -8.323  -0.016  -6.977                          0.481 -1.091 -0.011  0.192 
-     D    52    50 6    53     3  -6.174  -1.687  -0.566                         
-    IL    53    53 3    53     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML    51    50 6    53     3  -8.323  -0.016  -6.977                          0.481 -1.091 -0.011  0.192
+     D    52    50 6    53     3  -6.174  -1.687  -0.566
+    IL    53    53 3    53     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL   15 ]
-    ML    54    53 3    56     3  -8.323  -0.016  -6.977                          1.148 -1.570 -0.075 -1.007 
-     D    55    53 3    56     3  -6.174  -1.687  -0.566                         
-    IL    56    56 3    56     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000 
+    ML    54    53 3    56     3  -8.323  -0.016  -6.977                          1.148 -1.570 -0.075 -1.007
+     D    55    53 3    56     3  -6.174  -1.687  -0.566
+    IL    56    56 3    56     3  -1.442  -0.798  -4.142                          0.000  0.000  0.000  0.000
 				[ MATL   16 ]
-    ML    57    56 3    59     2       *   0.000                                 -0.726  0.967 -1.567  0.142 
-     D    58    56 3    59     2       *   0.000                                 
-    IL    59    59 3    59     2  -1.823  -0.479                                  0.000  0.000  0.000  0.000 
+    ML    57    56 3    59     2       *   0.000                                 -0.726  0.967 -1.567  0.142
+     D    58    56 3    59     2       *   0.000
+    IL    59    59 3    59     2  -1.823  -0.479                                  0.000  0.000  0.000  0.000
 				[ END    17 ]
-     E    60    59 3    -1     0                                                 
+     E    60    59 3    -1     0
 //
 """
 
@@ -595,8 +602,8 @@ CMALIGN_STDOUT = """# cmalign :: align sequences to an RNA CM
 # -------------------------  ---------  ------  ---  -----  ------
 # aln1-1                       opt acc  global   no    hmm   1e-07
 #
-#                               bit scores                           
-#                           ------------------                       
+#                               bit scores
+#                           ------------------
 # seq idx  seq name    len     total    struct  avg prob      elapsed
 # -------  --------  -----  --------  --------  --------  -----------
         1  1            23     -9.98      5.71     0.260  00:00:00.01

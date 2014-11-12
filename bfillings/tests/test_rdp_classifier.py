@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 """Tests for the rdp_classifier_2.0.1 application controller"""
 
 from cStringIO import StringIO
@@ -55,7 +63,7 @@ class RdpClassifierTests(TestCase):
             'cd "', getcwd(), '/"; java -Xmx1000m -jar "',
             self.user_rdp_jar_path, '" -q'])
         self.assertEqual(app.BaseCommand, exp)
-        
+
     def test_change_working_dir(self):
         """RdpClassifier should run program in expected working directory."""
         test_dir = '/tmp/RdpTest'
@@ -73,7 +81,7 @@ class RdpClassifierTests(TestCase):
         test_dir = '/tmp/RdpTest'
         app = RdpClassifier(WorkingDir=test_dir)
         _, output_fp = tempfile.mkstemp(dir=test_dir)
-        app.Parameters['-o'].on(output_fp)        
+        app.Parameters['-o'].on(output_fp)
 
         results = app(StringIO(rdp_sample_fasta))
 
@@ -138,10 +146,10 @@ class RdpWrapperTests(TestCase):
     """
     def setUp(self):
         self.num_trials = 10
-        
+
         self.test_input1 = rdp_test_fasta.split('\n')
         self.expected_assignments1 = rdp_expected_out
-        
+
         # Files for training
         self.reference_file = StringIO(rdp_training_sequences)
         self.reference_file.seek(0)
@@ -177,10 +185,10 @@ class RdpWrapperTests(TestCase):
             'TTCCGGTTGATCCTGCCGGACCCGACTGCTATCCGGA',
             ])
         self.assertEqual(assignments, {'MySeq 1': ('Unassignable', 1.0)})
-        
+
     def test_assign_taxonomy(self):
-        """assign_taxonomy wrapper functions as expected 
-        
+        """assign_taxonomy wrapper functions as expected
+
         This test may fail periodicially, but failure should be rare.
         """
         unverified_seq_ids = set(self.expected_assignments1.keys())
@@ -201,15 +209,15 @@ class RdpWrapperTests(TestCase):
             messages.append("  Expected: %s" % self.expected_assignments1[seq_id])
             messages.append("  Observed: %s" % obs_assignments[seq_id][0])
             messages.append("  Confidence: %s" % obs_assignments[seq_id][1])
-        
+
         # make sure all taxonomic results were correct at least once
         self.assertFalse(unverified_seq_ids, msg='\n'.join(messages))
-            
+
     def test_assign_taxonomy_alt_confidence(self):
         """assign_taxonomy wrapper functions as expected with alt confidence
         """
         obs_assignments = assign_taxonomy(
-            self.test_input1, min_confidence=0.95)            
+            self.test_input1, min_confidence=0.95)
 
         for seq_id, assignment in obs_assignments.items():
             obs_lineage, obs_confidence = assignment
@@ -221,38 +229,38 @@ class RdpWrapperTests(TestCase):
                 msg=message,
                 )
             self.assertTrue(obs_confidence >= 0.95, msg=message)
-            
+
     def test_assign_taxonomy_file_output(self):
         """ assign_taxonomy wrapper writes correct file output when requested
-        
+
             This function tests for sucessful completion of assign_taxonomy
              when writing to file, that the lines in the file roughly look
-             correct by verifying how many are written (by zipping with 
+             correct by verifying how many are written (by zipping with
              expected), and that each line starts with the correct seq id.
              Actual testing of taxonomy data is performed elsewhere.
-        
+
         """
         _, output_fp = tempfile.mkstemp(prefix='RDPAssignTaxonomyTests',
                                         suffix='.txt')
-        # convert the expected dict to a list of lines to match 
+        # convert the expected dict to a list of lines to match
         # file output
         expected_file_headers = self.expected_assignments1.keys()
         expected_file_headers.sort()
-        
+
         actual_return_value = assign_taxonomy(\
          self.test_input1,min_confidence=0.95,output_fp=output_fp)
-        
+
         actual_file_output = list(open(output_fp))
         actual_file_output.sort()
 
         # remove the output_fp before running the tests, so if they
         # fail the output file is still cleaned-up
         remove(output_fp)
-        
+
         # None return value on write to file
         self.assertEqual(actual_return_value,None)
-        
-        # check that each line starts with the correct seq_id -- not 
+
+        # check that each line starts with the correct seq_id -- not
         # checking the taxonomies or confidences here as these are variable and
         # tested elsewhere
         for a,e in zip(actual_file_output,expected_file_headers):
@@ -357,7 +365,7 @@ aacgaacgctggcggcaggcttaacacatgcaagtcgaacgctccgcaaggagagtggcagacgggtgagtaacgcgtgg
 """
 
 rdp_sample_classification = """>X67228 reverse=false
-Root; 1.0; Bacteria; 1.0; Proteobacteria; 1.0; Alphaproteobacteria; 1.0; Rhizobiales; 1.0; Rhizobiaceae; 1.0; Rhizobium; 0.95; 
+Root; 1.0; Bacteria; 1.0; Proteobacteria; 1.0; Alphaproteobacteria; 1.0; Rhizobiales; 1.0; Rhizobiaceae; 1.0; Rhizobium; 0.95;
 """
 
 rdp_test_fasta = """>AY800210 description field
@@ -388,4 +396,3 @@ rdp_expected_out = {
 
 if __name__ == '__main__':
     main()
-

@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013--, biocore development team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
 """
 Application controller for SortMeRNA version 2.0
 ================================================
@@ -302,6 +294,7 @@ def sortmerna_ref_cluster(seq_path=None,
                           coverage=0.97,
                           threads=1,
                           best=1,
+                          aligned=None,
                           HALT_EXEC=False
                           ):
     """Launch sortmerna OTU picker
@@ -362,7 +355,11 @@ def sortmerna_ref_cluster(seq_path=None,
     # Set output results path (for Blast alignments, clusters and failures)
     output_dir = dirname(result_path)
     if output_dir is not None:
-        output_file = join(output_dir, "sortmerna_otus")
+        if aligned == None:
+            aligned_str = "sortmerna_otus"
+        else:
+            aligned_str = aligned
+        output_file = join(output_dir, aligned_str)
         smr.Parameters['--aligned'].on(output_file)
 
     # Set E-value threshold

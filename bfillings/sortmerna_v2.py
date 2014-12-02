@@ -104,7 +104,11 @@ def build_database_sortmerna(fasta_path,
         # so the app is not confused by relative paths
         fasta_path = fasta_filename
 
-    index_basename = splitext(fasta_filename)[0]
+    index_basename = mkdtemp(dir=output_dir,
+                             prefix=splitext(fasta_filename)[0],
+                             suffix='')
+
+    #index_basename = splitext(fasta_filename)[0]
 
     db_name = join(output_dir, index_basename)
 

@@ -295,7 +295,7 @@ def sortmerna_ref_cluster(seq_path=None,
                           coverage=0.97,
                           threads=1,
                           best=1,
-                          aligned=None,
+                          aligned='sortmerna_results',
                           HALT_EXEC=False
                           ):
     """Launch sortmerna OTU picker
@@ -322,7 +322,9 @@ def sortmerna_ref_cluster(seq_path=None,
             output BLAST tabular alignments [default: False].
         best : int, optional
             number of best alignments to output per read
-            [default: 1].
+            [default: 1]
+        aligned : str, optional
+            base name for --aligned output files
 
         Returns
         -------
@@ -356,11 +358,7 @@ def sortmerna_ref_cluster(seq_path=None,
     # Set output results path (for Blast alignments, clusters and failures)
     output_dir = dirname(result_path)
     if output_dir is not None:
-        if aligned == None:
-            aligned_str = "sortmerna_results"
-        else:
-            aligned_str = aligned
-        output_file = join(output_dir, aligned_str)
+        output_file = join(output_dir, aligned)
         smr.Parameters['--aligned'].on(output_file)
 
     # Set E-value threshold

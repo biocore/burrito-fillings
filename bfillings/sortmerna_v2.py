@@ -15,6 +15,7 @@ Application controller for SortMeRNA version 2.0
 
 
 from os.path import split, splitext, dirname, join
+from os import getpid
 from glob import glob
 import re
 
@@ -104,11 +105,7 @@ def build_database_sortmerna(fasta_path,
         # so the app is not confused by relative paths
         fasta_path = fasta_filename
 
-    index_basename = mkdtemp(dir=output_dir,
-                             prefix=splitext(fasta_filename)[0],
-                             suffix='')
-
-    #index_basename = splitext(fasta_filename)[0]
+    index_basename = "%s_%s" % (splitext(fasta_filename)[0], getpid())
 
     db_name = join(output_dir, index_basename)
 
@@ -360,7 +357,7 @@ def sortmerna_ref_cluster(seq_path=None,
     output_dir = dirname(result_path)
     if output_dir is not None:
         if aligned == None:
-            aligned_str = "sortmerna_otus"
+            aligned_str = "sortmerna_results"
         else:
             aligned_str = aligned
         output_file = join(output_dir, aligned_str)

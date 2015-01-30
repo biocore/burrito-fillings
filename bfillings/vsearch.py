@@ -1,24 +1,20 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2015--, biocore development team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """ Application controller for vsearch v1.0.7 """
 
-from os.path import splitext, abspath, join, dirname
-from tempfile import mkstemp
-from shutil import rmtree
+from os.path import abspath, join, dirname
 
-from skbio.parse.sequences import parse_fasta
 from burrito.parameters import ValuedParameter, FlagParameter
 from burrito.util import (CommandLineApplication, ResultPath,
-                          ApplicationError, ApplicationNotFoundError)
-from skbio.util import remove_files
+                          ApplicationError)
 
 
 class Vsearch(CommandLineApplication):
@@ -35,7 +31,7 @@ class Vsearch(CommandLineApplication):
         # Filename for UCLUST-like output
         '--uc': ValuedParameter('--', Name='uc', Delimiter=' ',
                                 IsPath=True),
-        
+
         # Filename for BLAST-like tab-separated output
         '--blast6out': ValuedParameter('--', Name='blast6out', Delimiter=' ',
                                        IsPath=True),
@@ -43,7 +39,7 @@ class Vsearch(CommandLineApplication):
         # ID percent for OTU, by default is 97%
         '--id': ValuedParameter('--', Name='id', Delimiter=' ',
                                 IsPath=False, Value=None),
-        
+
         # ID definition, 0-4=CD-HIT,all,int,MBL,BLAST (default vsearch: 2)
         '--iddef': ValuedParameter('--', Name='iddef',
                                    Delimiter=' ', IsPath=False,
@@ -62,7 +58,7 @@ class Vsearch(CommandLineApplication):
 
         # Take into account the abundance annotations present
         # in the input fasta file
-        '--sizein' : FlagParameter('--', Name='sizein'),
+        '--sizein': FlagParameter('--', Name='sizein'),
 
         # Add abundance annotations to the output fasta files
         '--sizeout': FlagParameter('--', Name='sizeout'),
@@ -76,43 +72,47 @@ class Vsearch(CommandLineApplication):
                                     IsPath=False),
 
         # Discard sequences with an abundance value greater than integer
-        '--maxuniquesize': ValuedParameter('--', Name='maxuniquesize', Delimiter=' ',
-                                           IsPath=False),
+        '--maxuniquesize': ValuedParameter('--', Name='maxuniquesize',
+                                           Delimiter=' ', IsPath=False),
 
         # Discard sequences with an abundance value smaller than integer
-        '--minuniquesize': ValuedParameter('--', Name='minuniquesize', Delimiter=' ',
+        '--minuniquesize': ValuedParameter('--', Name='minuniquesize',
+                                           Delimiter=' ',
                                            IsPath=False),
 
         # Abundance sort sequences in given FASTA file
         '--sortbysize': ValuedParameter('--', Name='sortbysize', Delimiter=' ',
-                                      IsPath=True),
-        
+                                        IsPath=True),
+
         # When using --sortbysize, discard sequences
         # with an abundance value greater than maxsize
-        '--maxsize': ValuedParameter('--', Name='maxsize', Delimiter=' ', IsPath=False),
+        '--maxsize': ValuedParameter('--', Name='maxsize', Delimiter=' ',
+                                     IsPath=False),
 
         # When using --sortbysize, discard sequences
         # with an abundance value smaller than minsize
-        '--minsize': ValuedParameter('--', Name='minsize', Delimiter=' ', IsPath=False),
+        '--minsize': ValuedParameter('--', Name='minsize', Delimiter=' ',
+                                     IsPath=False),
 
         # Output cluster consensus sequences to FASTA file
         '--consout': ValuedParameter('--', Name='consout', Delimiter=' ',
                                      IsPath=True),
 
-        # Chimera detection: min abundance ratio of parent vs chimera (default vsearch: 2.0)
+        # Chimera detection: min abundance ratio of parent vs chimera
+        # (default vsearch: 2.0)
         '--abskew': ValuedParameter('--', Name='abskew', Delimiter=' ',
                                     IsPath=False, Value=None),
         # Detect chimeras de novo
-        '--uchime_denovo': ValuedParameter('--', Name='uchime_denovo', Delimiter=' ',
-                                    IsPath=True),
-        
+        '--uchime_denovo': ValuedParameter('--', Name='uchime_denovo',
+                                           Delimiter=' ', IsPath=True),
+
         # Detect chimeras using a reference database
         '--uchime_ref': ValuedParameter('--', Name='uchime_ref',
                                         Delimiter=' ', IsPath=True),
 
         # Output chimera alignments to 3-way alignment file (filepath)
         '--uchimealns': ValuedParameter('--', Name='uchimealns', Delimiter=' ',
-                                      IsPath=True),
+                                        IsPath=True),
 
         # Output chimeric sequences to file (filepath)
         '--chimeras': ValuedParameter('--', Name='chimeras',
@@ -128,7 +128,7 @@ class Vsearch(CommandLineApplication):
         # Output to chimera info to tab-separated file
         '--uchimeout': ValuedParameter('--', Name='uchimeout', Delimiter=' ',
                                        IsPath=True),
-        
+
         # Number of computation threads to use (1 to 256)
         # note: by default, keep the value set to 1 for all commands
         # since otherwise (if no other value is given) VSEARCH will use
@@ -205,17 +205,15 @@ class Vsearch(CommandLineApplication):
 
         return result
 
-
     def getHelp(self):
         """Method that points to documentation"""
-        help_str =\
-        """
+        help_str = """
         VSEARCH is hosted at:
         https://github.com/torognes/vsearch
 
         The following papers should be cited if this resource is used:
 
-        Paper pending. Please cite the github page in the meanwhile. 
+        Paper pending. Please cite the github page in the meanwhile.
         """
         return help_str
 
@@ -237,7 +235,7 @@ def vsearch_dereplicate_exact_seqs(
 
         Parameters
         ----------
-        
+
         fasta_filepath : string
            input filepath of fasta file to be dereplicated
         output_filepath : string
@@ -356,7 +354,7 @@ def vsearch_sort_by_abundance(
     # set working dir to same directory as the output
     # file (if not provided)
     if not working_dir:
-        working_dir = dirname(output_filepath) 
+        working_dir = dirname(output_filepath)
 
     app = Vsearch(WorkingDir=working_dir, HALT_EXEC=HALT_EXEC)
 
@@ -411,7 +409,7 @@ def vsearch_chimera_filter_de_novo(
            18 fields (see Vsearch user manual)
         HALT_EXEC : boolean, optional
            used for debugging app controller
-           
+
         Return
         ------
 
@@ -447,7 +445,8 @@ def vsearch_chimera_filter_de_novo(
         output_chimera_filepath = join(working_dir, 'uchime_chimeras.fasta')
         app.Parameters['--chimeras'].on(output_chimera_filepath)
     if output_nonchimeras:
-        output_non_chimera_filepath = join(working_dir, 'uchime_non_chimeras.fasta')
+        output_non_chimera_filepath = join(working_dir,
+                                           'uchime_non_chimeras.fasta')
         app.Parameters['--nonchimeras'].on(output_non_chimera_filepath)
     if output_alns:
         output_alns_filepath = join(working_dir, 'uchime_alignments.txt')
@@ -455,7 +454,7 @@ def vsearch_chimera_filter_de_novo(
     if output_tabular:
         output_tabular_filepath = join(working_dir, 'uchime_tabular.txt')
         app.Parameters['--uchimeout'].on(output_tabular_filepath)
-    
+
     app.Parameters['--uchime_denovo'].on(fasta_filepath)
 
     log_filepath = join(working_dir, log_name)
@@ -463,7 +462,7 @@ def vsearch_chimera_filter_de_novo(
     app_result = app()
 
     return output_chimera_filepath, output_non_chimera_filepath,\
-           output_alns_filepath, output_tabular_filepath
+        output_alns_filepath, output_tabular_filepath
 
 
 def vsearch_chimera_filter_ref(
@@ -541,7 +540,8 @@ def vsearch_chimera_filter_ref(
         output_chimera_filepath = join(working_dir, 'uchime_chimeras.fasta')
         app.Parameters['--chimeras'].on(output_chimera_filepath)
     if output_nonchimeras:
-        output_non_chimera_filepath = join(working_dir, 'uchime_non_chimeras.fasta')
+        output_non_chimera_filepath = join(working_dir,
+                                           'uchime_non_chimeras.fasta')
         app.Parameters['--nonchimeras'].on(output_non_chimera_filepath)
     if output_alns:
         output_alns_filepath = join(working_dir, 'uchime_alignments.txt')
@@ -552,11 +552,10 @@ def vsearch_chimera_filter_ref(
 
     app.Parameters['--db'].on(db_filepath)
     app.Parameters['--uchime_ref'].on(fasta_filepath)
-    
+
     log_filepath = join(working_dir, log_name)
 
     app_result = app()
 
     return output_chimera_filepath, output_non_chimera_filepath,\
-           output_alns_filepath, output_tabular_filepath
-
+        output_alns_filepath, output_tabular_filepath

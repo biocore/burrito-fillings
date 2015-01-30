@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2015--, biocore development team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 """
 Unit tests for the VSEARCH version 1.0.7 Application controller
 ===============================================================
@@ -14,9 +14,8 @@ Unit tests for the VSEARCH version 1.0.7 Application controller
 
 
 from unittest import TestCase, main
-import re
 from os import close
-from os.path import abspath, exists, join, dirname
+from os.path import exists, join, dirname
 from tempfile import mkstemp, mkdtemp
 from shutil import rmtree
 
@@ -36,11 +35,13 @@ class VsearchTests(TestCase):
     def setUp(self):
         self.output_dir = mkdtemp()
         self.seqs_to_derep = seqs_to_derep
-        self.seqs_to_derep_max_min_abundance = seqs_to_derep_max_min_abundance
-        self.seqs_to_derep_merged_derep_files = seqs_to_derep_merged_derep_files
+        self.seqs_to_derep_max_min_abundance =\
+            seqs_to_derep_max_min_abundance
+        self.seqs_to_derep_merged_derep_files =\
+            seqs_to_derep_merged_derep_files
         self.seqs_to_sort = seqs_to_sort
         self.amplicon_reads = amplicon_reads
-        self.single_chimera = single_chimera 
+        self.single_chimera = single_chimera
         self.single_chimera_ref = single_chimera_ref
         self.uchime_ref_db = uchime_ref_db
         self.uchime_single_ref_db = uchime_single_ref_db
@@ -55,8 +56,9 @@ class VsearchTests(TestCase):
             tmp.write(self.seqs_to_derep)
 
         # temporary file for seqs_to_derep_max_min_abundance
-        f, self.seqs_to_derep_max_min_abundance_fp = mkstemp(prefix='tmp_seqs_to_derep_abun_',
-                                                             suffix='.fasta')
+        f, self.seqs_to_derep_max_min_abundance_fp =\
+            mkstemp(prefix='tmp_seqs_to_derep_abun_',
+                    suffix='.fasta')
         close(f)
 
         # write seqs_to_derep_max_min_abundance to file
@@ -64,8 +66,9 @@ class VsearchTests(TestCase):
             tmp.write(self.seqs_to_derep_max_min_abundance)
 
         # temporary file for seqs_to_derep_merged_derep_files
-        f, self.seqs_to_derep_merged_derep_files_fp = mkstemp(prefix='tmp_seqs_to_derep_concat_',
-                                                              suffix='.fasta')
+        f, self.seqs_to_derep_merged_derep_files_fp =\
+            mkstemp(prefix='tmp_seqs_to_derep_concat_',
+                    suffix='.fasta')
         close(f)
 
         # write seqs_to_derep_merged_derep_files to file
@@ -104,7 +107,7 @@ class VsearchTests(TestCase):
         f, self.single_chimera_ref_fp = mkstemp(prefix='tmp_single_chimera_',
                                                 suffix='.fasta')
         close(f)
-        
+
         # write single_chimera_ref to file
         # (reference chimera checking)
         with open(self.single_chimera_ref_fp, 'w') as tmp:
@@ -118,10 +121,11 @@ class VsearchTests(TestCase):
         # write uchime_ref_db to file
         with open(self.uchime_ref_db_fp, 'w') as tmp:
             tmp.write(self.uchime_ref_db)
-    
+
         # temporary file for uchime_single_ref_db
-        f, self.uchime_single_ref_db_fp = mkstemp(prefix='tmp_uchime_single_ref_db_',
-                                                  suffix='.fasta')
+        f, self.uchime_single_ref_db_fp =\
+            mkstemp(prefix='tmp_uchime_single_ref_db_',
+                    suffix='.fasta')
         close(f)
 
         # write uchime_single_ref_db to file
@@ -149,15 +153,15 @@ class VsearchTests(TestCase):
         """
         chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
             vsearch_chimera_filter_ref(
-            self.amplicon_reads_fp,
-            self.output_dir,
-            self.uchime_ref_db_fp,
-            output_chimeras=True,
-            output_nonchimeras=False,
-            output_alns=False,
-            output_tabular=False,
-            log_name="vsearch_uchime_ref_chimera_filtering.log",
-            HALT_EXEC=False)
+                self.amplicon_reads_fp,
+                self.output_dir,
+                self.uchime_ref_db_fp,
+                output_chimeras=True,
+                output_nonchimeras=False,
+                output_alns=False,
+                output_tabular=False,
+                log_name="vsearch_uchime_ref_chimera_filtering.log",
+                HALT_EXEC=False)
 
         self.assertTrue(nonchimeras_fp is None)
         self.assertTrue(alns_fp is None)
@@ -185,7 +189,7 @@ class VsearchTests(TestCase):
 
     def test_vsearch_chimera_filter_ref_output(self):
         """ Raise error when no output is selected for
-            reference chimera filtering 
+            reference chimera filtering
         """
 
         self.assertRaises(ValueError,
@@ -201,19 +205,19 @@ class VsearchTests(TestCase):
                           HALT_EXEC=False)
 
     def test_vsearch_chimera_filter_ref_output_nonchimeras(self):
-        """ Test ref chimera filter, output nonchimeric sequences                                                               
+        """ Test ref chimera filter, output nonchimeric sequences
         """
         chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
             vsearch_chimera_filter_ref(
-            self.amplicon_reads_fp,
-            self.output_dir,
-            self.uchime_ref_db_fp,
-            output_chimeras=False,
-            output_nonchimeras=True,
-            output_alns=False,
-            output_tabular=False,
-            log_name="vsearch_uchime_ref_chimera_filtering.log",
-            HALT_EXEC=False)
+                self.amplicon_reads_fp,
+                self.output_dir,
+                self.uchime_ref_db_fp,
+                output_chimeras=False,
+                output_nonchimeras=True,
+                output_alns=False,
+                output_tabular=False,
+                log_name="vsearch_uchime_ref_chimera_filtering.log",
+                HALT_EXEC=False)
 
         self.assertTrue(chimeras_fp is None)
         self.assertTrue(alns_fp is None)
@@ -274,15 +278,15 @@ class VsearchTests(TestCase):
         """
         chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
             vsearch_chimera_filter_ref(
-            self.single_chimera_ref_fp,
-            self.output_dir,
-            self.uchime_single_ref_db_fp,
-            output_chimeras=False,
-            output_nonchimeras=False,
-            output_alns=True,
-            output_tabular=True,
-            log_name="vsearch_uchime_ref_chimera_filtering.log",
-            HALT_EXEC=False)
+                self.single_chimera_ref_fp,
+                self.output_dir,
+                self.uchime_single_ref_db_fp,
+                output_chimeras=False,
+                output_nonchimeras=False,
+                output_alns=True,
+                output_tabular=True,
+                log_name="vsearch_uchime_ref_chimera_filtering.log",
+                HALT_EXEC=False)
 
         self.assertTrue(chimeras_fp is None)
         self.assertTrue(nonchimeras_fp is None)
@@ -304,14 +308,14 @@ class VsearchTests(TestCase):
         """
         chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
             vsearch_chimera_filter_de_novo(
-            self.amplicon_reads_fp,
-            self.output_dir,
-            output_chimeras=True,
-            output_nonchimeras=False,
-            output_alns=False,
-            output_tabular=False,
-            log_name="vsearch_uchime_de_novo_chimera_filtering.log",
-            HALT_EXEC=False)
+                self.amplicon_reads_fp,
+                self.output_dir,
+                output_chimeras=True,
+                output_nonchimeras=False,
+                output_alns=False,
+                output_tabular=False,
+                log_name="vsearch_uchime_de_novo_chimera_filtering.log",
+                HALT_EXEC=False)
 
         self.assertTrue(nonchimeras_fp is None)
         self.assertTrue(alns_fp is None)
@@ -329,7 +333,7 @@ class VsearchTests(TestCase):
 
         with open(chimeras_fp, "U") as chimeras_f:
             for label, seq in parse_fasta(chimeras_f):
-                # check label represents chimeric sequence                                                           
+                # check label represents chimeric sequence
                 self.assertTrue(label in expected_chimeras)
                 # check sequence exists
                 self.assertTrue(len(seq) > 0)
@@ -350,7 +354,7 @@ class VsearchTests(TestCase):
                           output_nonchimeras=False,
                           output_alns=False,
                           output_tabular=False,
-                          log_name="vsearch_uchime_de_novo_chimera_filtering.log",
+                          log_name="vsearch_uchime_de_novo_chimera_filter.log",
                           HALT_EXEC=False)
 
     def test_vsearch_chimera_filter_de_novo_output_nonchimeras(self):
@@ -358,14 +362,14 @@ class VsearchTests(TestCase):
         """
         chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
             vsearch_chimera_filter_de_novo(
-            self.amplicon_reads_fp,
-            self.output_dir,
-            output_chimeras=False,
-            output_nonchimeras=True,
-            output_alns=False,
-            output_tabular=False,
-            log_name="vsearch_uchime_de_novo_chimera_filtering.log",
-            HALT_EXEC=False)
+                self.amplicon_reads_fp,
+                self.output_dir,
+                output_chimeras=False,
+                output_nonchimeras=True,
+                output_alns=False,
+                output_tabular=False,
+                log_name="vsearch_uchime_de_novo_chimera_filter.log",
+                HALT_EXEC=False)
 
         self.assertTrue(chimeras_fp is None)
         self.assertTrue(alns_fp is None)
@@ -422,18 +426,18 @@ class VsearchTests(TestCase):
 
     def test_vsearch_chimera_filter_de_novo_output_alns_tab(self):
         """ Test de novo chimera filter, output only
-            chimeric alignments and tabular format                                                  
+            chimeric alignments and tabular format
         """
         chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
             vsearch_chimera_filter_de_novo(
-            self.single_chimera_fp,
-            self.output_dir,
-            output_chimeras=False,
-            output_nonchimeras=False,
-            output_alns=True,
-            output_tabular=True,
-            log_name="vsearch_uchime_de_novo_chimera_filtering.log",
-            HALT_EXEC=False)
+                self.single_chimera_fp,
+                self.output_dir,
+                output_chimeras=False,
+                output_nonchimeras=False,
+                output_alns=True,
+                output_tabular=True,
+                log_name="vsearch_uchime_de_novo_chimera_filter.log",
+                HALT_EXEC=False)
 
         self.assertTrue(chimeras_fp is None)
         self.assertTrue(nonchimeras_fp is None)
@@ -449,7 +453,7 @@ class VsearchTests(TestCase):
         self.assertEquals(single_chimera_tab, actual_tab)
 
     def test_vsearch_sort_by_abundance(self):
-        """ Test sorting sequences by abundance                                                        
+        """ Test sorting sequences by abundance
         """
         tmp_fp = join(self.output_dir, "tmp_sorted_reads.fasta")
 
@@ -473,7 +477,7 @@ class VsearchTests(TestCase):
 
         num_seqs = 0
 
-        with open(tmp_fp, "U") as tmp_f:
+        with open(output_sorted, "U") as tmp_f:
             for label, seq in parse_fasta(tmp_f):
                 # check label is in correct order
                 self.assertEquals(label, expected_order[num_seqs])
@@ -482,7 +486,7 @@ class VsearchTests(TestCase):
                 num_seqs += 1
 
         self.assertTrue(num_seqs, 8)
-        
+
     def test_vsearch_sort_by_abundance_minsize_1_maxsize_10(self):
         """ Test sorting sequences by abundance,
             discard sequences with an abundance value smaller
@@ -507,11 +511,11 @@ class VsearchTests(TestCase):
 
         num_seqs = 0
 
-        with open(tmp_fp, "U") as tmp_f:
+        with open(output_sorted, "U") as tmp_f:
             for label, seq in parse_fasta(tmp_f):
-                # check label is in correct order                                                                                    
+                # check label is in correct order
                 self.assertEquals(label, expected_order[num_seqs])
-                # check sequence exists                                                                                              
+                # check sequence exists
                 self.assertTrue(len(seq) > 0)
                 num_seqs += 1
 
@@ -575,10 +579,10 @@ class VsearchTests(TestCase):
         id_to_count = {}
 
         num_seqs = 0
-        expected_derep = {'HWI-ST157_0368:1:1207:16180:126921#0/1':3,
-                          'HWI-ST157_0368:1:2103:7895:197066#0/1':3,
-                          'HWI-ST157_0368:1:1106:11378:83198#0/1':1,
-                          'HWI-ST157_0368:1:2102:15078:69955#0/1':1}
+        expected_derep = {'HWI-ST157_0368:1:1207:16180:126921#0/1': 3,
+                          'HWI-ST157_0368:1:2103:7895:197066#0/1': 3,
+                          'HWI-ST157_0368:1:1106:11378:83198#0/1': 1,
+                          'HWI-ST157_0368:1:2102:15078:69955#0/1': 1}
 
         with open(uc_fp, 'U') as uc_f:
             for line in uc_f:
@@ -591,13 +595,13 @@ class VsearchTests(TestCase):
                 elif line.startswith('H'):
                     seed = line.strip().split('\t')[9]
                     id_to_count[seed] += 1
-                    
+
         # check there are 4 sequences after dereplication
         self.assertEquals(num_seqs, 4)
 
         for label in id_to_count:
             self.assertEquals(expected_derep[label], id_to_count[label])
-            
+
     def test_vsearch_dereplicate_exact_seqs_empty_working_dir(self):
         """ Test dereplicating sequences without passing
             a working directory
@@ -718,7 +722,7 @@ class VsearchTests(TestCase):
 
 
 # Test dereplicating sequences using default parameters
-seqs_to_derep=""">HWI-ST157_0368:1:2102:15078:69955#0/1
+seqs_to_derep = """>HWI-ST157_0368:1:2102:15078:69955#0/1
 TACGTAGGGCCCGAGCGTTGTCCGGATTTATTGGGCGTAAAGCGTGCGCAGGCGGTCTGTTAAGTCTGTAGTTAAAGGCTGTGGCTCAACTATGGTTAGTT
 >HWI-ST157_0368:1:2103:7895:197066#0/1
 TACGTAGGGGGCAAGCGTTGTCCGAATTTACTGGGTGTAAAGGGAGCGCAGACGGCACGGCAAGCCAGATGTGAAAGCCCGGGGCTCAACCCCGGGACTGC
@@ -746,7 +750,7 @@ TACGTAGGGGGCAAGCGTTGTCCGAATTTACTGGGTGTAAAGGGAGCGCAGACGGCACGGCAAGCCAGATGTGAAAGCCC
 TACGTAGGTCCCGAGCGTTGTCCGGATTTATTGGGCGTAAAGCGAGCGCAGGCGGATACTTAAGTCTGGTGTGAAAACCTAGGGCTCAACCCTGGGACTGC
 >HWI-ST157_0368:1:1106:11378:83198#0/1;size=1;
 TACGTAGGGAGCAAGCGTTGTCCGGATTTACTGGGTGTAAAGGGTGCGTAGGCGGCTTTGCAAGTCAGATGTGAAATCTATGGGCTCAACCCATAAACTGC
->HWI-ST157_0368:1:2102:15078:69955#1/1;size=1;                                                    
+>HWI-ST157_0368:1:2102:15078:69955#1/1;size=1;
 TACGTAGGGCCCGAGCGTTGTCCGGATTTATTGGGCGTAAAGCGTGCGCAGGCGGTCTGTTAAGTCTGTAGTTAAAGGCTGTGGCTCAACTATGGTTAGTT
 >HWI-ST157_0368:1:2103:7895:197066#1/1;size=3;
 TACGTAGGGGGCAAGCGTTGTCCGAATTTACTGGGTGTAAAGGGAGCGCAGACGGCACGGCAAGCCAGATGTGAAAGCCCGGGGCTCAACCCCGGGACTGC
@@ -815,7 +819,7 @@ TACGTAGGTCCCGAGCGTTATCCGGATTTACTGGGCGTAAAGGGAGCGTAGGCGGATGATTAAGTGGGATGTGAAATACC
 """
 
 # Test sort by abundance functionality in VSEARCH
-seqs_to_sort=""">HWI-ST157_0368:1:2105:3428:36721#0/1;size=5;
+seqs_to_sort = """>HWI-ST157_0368:1:2105:3428:36721#0/1;size=5;
 TACGTAGGGTGCAAGCGTTATCCGGAATTATTGGGCGTAAAGGGCTCGTAGGCGGTTCGTCGCGTCCGGTGTGAAAGTCCATCGCTTAACGGTGGATCTGC
 >HWI-ST157_0368:1:2106:18272:88408#0/1;size=2;
 TACGTAGGGGGCAAGCGTTATCCGGATTTACTGGGTGTAAAGGGAGCGTAGACGGCGGAGCAAGTCTGAAGTGAAAGCCCGGGGCTCAACCCCGGGACTGC
@@ -860,7 +864,7 @@ TGCATTTTCTCTTATCGAAAACCTTCAGCGTTCTGATCTGAATCCCGTCGAAGAGGCTAAGGGCTATCGCCAACTCATTG
 #       >918 reference=814974,4370324 amplicon=479..769,488..779 position=1..150
 #       >941 reference=579954,4304512 amplicon=488..779,451..742 position=1..150
 #       are chimeric
-amplicon_reads=""">3;size=102;
+amplicon_reads = """>3;size=102;
 GTGCCAGCAGCCGCGGTAATACATAGGTCACAAGCGTTATCCGGATTTATTGGGCGTAAAGCGTTCGTAGGCGGTTTGTT
 AAGTCTAGAGTTAAAGCCTGGGGTTCAACCCCAGCCCGCTTTGGATACTGACAAACTAGAGTTACATAGA
 >16;size=95;
@@ -1479,7 +1483,7 @@ single_chimera_tab = """0.0000\t22;size=93;\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\
 # Single chimeric sequence for reference chimera checking
 single_chimera_ref = """>251;size=2;
 GTGCCAGCAGCCGCGGTAATACGGAGGATGCGAGCGTTATCCGGATTTATTGGGTTTAAAGGGTGCGTAGGCGGAATGGT
-AAGTCAGTGGTGAAATCCTGCAGCTCAACTGTAGAGTTGCCATTGATACTGGTATACTTGAGTGTTGTAA 
+AAGTCAGTGGTGAAATCCTGCAGCTCAACTGTAGAGTTGCCATTGATACTGGTATACTTGAGTGTTGTAA
 """
 
 # Reference database for UCHIME ref

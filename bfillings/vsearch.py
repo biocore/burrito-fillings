@@ -1,4 +1,4 @@
-#!/opt/python-2.7.3/bin python
+#!/usr/bin/env python
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2015--, biocore development team.
@@ -42,20 +42,20 @@ class Vsearch(CommandLineApplication):
 
         # ID percent for OTU, by default is 97%
         '--id': ValuedParameter('--', Name='id', Delimiter=' ',
-                                IsPath=False, Value="0.97"),
+                                IsPath=False, Value=None),
         
-        # ID definition, 0-4=CD-HIT,all,int,MBL,BLAST (2)
+        # ID definition, 0-4=CD-HIT,all,int,MBL,BLAST (default vsearch: 2)
         '--iddef': ValuedParameter('--', Name='iddef',
                                    Delimiter=' ', IsPath=False,
-                                   Value="2"),
+                                   Value=None),
 
-        # Number of hits to accept and show per strand (1)
+        # Number of hits to accept and show per strand (default vsearch: 1)
         '--maxaccepts':
-        ValuedParameter('--', Name='maxaccepts', Delimiter=' ', Value="1"),
+        ValuedParameter('--', Name='maxaccepts', Delimiter=' ', Value=None),
 
-        # Number of non-matching hits to consider (32)
+        # Number of non-matching hits to consider (default vsearch: 32)
         '--maxrejects':
-        ValuedParameter('--', Name='maxrejects', Delimiter=' ', Value="32"),
+        ValuedParameter('--', Name='maxrejects', Delimiter=' ', Value=None),
 
         # Indicate that input sequences are presorted
         '--usersort': FlagParameter('--', Name='usersort'),
@@ -71,9 +71,9 @@ class Vsearch(CommandLineApplication):
         '--derep_fulllength': ValuedParameter('--', Name='derep_fulllength',
                                               Delimiter=' ', IsPath=True),
 
-        # Dereplicate plus or both strands (both)
+        # Dereplicate plus or both strands (default vsearch: plus)
         '--strand': ValuedParameter('--', Name='strand', Delimiter=' ',
-                                    IsPath=False, Value="both")
+                                    IsPath=False),
 
         # Discard sequences with an abundance value greater than integer
         '--maxuniquesize': ValuedParameter('--', Name='maxuniquesize', Delimiter=' ',
@@ -93,22 +93,22 @@ class Vsearch(CommandLineApplication):
 
         # When using --sortbysize, discard sequences
         # with an abundance value smaller than minsize
-        '--misize': ValuedParameter('--', Name='minsize', Delimiter=' ', IsPath=False),
+        '--minsize': ValuedParameter('--', Name='minsize', Delimiter=' ', IsPath=False),
 
         # Output cluster consensus sequences to FASTA file
         '--consout': ValuedParameter('--', Name='consout', Delimiter=' ',
                                      IsPath=True),
 
-        # Chimera detection: min abundance ratio of parent vs chimera (2.0)
+        # Chimera detection: min abundance ratio of parent vs chimera (default vsearch: 2.0)
         '--abskew': ValuedParameter('--', Name='abskew', Delimiter=' ',
-                                    IsPath=False, Value="2.0"),
+                                    IsPath=False, Value=None),
         # Detect chimeras de novo
         '--uchime_denovo': ValuedParameter('--', Name='uchime_denovo', Delimiter=' ',
                                     IsPath=True),
         
         # Detect chimeras using a reference database
         '--uchime_ref': ValuedParameter('--', Name='uchime_ref',
-                                        Delimiter=' ', IsPath=True)
+                                        Delimiter=' ', IsPath=True),
 
         # Output chimera alignments to 3-way alignment file (filepath)
         '--uchimealns': ValuedParameter('--', Name='uchimealns', Delimiter=' ',
@@ -116,7 +116,7 @@ class Vsearch(CommandLineApplication):
 
         # Output chimeric sequences to file (filepath)
         '--chimeras': ValuedParameter('--', Name='chimeras',
-                                      Delimiter=' ', IsPath=True)
+                                      Delimiter=' ', IsPath=True),
 
         # Output non-chimera filepath
         '--nonchimeras': ValuedParameter('--', Name='nonchimeras',
@@ -130,6 +130,9 @@ class Vsearch(CommandLineApplication):
                                        IsPath=True),
         
         # Number of computation threads to use (1 to 256)
+        # note: by default, keep the value set to 1 for all commands
+        # since otherwise (if no other value is given) VSEARCH will use
+        # all available cores
         '--threads': ValuedParameter('--', Name='threads', Delimiter=' ',
                                      IsPath=False, Value="1")
     }
@@ -265,6 +268,14 @@ def vsearch_dereplicate_exact_seqs(
            specifies log filename
         HALT_EXEC : boolean, optional
            used for debugging app controller
+
+        Return
+        ------
+
+        output_filepath : string
+           filepath to dereplicated fasta file
+        uc_filepath : string
+           filepath to dereplication results in uclust-like format
     """
 
     # write all vsearch output files to same directory
@@ -285,20 +296,20 @@ def vsearch_dereplicate_exact_seqs(
     if minuniquesize:
         app.Parameters['--minuniquesize'].on(minuniquesize)
     if sizein:
-        app.Parameters['--sizein'].on(sizein)
+        app.Parameters['--sizein'].on()
     if sizeout:
-        app.Parameters['--sizeout'].on(sizeout)
+        app.Parameters['--sizeout'].on()
     if (strand == "both" or strand == "plus"):
         app.Parameters['--strand'].on(strand)
     else:
-        raise ValueError("Option --strand accepts only 'both'
-                          or 'plus' values")
+        raise ValueError("Option --strand accepts only 'both'"
+                         "or 'plus' values")
     app.Parameters['--derep_fulllength'].on(fasta_filepath)
     app.Parameters['--output'].on(output_filepath)
 
     app_result = app()
 
-    return app_result, output_filepath, uc_filepath
+    return output_filepath, uc_filepath
 
 
 def vsearch_sort_by_abundance(
@@ -334,12 +345,18 @@ def vsearch_sort_by_abundance(
            log filename
         HALT_EXEC : boolean, optional
            used for debugging app controller
+
+        Return
+        ------
+
+        output_filepath : string
+           filepath to sorted fasta file
     """
 
     # set working dir to same directory as the output
-    # file (if not set)
+    # file (if not provided)
     if not working_dir:
-        working_dir = os.path.dirname(output_filepath) 
+        working_dir = dirname(output_filepath) 
 
     app = Vsearch(WorkingDir=working_dir, HALT_EXEC=HALT_EXEC)
 
@@ -356,7 +373,7 @@ def vsearch_sort_by_abundance(
 
     app_result = app()
 
-    return app_result, output_filepath
+    return output_filepath
 
 
 def vsearch_chimera_filter_de_novo(
@@ -378,7 +395,8 @@ def vsearch_chimera_filter_de_novo(
         ----------
 
         fasta_filepath : string
-           input fasta file (dereplicated fasta)
+           input fasta file (dereplicated fasta with pattern
+           [>;]size=integer[;] in the fasta header)
         working_dir : string
            directory path for all output files
         output_chimeras : boolean, optional
@@ -393,6 +411,20 @@ def vsearch_chimera_filter_de_novo(
            18 fields (see Vsearch user manual)
         HALT_EXEC : boolean, optional
            used for debugging app controller
+           
+        Return
+        ------
+
+        output_chimera_filepath : string
+           filepath to chimeric fasta sequences
+        output_non_chimera_filepath : string
+           filepath to nonchimeric fasta sequences
+        output_alns_filepath : string
+           filepath to chimeric sequences alignment
+           file
+        output_tabular_filepath : string
+           filepath to chimeric sequences tabular
+           output file
     """
 
     app = Vsearch(WorkingDir=working_dir, HALT_EXEC=HALT_EXEC)
@@ -401,9 +433,9 @@ def vsearch_chimera_filter_de_novo(
             output_nonchimeras or
             output_alns or
             output_tabular):
-        raise ValueError("At least one output format (output_chimeras,
-                          output_nonchimeras, output_alns, output_tabular)
-                          must be selected")
+        raise ValueError("At least one output format (output_chimeras,"
+                         "output_nonchimeras, output_alns, output_tabular)"
+                         "must be selected")
 
     output_chimera_filepath = None
     output_non_chimera_filepath = None
@@ -430,9 +462,8 @@ def vsearch_chimera_filter_de_novo(
 
     app_result = app()
 
-    return app_result, output_chimera_filepath,
-           output_non_chimera_filepath, output_alns_filepath,
-           output_tabular_filepath
+    return output_chimera_filepath, output_non_chimera_filepath,\
+           output_alns_filepath, output_tabular_filepath
 
 
 def vsearch_chimera_filter_ref(
@@ -474,6 +505,20 @@ def vsearch_chimera_filter_ref(
            number of computation threads to use (1 to 256)
         HALT_EXEC : boolean, optional
            used for debugging app controller
+
+        Return
+        ------
+
+        output_chimera_filepath : string
+           filepath to chimeric fasta sequences
+        output_non_chimera_filepath : string
+           filepath to nonchimeric fasta sequences
+        output_alns_filepath : string
+           filepath to chimeric sequences alignment
+           file
+        output_tabular_filepath : string
+           filepath to chimeric sequences tabular
+           output file
     """
 
     app = Vsearch(WorkingDir=working_dir, HALT_EXEC=HALT_EXEC)
@@ -482,9 +527,9 @@ def vsearch_chimera_filter_ref(
             output_nonchimeras or
             output_alns or
             output_tabular):
-        raise ValueError("At least one output format (output_chimeras,
-                          output_nonchimeras, output_alns, output_tabular)
-                          must be selected")
+        raise ValueError("At least one output format (output_chimeras,"
+                         "output_nonchimeras, output_alns, output_tabular)"
+                         "must be selected")
 
     output_chimera_filepath = None
     output_non_chimera_filepath = None
@@ -512,7 +557,6 @@ def vsearch_chimera_filter_ref(
 
     app_result = app()
 
-    return app_result, output_chimera_filepath,
-           output_non_chimera_filepath, output_alns_filepath,
-           output_tabular_filepath
+    return output_chimera_filepath, output_non_chimera_filepath,\
+           output_alns_filepath, output_tabular_filepath
 

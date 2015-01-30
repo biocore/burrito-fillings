@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013--, biocore development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 """
 Application controller for SortMeRNA version 2.0
 ================================================
@@ -15,7 +23,6 @@ Application controller for SortMeRNA version 2.0
 
 
 from os.path import split, splitext, dirname, join
-from os import getpid
 from glob import glob
 import re
 
@@ -105,7 +112,7 @@ def build_database_sortmerna(fasta_path,
         # so the app is not confused by relative paths
         fasta_path = fasta_filename
 
-    index_basename = "%s_%s" % (splitext(fasta_filename)[0], getpid())
+    index_basename = splitext(fasta_filename)[0]
 
     db_name = join(output_dir, index_basename)
 
@@ -295,7 +302,6 @@ def sortmerna_ref_cluster(seq_path=None,
                           coverage=0.97,
                           threads=1,
                           best=1,
-                          aligned='sortmerna_results',
                           HALT_EXEC=False
                           ):
     """Launch sortmerna OTU picker
@@ -322,9 +328,7 @@ def sortmerna_ref_cluster(seq_path=None,
             output BLAST tabular alignments [default: False].
         best : int, optional
             number of best alignments to output per read
-            [default: 1]
-        aligned : str, optional
-            base name for --aligned output files
+            [default: 1].
 
         Returns
         -------
@@ -358,7 +362,7 @@ def sortmerna_ref_cluster(seq_path=None,
     # Set output results path (for Blast alignments, clusters and failures)
     output_dir = dirname(result_path)
     if output_dir is not None:
-        output_file = join(output_dir, aligned)
+        output_file = join(output_dir, "sortmerna_otus")
         smr.Parameters['--aligned'].on(output_file)
 
     # Set E-value threshold

@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-""" Application controller for vsearch v1.0.7 """
+""" Application controller for vsearch v1.0.10 """
 
 from os.path import abspath, join, dirname
 
@@ -219,17 +219,17 @@ class Vsearch(CommandLineApplication):
 
 
 def vsearch_dereplicate_exact_seqs(
-        fasta_filepath,
-        output_filepath,
-        output_uc=False,
-        working_dir=None,
-        strand="both",
-        maxuniquesize=None,
-        minuniquesize=None,
-        sizein=False,
-        sizeout=True,
-        log_name="derep.log",
-        HALT_EXEC=False):
+    fasta_filepath,
+    output_filepath,
+    output_uc=False,
+    working_dir=None,
+    strand="both",
+    maxuniquesize=None,
+    minuniquesize=None,
+    sizein=False,
+    sizeout=True,
+    log_name="derep.log",
+    HALT_EXEC=False):
     """ Generates clusters and fasta file of
         dereplicated subsequences
 
@@ -311,13 +311,13 @@ def vsearch_dereplicate_exact_seqs(
 
 
 def vsearch_sort_by_abundance(
-        fasta_filepath,
-        output_filepath,
-        working_dir=None,
-        minsize=None,
-        maxsize=None,
-        log_name="abundance_sort.log",
-        HALT_EXEC=False):
+    fasta_filepath,
+    output_filepath,
+    working_dir=None,
+    minsize=None,
+    maxsize=None,
+    log_name="abundance_sort.log",
+    HALT_EXEC=False):
     """ Fasta entries are sorted by decreasing abundance
         (Fasta entries are assumed to be dereplicated with
         the pattern "[>;]size=integer[;]" present in the
@@ -375,14 +375,14 @@ def vsearch_sort_by_abundance(
 
 
 def vsearch_chimera_filter_de_novo(
-        fasta_filepath,
-        working_dir,
-        output_chimeras=True,
-        output_nonchimeras=True,
-        output_alns=False,
-        output_tabular=False,
-        log_name="vsearch_uchime_de_novo_chimera_filtering.log",
-        HALT_EXEC=False):
+    fasta_filepath,
+    working_dir,
+    output_chimeras=True,
+    output_nonchimeras=True,
+    output_alns=False,
+    output_tabular=False,
+    log_name="vsearch_uchime_de_novo_chimera_filtering.log",
+    HALT_EXEC=False):
     """ Detect chimeras present in the fasta-formatted filename,
         without external references (i.e. de novo). Automatically
         sort the sequences in filename by decreasing abundance
@@ -466,16 +466,16 @@ def vsearch_chimera_filter_de_novo(
 
 
 def vsearch_chimera_filter_ref(
-        fasta_filepath,
-        working_dir,
-        db_filepath,
-        output_chimeras=True,
-        output_nonchimeras=True,
-        output_alns=False,
-        output_tabular=False,
-        log_name="vsearch_uchime_ref_chimera_filtering.log",
-        threads=1,
-        HALT_EXEC=False):
+    fasta_filepath,
+    working_dir,
+    db_filepath,
+    output_chimeras=True,
+    output_nonchimeras=True,
+    output_alns=False,
+    output_tabular=False,
+    log_name="vsearch_uchime_ref_chimera_filtering.log",
+    threads=1,
+    HALT_EXEC=False):
     """ Detect chimeras present in the fasta-formatted filename,
         with an external reference (i.e. database). Output
         chimeras and non-chimeras to FASTA files and/or 3-way

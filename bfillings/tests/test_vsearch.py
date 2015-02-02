@@ -8,8 +8,8 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 """
-Unit tests for the VSEARCH version 1.0.7 Application controller
-===============================================================
+Unit tests for the VSEARCH version 1.0.10 Application controller
+================================================================
 """
 
 
@@ -30,7 +30,7 @@ from bfillings.vsearch import (vsearch_dereplicate_exact_seqs,
 
 # Test class and cases
 class VsearchTests(TestCase):
-    """ Tests for VSEARCH version 1.0.7 functionality """
+    """ Tests for VSEARCH version 1.0.10 functionality """
 
     def setUp(self):
         self.output_dir = mkdtemp()

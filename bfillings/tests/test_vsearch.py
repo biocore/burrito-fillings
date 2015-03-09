@@ -8,8 +8,8 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 """
-Unit tests for the VSEARCH version 1.0.10 Application controller
-================================================================
+Unit tests for the VSEARCH version 1.1.1 Application controller
+===============================================================
 """
 
 
@@ -30,7 +30,7 @@ from bfillings.vsearch import (vsearch_dereplicate_exact_seqs,
 
 # Test class and cases
 class VsearchTests(TestCase):
-    """ Tests for VSEARCH version 1.0.10 functionality """
+    """ Tests for VSEARCH version 1.1.1 functionality """
 
     def setUp(self):
         self.output_dir = mkdtemp()
@@ -149,9 +149,9 @@ class VsearchTests(TestCase):
 
     def test_vsearch_chimera_filter_ref(self):
         """ Test reference chimera filter, output only
-            chimeric sequences
+            chimeric sequences and log
         """
-        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
+        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp, log_fp =\
             vsearch_chimera_filter_ref(
                 self.amplicon_reads_fp,
                 self.output_dir,
@@ -166,6 +166,7 @@ class VsearchTests(TestCase):
         self.assertTrue(nonchimeras_fp is None)
         self.assertTrue(alns_fp is None)
         self.assertTrue(tabular_fp is None)
+        self.assertTrue(exists(log_fp))
 
         expected_chimeras = ['251;size=2;', '320;size=2;', '36;size=2;',
                              '672;size=2;', '142;size=1;', '201;size=1;',
@@ -207,7 +208,7 @@ class VsearchTests(TestCase):
     def test_vsearch_chimera_filter_ref_output_nonchimeras(self):
         """ Test ref chimera filter, output nonchimeric sequences
         """
-        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
+        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp, log_fp =\
             vsearch_chimera_filter_ref(
                 self.amplicon_reads_fp,
                 self.output_dir,
@@ -222,6 +223,7 @@ class VsearchTests(TestCase):
         self.assertTrue(chimeras_fp is None)
         self.assertTrue(alns_fp is None)
         self.assertTrue(tabular_fp is None)
+        self.assertTrue(exists(log_fp))
 
         expected_nonchimeras =\
             ['3;size=102;', '16;size=95;', '22;size=93;', '2;size=87;', '39;size=84;',
@@ -276,7 +278,7 @@ class VsearchTests(TestCase):
         """ Test ref chimera filter, output only
             chimeric alignments and tabular format
         """
-        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
+        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp, log_fp =\
             vsearch_chimera_filter_ref(
                 self.single_chimera_ref_fp,
                 self.output_dir,
@@ -290,6 +292,7 @@ class VsearchTests(TestCase):
 
         self.assertTrue(chimeras_fp is None)
         self.assertTrue(nonchimeras_fp is None)
+        self.assertTrue(exists(log_fp))
 
         # check alignment is correct
         with open(alns_fp, 'U') as alns_f:
@@ -306,7 +309,7 @@ class VsearchTests(TestCase):
         """ Test de novo chimera filter, output only
             chimeric sequences
         """
-        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
+        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp, log_fp =\
             vsearch_chimera_filter_de_novo(
                 self.amplicon_reads_fp,
                 self.output_dir,
@@ -320,6 +323,7 @@ class VsearchTests(TestCase):
         self.assertTrue(nonchimeras_fp is None)
         self.assertTrue(alns_fp is None)
         self.assertTrue(tabular_fp is None)
+        self.assertTrue(exists(log_fp))
 
         expected_chimeras = ['251;size=2;', '320;size=2;', '36;size=2;',
                              '672;size=2;', '142;size=1;', '201;size=1;',
@@ -360,7 +364,7 @@ class VsearchTests(TestCase):
     def test_vsearch_chimera_filter_de_novo_output_nonchimeras(self):
         """ Test de novo chimera filter, output nonchimeric sequences
         """
-        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
+        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp, log_fp =\
             vsearch_chimera_filter_de_novo(
                 self.amplicon_reads_fp,
                 self.output_dir,
@@ -374,6 +378,7 @@ class VsearchTests(TestCase):
         self.assertTrue(chimeras_fp is None)
         self.assertTrue(alns_fp is None)
         self.assertTrue(tabular_fp is None)
+        self.assertTrue(exists(log_fp))
 
         expected_nonchimeras =\
             ['3;size=102;', '16;size=95;', '22;size=93;', '2;size=87;', '39;size=84;',
@@ -428,7 +433,7 @@ class VsearchTests(TestCase):
         """ Test de novo chimera filter, output only
             chimeric alignments and tabular format
         """
-        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp =\
+        chimeras_fp, nonchimeras_fp, alns_fp, tabular_fp, log_fp =\
             vsearch_chimera_filter_de_novo(
                 self.single_chimera_fp,
                 self.output_dir,
@@ -441,6 +446,7 @@ class VsearchTests(TestCase):
 
         self.assertTrue(chimeras_fp is None)
         self.assertTrue(nonchimeras_fp is None)
+        self.assertTrue(exists(log_fp))
 
         # check alignment is correct
         with open(alns_fp, 'U') as alns_f:
@@ -457,7 +463,7 @@ class VsearchTests(TestCase):
         """
         tmp_fp = join(self.output_dir, "tmp_sorted_reads.fasta")
 
-        output_sorted = vsearch_sort_by_abundance(
+        output_sorted, log_fp = vsearch_sort_by_abundance(
             self.seqs_to_sort_fp,
             tmp_fp,
             working_dir=None,
@@ -465,6 +471,8 @@ class VsearchTests(TestCase):
             maxsize=None,
             log_name="abundance_sort.log",
             HALT_EXEC=False)
+
+        self.assertTrue(exists(log_fp))
 
         expected_order = ['HWI-ST157_0368:1:2107:19923:3944#0/1;size=100;',
                           'HWI-ST157_0368:1:1201:8401:113582#0/1;size=10;',
@@ -494,7 +502,7 @@ class VsearchTests(TestCase):
         """
         tmp_fp = join(self.output_dir, "tmp_sorted_reads.fasta")
 
-        output_sorted = vsearch_sort_by_abundance(
+        output_sorted, log_fp = vsearch_sort_by_abundance(
             self.seqs_to_sort_fp,
             tmp_fp,
             working_dir=None,
@@ -502,6 +510,8 @@ class VsearchTests(TestCase):
             maxsize=10,
             log_name="abundance_sort.log",
             HALT_EXEC=False)
+
+        self.assertTrue(exists(log_fp))
 
         expected_order = ['HWI-ST157_0368:1:1201:8401:113582#0/1;size=10;',
                           'HWI-ST157_0368:1:2204:20491:181552#0/1;size=10;',
@@ -526,7 +536,7 @@ class VsearchTests(TestCase):
         """
         tmp_fp = join(self.output_dir, "tmp_derep_reads.fasta")
 
-        dereplicated_seqs_fp, uc_fp = vsearch_dereplicate_exact_seqs(
+        dereplicated_seqs_fp, uc_fp, log_fp = vsearch_dereplicate_exact_seqs(
             self.seqs_to_derep_fp,
             tmp_fp,
             output_uc=False,
@@ -539,6 +549,7 @@ class VsearchTests(TestCase):
 
         # no output for .uc
         self.assertTrue(uc_fp is None)
+        self.assertTrue(exists(log_fp))
 
         num_seqs = 0
         expected_derep = ['HWI-ST157_0368:1:1207:16180:126921#0/1;size=3;',
@@ -562,7 +573,7 @@ class VsearchTests(TestCase):
         """
         tmp_fp = join(self.output_dir, "tmp_derep_reads.fasta")
 
-        dereplicated_seqs_fp, uc_fp = vsearch_dereplicate_exact_seqs(
+        dereplicated_seqs_fp, uc_fp, log_fp = vsearch_dereplicate_exact_seqs(
             self.seqs_to_derep_fp,
             tmp_fp,
             output_uc=True,
@@ -575,6 +586,7 @@ class VsearchTests(TestCase):
 
         # .uc exists
         self.assertTrue(exists(uc_fp))
+        self.assertTrue(exists(log_fp))
 
         id_to_count = {}
 
@@ -608,7 +620,7 @@ class VsearchTests(TestCase):
         """
         tmp_fp = join(self.output_dir, "tmp_derep_reads.fasta")
 
-        dereplicated_seqs_fp, uc_fp = vsearch_dereplicate_exact_seqs(
+        dereplicated_seqs_fp, uc_fp, log_fp = vsearch_dereplicate_exact_seqs(
             self.seqs_to_derep_fp,
             tmp_fp,
             output_uc=True,
@@ -618,6 +630,8 @@ class VsearchTests(TestCase):
             minuniquesize=None,
             sizein=False,
             sizeout=True)
+
+        self.assertTrue(exists(log_fp))
 
         # check dereplicated seqs and uc file in the same
         # directory (same path as tmp_fp)
@@ -630,7 +644,7 @@ class VsearchTests(TestCase):
         """
         tmp_fp = join(self.output_dir, "tmp_derep_reads.fasta")
 
-        dereplicated_seqs_fp, uc_fp = vsearch_dereplicate_exact_seqs(
+        dereplicated_seqs_fp, uc_fp, log_fp = vsearch_dereplicate_exact_seqs(
             self.seqs_to_derep_max_min_abundance_fp,
             tmp_fp,
             output_uc=False,
@@ -643,6 +657,7 @@ class VsearchTests(TestCase):
 
         # no output for .uc
         self.assertTrue(uc_fp is None)
+        self.assertTrue(exists(log_fp))
 
         num_seqs = 0
         expected_derep = ['HWI-ST157_0368:1:1106:10560:153880#0/1;size=6;',
@@ -669,7 +684,7 @@ class VsearchTests(TestCase):
         """
         tmp_fp = join(self.output_dir, "tmp_derep_reads.fasta")
 
-        dereplicated_seqs_fp, uc_fp = vsearch_dereplicate_exact_seqs(
+        dereplicated_seqs_fp, uc_fp, log_fp = vsearch_dereplicate_exact_seqs(
             self.seqs_to_derep_merged_derep_files_fp,
             tmp_fp,
             output_uc=False,
@@ -682,6 +697,7 @@ class VsearchTests(TestCase):
 
         # no output for .uc
         self.assertTrue(uc_fp is None)
+        self.assertTrue(exists(log_fp))
 
         num_seqs = 0
         expected_derep = ['HWI-ST157_0368:1:1207:16180:126921#0/1;size=6;',

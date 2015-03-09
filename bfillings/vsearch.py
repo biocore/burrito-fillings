@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-""" Application controller for vsearch v1.0.10 """
+""" Application controller for vsearch v1.1.1 """
 
 from os.path import abspath, join, dirname
 
@@ -134,7 +134,11 @@ class Vsearch(CommandLineApplication):
         # since otherwise (if no other value is given) VSEARCH will use
         # all available cores
         '--threads': ValuedParameter('--', Name='threads', Delimiter=' ',
-                                     IsPath=False, Value="1")
+                                     IsPath=False, Value="1"),
+
+        # Write messages, timing and memory info to file
+        '--log': ValuedParameter('--', Name='log', Delimiter=' ',
+                                 IsPath=True)
     }
 
     _suppress_stdout = False
@@ -202,6 +206,11 @@ class Vsearch(CommandLineApplication):
         result['Output_nonchimeras'] = ResultPath(
             Path=self.Parameters['--nonchimeras'].Value,
             IsWritten=self.Parameters['--nonchimeras'].isOn())
+
+        # log file
+        result['LogFile'] = ResultPath(
+            Path=self.Parameters['--log'].Value,
+            IsWritten=self.Parameters['--log'].isOn())
 
         return result
 
@@ -274,6 +283,8 @@ def vsearch_dereplicate_exact_seqs(
            filepath to dereplicated fasta file
         uc_filepath : string
            filepath to dereplication results in uclust-like format
+        log_filepath : string
+           filepath to log file
     """
 
     # write all vsearch output files to same directory
@@ -304,10 +315,11 @@ def vsearch_dereplicate_exact_seqs(
                          "or 'plus' values")
     app.Parameters['--derep_fulllength'].on(fasta_filepath)
     app.Parameters['--output'].on(output_filepath)
+    app.Parameters['--log'].on(log_filepath)
 
     app_result = app()
 
-    return output_filepath, uc_filepath
+    return output_filepath, uc_filepath, log_filepath
 
 
 def vsearch_sort_by_abundance(
@@ -349,6 +361,8 @@ def vsearch_sort_by_abundance(
 
         output_filepath : string
            filepath to sorted fasta file
+        log_filepath : string
+           filepath to log file
     """
 
     # set working dir to same directory as the output
@@ -368,10 +382,11 @@ def vsearch_sort_by_abundance(
 
     app.Parameters['--sortbysize'].on(fasta_filepath)
     app.Parameters['--output'].on(output_filepath)
+    app.Parameters['--log'].on(log_filepath)
 
     app_result = app()
 
-    return output_filepath
+    return output_filepath, log_filepath
 
 
 def vsearch_chimera_filter_de_novo(
@@ -423,6 +438,8 @@ def vsearch_chimera_filter_de_novo(
         output_tabular_filepath : string
            filepath to chimeric sequences tabular
            output file
+        log_filepath : string
+           filepath to log file
     """
 
     app = Vsearch(WorkingDir=working_dir, HALT_EXEC=HALT_EXEC)
@@ -454,15 +471,15 @@ def vsearch_chimera_filter_de_novo(
     if output_tabular:
         output_tabular_filepath = join(working_dir, 'uchime_tabular.txt')
         app.Parameters['--uchimeout'].on(output_tabular_filepath)
+    log_filepath = join(working_dir, log_name)
 
     app.Parameters['--uchime_denovo'].on(fasta_filepath)
-
-    log_filepath = join(working_dir, log_name)
+    app.Parameters['--log'].on(log_filepath)
 
     app_result = app()
 
     return output_chimera_filepath, output_non_chimera_filepath,\
-        output_alns_filepath, output_tabular_filepath
+        output_alns_filepath, output_tabular_filepath, log_filepath
 
 
 def vsearch_chimera_filter_ref(
@@ -518,6 +535,8 @@ def vsearch_chimera_filter_ref(
         output_tabular_filepath : string
            filepath to chimeric sequences tabular
            output file
+        log_filepath : string
+           filepath to log file
     """
 
     app = Vsearch(WorkingDir=working_dir, HALT_EXEC=HALT_EXEC)
@@ -549,13 +568,13 @@ def vsearch_chimera_filter_ref(
     if output_tabular:
         output_tabular_filepath = join(working_dir, 'uchime_tabular.txt')
         app.Parameters['--uchimeout'].on(output_tabular_filepath)
+    log_filepath = join(working_dir, log_name)
 
     app.Parameters['--db'].on(db_filepath)
     app.Parameters['--uchime_ref'].on(fasta_filepath)
-
-    log_filepath = join(working_dir, log_name)
+    app.Parameters['--log'].on(log_filepath)
 
     app_result = app()
 
     return output_chimera_filepath, output_non_chimera_filepath,\
-        output_alns_filepath, output_tabular_filepath
+        output_alns_filepath, output_tabular_filepath, log_filepath

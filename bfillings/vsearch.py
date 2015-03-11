@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2015--, biocore development team.
 #
@@ -219,10 +217,7 @@ class Vsearch(CommandLineApplication):
         help_str = """
         VSEARCH is hosted at:
         https://github.com/torognes/vsearch
-
-        The following papers should be cited if this resource is used:
-
-        Paper pending. Please cite the github page in the meanwhile.
+        Please cite the above URL if this wrapper is used in published work.
         """
         return help_str
 

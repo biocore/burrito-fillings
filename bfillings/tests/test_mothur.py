@@ -180,8 +180,11 @@ class TestMothurClassifySeqs(TestCase):
         self.assertEqual(assignments, mothur_assignments)
 
         summary = res['summary'].read()
+        # Later versions of mothur add a tab before the newline.  We
+        # do not care about trailing whitespace as long as content is
+        # the same.
+        summary = summary.replace("\t\n", "\n")
         self.assertEqual(summary, mothur_summary)
-
 
     def test_format_function_arguments(self):
         app = MothurClassifySeqs({

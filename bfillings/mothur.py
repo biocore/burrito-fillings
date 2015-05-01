@@ -15,9 +15,9 @@ mothur Version 1.6.0
 from __future__ import with_statement, division
 from os import path, getcwd, mkdir, remove, listdir
 import re
-from shutil import copyfile
+from shutil import copyfile, rmtree
 from subprocess import Popen
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, mkdtemp
 
 from skbio.parse.sequences import parse_fasta
 from burrito.parameters import ValuedParameter
@@ -323,7 +323,8 @@ class Mothur(CommandLineApplication):
 
         data: a multiline string to be written to a file.
         """
-        self._input_filename = self.getTmpFilename(suffix='.fasta')
+        self._input_filename = self.getTmpFilename(
+            self.WorkingDir, suffix='.fasta')
         with open(self._input_filename, 'w') as f:
             f.write(data)
         return self._input_filename
@@ -338,7 +339,8 @@ class Mothur(CommandLineApplication):
             element before writing to a file in order to avoid
             multiple new lines accidentally be written to a file
         """
-        self._input_filename = self.getTmpFilename(suffix='.fasta')
+        self._input_filename = self.getTmpFilename(
+            self.WorkingDir, suffix='.fasta')
         with open(self._input_filename, 'w') as f:
             # Use lazy iteration instead of list comprehension to
             # prevent reading entire file into memory
@@ -352,7 +354,8 @@ class Mothur(CommandLineApplication):
 
         data: path or filename
         """
-        self._input_filename = self.getTmpFilename(suffix='.fasta')
+        self._input_filename = self.getTmpFilename(
+            self.WorkingDir, suffix='.fasta')
         copyfile(data, self._input_filename)
         return self._input_filename
 
@@ -496,7 +499,7 @@ def parse_mothur_assignments(lines):
 
 def mothur_classify_file(
         query_file, ref_fp, tax_fp, cutoff=None, iters=None, ksize=None,
-        output_fp=None):
+        output_fp=None, tmp_dir="/tmp"):
     """Classify a set of sequences using Mothur's naive bayes method
 
     Dashes are used in Mothur to provide multiple filenames.  A
@@ -510,7 +513,7 @@ def mothur_classify_file(
     ref_seq_ids = set()
 
     user_ref_file = open(ref_fp)
-    tmp_ref_file = NamedTemporaryFile(suffix=".ref.fa")
+    tmp_ref_file = NamedTemporaryFile(dir=tmp_dir, suffix=".ref.fa")
     for seq_id, seq in parse_fasta(user_ref_file):
         id_token = seq_id.split()[0]
         ref_seq_ids.add(id_token)
@@ -518,7 +521,7 @@ def mothur_classify_file(
     tmp_ref_file.seek(0)
 
     user_tax_file = open(tax_fp)
-    tmp_tax_file = NamedTemporaryFile(suffix=".tax.txt")
+    tmp_tax_file = NamedTemporaryFile(dir=tmp_dir, suffix=".tax.txt")
     for line in user_tax_file:
         line = line.rstrip()
         if not line:
@@ -542,12 +545,20 @@ def mothur_classify_file(
     if iters is not None:
         params["iters"] = iters
 
-    app = MothurClassifySeqs(params, InputHandler='_input_as_lines')
+    # Create a temporary working directory to accommodate mothur's output
+    # files, which are generated automatically based on the input
+    # file.
+    work_dir = mkdtemp(dir=tmp_dir)
+
+    app = MothurClassifySeqs(
+        params, InputHandler='_input_as_lines', WorkingDir=work_dir,
+        TmpDir=tmp_dir)
     result = app(query_file)
 
     # Force evaluation so we can safely clean up files
     assignments = list(parse_mothur_assignments(result['assignments']))
     result.cleanUp()
+    rmtree(work_dir)
 
     if output_fp is not None:
         f = open(output_fp, "w")

@@ -17,7 +17,7 @@ from os import path, getcwd, mkdir, remove, listdir
 import re
 from shutil import copyfile, rmtree
 from subprocess import Popen
-from tempfile import NamedTemporaryFile, mkdtemp
+from tempfile import NamedTemporaryFile, mkdtemp, gettempdir
 
 from skbio.parse.sequences import parse_fasta
 from burrito.parameters import ValuedParameter
@@ -87,7 +87,7 @@ class Mothur(CommandLineApplication):
     _command = 'mothur'
 
     def __init__(self, params=None, InputHandler=None, SuppressStderr=None,
-                 SuppressStdout=None, WorkingDir=None, TmpDir='/tmp',
+                 SuppressStdout=None, WorkingDir=None, TmpDir=None,
                  TmpNameLen=20, HALT_EXEC=False):
         """Initialize a Mothur application controller
 
@@ -110,8 +110,8 @@ class Mothur(CommandLineApplication):
                 running the script doesn't have write access to the current
                 working directory
                 WARNING: WorkingDir MUST be an absolute path!
-            TmpDir: the directory where temp files will be created, /tmp
-                by default
+            TmpDir: the directory where temp files will be created, default
+                value is determined by environment variables.
             TmpNameLen: the length of the temp file name
             HALT_EXEC: if True, raises exception w/ command output just
                 before execution, doesn't clean up temp files. Default False.
@@ -143,7 +143,10 @@ class Mothur(CommandLineApplication):
         else:
             working_dir = self._working_dir or getcwd()
         self.WorkingDir = working_dir
-        self.TmpDir = TmpDir
+        if TmpDir is not None:
+            self.TmpDir = TmpDir
+        else:
+            self.TmpDir = gettempdir()
 
     @staticmethod
     def getHelp():
@@ -317,7 +320,7 @@ class Mothur(CommandLineApplication):
         base, ext = path.splitext(self._input_filename)
         return '%s.unique.%s.sabund' % (base, self.__get_method_abbrev())
 
-    def getTmpFilename(self, tmp_dir='/tmp', prefix='tmp', suffix='.txt'):
+    def getTmpFilename(self, tmp_dir=None, prefix='tmp', suffix='.txt'):
         """Returns a temporary filename
 
         Similar interface to tempfile.mktmp()
@@ -512,7 +515,7 @@ def parse_mothur_assignments(lines):
 
 def mothur_classify_file(
         query_file, ref_fp, tax_fp, cutoff=None, iters=None, ksize=None,
-        output_fp=None, tmp_dir="/tmp"):
+        output_fp=None, tmp_dir=None):
     """Classify a set of sequences using Mothur's naive bayes method
 
     Dashes are used in Mothur to provide multiple filenames.  A
@@ -523,6 +526,9 @@ def mothur_classify_file(
     For convenience, we also ensure that each taxon list in the
     id-to-taxonomy file ends with a semicolon.
     """
+    if tmp_dir is None:
+        tmp_dir = gettempdir()
+
     ref_seq_ids = set()
 
     user_ref_file = open(ref_fp)

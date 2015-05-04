@@ -11,6 +11,8 @@
 from __future__ import with_statement
 from cStringIO import StringIO
 from os import remove, rmdir
+import os.path
+from shutil import rmtree
 from tempfile import mkdtemp, mkstemp, NamedTemporaryFile
 from unittest import TestCase, main
 
@@ -55,6 +57,10 @@ class MothurTests(TestCase):
             '0.43\t2\tc,a\tb\t\n'
             '1.00\t1\tb,c,a\t\n'
             )
+        self.work_dir = mkdtemp()
+
+    def tearDown(self):
+        rmtree(self.work_dir)
 
     def test_get_help(self):
         """Mothur.getHelp() should return help string"""
@@ -102,6 +108,14 @@ class MothurTests(TestCase):
         """Mothur.WorkingDir attribute should not be cast to FilePath object"""
         app = Mothur(WorkingDir='/tmp')
         self.assertEquals(str(app.WorkingDir), '/tmp')
+
+    def test_working_directory_used(self):
+        """Mothur input file should be created in the working dir."""
+        app = Mothur(WorkingDir=self.work_dir)
+        result = app(self.small_fasta, remove_tmp=False)
+        input_dir, _ = os.path.split(app._input_filename)
+        self.assertEqual(input_dir, self.work_dir)
+        result.cleanUp()
 
     def test_call_with_multiline_string(self):
         """Mothur.__call__() should return correct otu's for input as single string"""
@@ -170,21 +184,26 @@ class TestMothurClassifySeqs(TestCase):
         self.tax_file.write(mothur_taxonomy)
         self.tax_file.seek(0)
 
+        self.work_dir = mkdtemp()
+
+    def tearDown(self):
+        rmtree(self.work_dir)
+
     def test_app(self):
         app = MothurClassifySeqs({
             'reference': self.ref_file.name,
             'taxonomy': self.tax_file.name,
-            })
+            }, WorkingDir=self.work_dir)
         res = app(mothur_seqs)
         assignments = res['assignments'].read()
         self.assertEqual(assignments, mothur_assignments)
-
         summary = res['summary'].read()
         # Later versions of mothur add a tab before the newline.  We
         # do not care about trailing whitespace as long as content is
         # the same.
         summary = summary.replace("\t\n", "\n")
         self.assertEqual(summary, mothur_summary)
+        res.cleanUp()
 
     def test_format_function_arguments(self):
         app = MothurClassifySeqs({

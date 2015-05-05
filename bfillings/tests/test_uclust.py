@@ -14,7 +14,8 @@
 Modified from Daniel McDonald's test_cd_hit.py code on Feb-4-2010 """
 
 from subprocess import Popen, PIPE, STDOUT
-from tempfile import mkstemp
+from tempfile import mkstemp, gettempdir
+from os.path import join
 
 from unittest import TestCase, main
 
@@ -64,8 +65,8 @@ class UclustTests(TestCase):
         _, self.tmp_clstr_filepath = mkstemp(prefix="uclust_test",
                                              suffix=".clstr")
 
-        self.WorkingDir = '/tmp/uclust_test'
-        self.tmpdir = '/tmp/'
+        self.tmpdir = gettempdir()
+        self.WorkingDir = join(self.tmpdir, 'uclust_test')
 
         self.files_to_remove = [self.tmp_unsorted_fasta_filepath,
                                 self.tmp_sorted_fasta_filepath,
@@ -219,6 +220,8 @@ class UclustConvenienceWrappers(TestCase):
         self.uc_lines_overlapping_lib_input_seq_ids = \
             uc_lines_overlapping_lib_input_seq_ids
 
+        self.tmpdir = gettempdir()
+
     def tearDown(self):
         remove_files(self.files_to_remove, error_on_missing=False)
 
@@ -295,14 +298,14 @@ class UclustConvenienceWrappers(TestCase):
         """ Properly generates output filepath names """
 
         uc_res = \
-            get_output_filepaths("/tmp/", "test_seqs.fasta")
+            get_output_filepaths(self.tmpdir, "test_seqs.fasta")
 
-        self.assertEqual(uc_res, "/tmp/test_seqs_clusters.uc")
+        self.assertEqual(uc_res, join(self.tmpdir, "test_seqs_clusters.uc"))
 
     def test_get_output_filepaths_multiple_dots(self):
         """Generates filepath names from names with more than one dot"""
-        obs = get_output_filepaths("/tmp", "test_seqs.filtered.fasta")
-        self.assertEqual(obs, "/tmp/test_seqs.filtered_clusters.uc")
+        obs = get_output_filepaths(self.tmpdir, "test_seqs.filtered.fasta")
+        self.assertEqual(obs, join(self.tmpdir, "test_seqs.filtered_clusters.uc"))
 
     def test_get_clusters_from_fasta_filepath(self):
         """ Tests for return of lists of OTUs from given fasta filepath """

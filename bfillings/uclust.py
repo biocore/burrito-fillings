@@ -505,6 +505,7 @@ def get_clusters_from_fasta_filepath(
         suppress_new_clusters=False,
         return_cluster_maps=False,
         stable_sort=False,
+        tmp_dir=gettempdir(),
         save_uc_files=True,
         HALT_EXEC=False):
     """ Main convenience wrapper for using uclust to generate cluster files
@@ -575,6 +576,7 @@ def get_clusters_from_fasta_filepath(
             subject_fasta_filepath=subject_fasta_filepath,
             suppress_new_clusters=suppress_new_clusters,
             stable_sort=stable_sort,
+            tmp_dir=tmp_dir,
             HALT_EXEC=HALT_EXEC)
         # Get cluster file name from application wrapper
         remove_files(files_to_remove)

@@ -85,6 +85,11 @@ class Swarm(CommandLineApplication):
 
         return clusters
 
+    def _accept_exit_status(self, exit_status):
+        """ Test for acceptable exit status
+        """
+        return exit_status == 0
+
     def _swarm_breaker(self,
                        seq_path):
         """

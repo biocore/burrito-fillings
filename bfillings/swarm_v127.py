@@ -74,7 +74,9 @@ class Swarm(CommandLineApplication):
             self._apply_identical_sequences_prefilter(seq_path)
 
         # Run Swarm
-        super(Swarm, self).__call__(seq_path)
+        result = super(Swarm, self).__call__(seq_path)
+        if result['ExitStatus'] != 0:
+            raise ValueError(result['StdErr'].read())
 
         # Run swarm_breaker.py to refine the clusters
         clusters = self._swarm_breaker(seq_path)

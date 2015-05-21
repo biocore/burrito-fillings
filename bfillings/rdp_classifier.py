@@ -376,7 +376,7 @@ def parse_command_line_parameters(argv=None):
 
 def assign_taxonomy(
         data, min_confidence=0.80, output_fp=None, training_data_fp=None,
-        fixrank=True, max_memory=None, tmp_dir=None):
+        fixrank=True, max_memory=None, tmp_dir=tempfile.gettempdir()):
     """Assign taxonomy to each sequence in data with the RDP classifier
 
         data: open fasta file object or list of fasta lines
@@ -454,7 +454,7 @@ def assign_taxonomy(
 
 def train_rdp_classifier(
         training_seqs_file, taxonomy_file, model_output_dir, max_memory=None,
-        tmp_dir=None):
+        tmp_dir=tempfile.gettempdir()):
     """ Train RDP Classifier, saving to model_output_dir
 
         training_seqs_file, taxonomy_file: file-like objects used to
@@ -488,7 +488,7 @@ def train_rdp_classifier(
 def train_rdp_classifier_and_assign_taxonomy(
         training_seqs_file, taxonomy_file, seqs_to_classify, min_confidence=0.80,
         model_output_dir=None, classification_output_fp=None, max_memory=None,
-        tmp_dir=None):
+        tmp_dir=tempfile.gettempdir()):
     """ Train RDP Classifier and assign taxonomy in one fell swoop
 
     The file objects training_seqs_file and taxonomy_file are used to

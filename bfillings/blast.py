@@ -12,6 +12,7 @@ from string import strip
 from os import remove, access, F_OK, environ, path
 from random import choice
 from copy import copy
+import tempfile
 
 from burrito.parameters import FlagParameter, ValuedParameter, MixedParameter
 from burrito.util import (CommandLineApplication, ResultPath,
@@ -675,7 +676,7 @@ def fasta_cmd_get_seqs(acc_list,
                  is_protein=None,
                  out_filename=None,
                  params={},
-                 WorkingDir="/tmp",
+                 WorkingDir=tempfile.gettempdir(),
                  SuppressStderr=None,
                  SuppressStdout=None):
     """Retrieve sequences for list of accessions """
@@ -1017,7 +1018,8 @@ def ids_from_seqs_iterative(seqs, app, query_parser, \
 
 
 def blastp(seqs, blast_db="nr", e_value="1e-20", max_hits=200,
-           working_dir="/tmp", blast_mat_root=None, extra_params={}):
+           working_dir=tempfile.gettempdir(), blast_mat_root=None,
+           extra_params={}):
     """
     Returns BlastResult from input seqs, using blastp.
 
@@ -1064,7 +1066,8 @@ def blastp(seqs, blast_db="nr", e_value="1e-20", max_hits=200,
     return None
 
 def blastn(seqs, blast_db="nt", e_value="1e-20", max_hits=200,
-           working_dir="/tmp", blast_mat_root=None, extra_params={}):
+           working_dir=tempfile.gettempdir(), blast_mat_root=None,
+           extra_params={}):
     """
     Returns BlastResult from input seqs, using blastn.
 

@@ -11,6 +11,7 @@
 """
 from os import remove
 from random import choice
+import tempfile
 
 from skbio.parse.sequences import parse_fasta
 from burrito.parameters import FlagParameter, ValuedParameter
@@ -341,7 +342,7 @@ def muscle_seqs(seqs,
                  out_filename=None,
                  input_handler=None,
                  params={},
-                 WorkingDir=None,
+                 WorkingDir=tempfile.gettempdir(),
                  SuppressStderr=None,
                  SuppressStdout=None):
     """Muscle align list of sequences.
@@ -399,7 +400,7 @@ def cluster_seqs(seqs,
                  neighbor_join=False,
                  params={},
                  add_seq_names=True,
-                 WorkingDir=None,
+                 WorkingDir=tempfile.gettempdir(),
                  SuppressStderr=None,
                  SuppressStdout=None,
                  max_chars=1000000,
@@ -458,7 +459,7 @@ def aln_tree_seqs(seqs,
                  tree_type='neighborjoining',
                  params={},
                  add_seq_names=True,
-                 WorkingDir=None,
+                 WorkingDir=tempfile.gettempdir(),
                  SuppressStderr=None,
                  SuppressStdout=None,
                  max_hours=5.0,
@@ -501,7 +502,7 @@ def fastest_aln_seqs(seqs,
                  params={},
                  out_filename=None,
                  add_seq_names=True,
-                 WorkingDir=None,
+                 WorkingDir=tempfile.gettempdir(),
                  SuppressStderr=None,
                  SuppressStdout=None
                  ):
@@ -550,7 +551,7 @@ def align_unaligned_seqs(seqs, moltype=DNA, params=None):
     params.update({'-out':get_tmp_filename()})
     #Create Muscle app.
     app = Muscle(InputHandler='_input_as_multiline_string',\
-                 params=params)
+                 params=params, WorkingDir=tempfile.gettempdir())
     #Get results using int_map as input to app
     res = app(int_map.toFasta())
     #Get alignment as dict out of results
@@ -606,7 +607,7 @@ def build_tree_from_alignment(aln, moltype=DNA, best_tree=False, params=None):
     """
     # Create instance of app controller, enable tree, disable alignment
     app = Muscle(InputHandler='_input_as_multiline_string', params=params, \
-                   WorkingDir='/tmp')
+                   WorkingDir=tempfile.gettempdir())
 
     app.Parameters['-clusteronly'].on()
     app.Parameters['-tree1'].on(get_tmp_filename(app.WorkingDir))
@@ -679,7 +680,8 @@ def add_seqs_to_alignment(seqs, aln, params=None):
     aln_out.close()
 
     #Create Muscle app and get results
-    app = Muscle(InputHandler='_input_as_multifile', params=params)
+    app = Muscle(InputHandler='_input_as_multifile', params=params,
+                 WorkingDir=tempfile.gettempdir())
     res = app((aln_filename, seqs_filename))
 
     #Get alignment as dict out of results
@@ -746,7 +748,8 @@ def align_two_alignments(aln1, aln2, params=None):
     aln2_out.close()
 
     #Create Muscle app and get results
-    app = Muscle(InputHandler='_input_as_multifile', params=params)
+    app = Muscle(InputHandler='_input_as_multifile', params=params,
+                 WorkingDir=tempfile.gettempdir())
     res = app((aln1_filename, aln2_filename))
 
     #Get alignment as dict out of results

@@ -25,6 +25,7 @@ Application controller for SortMeRNA version 2.0
 from os.path import split, splitext, dirname, join
 from glob import glob
 import re
+import tempfile
 
 from burrito.util import CommandLineApplication, ResultPath
 from burrito.parameters import ValuedParameter, FlagParameter
@@ -74,6 +75,7 @@ class IndexDB(CommandLineApplication):
 def build_database_sortmerna(fasta_path,
                              max_pos=None,
                              output_dir=None,
+                             temp_dir=tempfile.gettempdir(),
                              HALT_EXEC=False):
     """ Build sortmerna db from fasta_path; return db name
         and list of files created
@@ -124,7 +126,7 @@ def build_database_sortmerna(fasta_path,
     sdb.Parameters['--ref'].on("%s,%s" % (fasta_path, db_name))
 
     # Set temporary directory
-    sdb.Parameters['--tmpdir'].on(output_dir)
+    sdb.Parameters['--tmpdir'].on(temp_dir)
 
     # Override --max_pos parameter
     if max_pos is not None:

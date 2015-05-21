@@ -21,7 +21,7 @@ Greg Caporaso/William Walters
 """
 
 from os.path import splitext, abspath, join
-from tempfile import mkstemp
+from tempfile import mkstemp, gettempdir
 
 from skbio.parse.sequences import parse_fasta
 from burrito.parameters import ValuedParameter, FlagParameter
@@ -1479,7 +1479,7 @@ def usearch_qf(
 def assign_dna_reads_to_database(query_fasta_fp,
                                  database_fasta_fp,
                                  output_fp,
-                                 temp_dir="/tmp",
+                                 temp_dir=gettempdir(),
                                  params={},
                                  blast6_fp=None,
                                  HALT_EXEC=False):

@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-__version__ = '0.1.1'
+__version__ = '0.1.1-dev'
 
 from setuptools import find_packages, setup
 from distutils.command.build_py import build_py
@@ -42,5 +42,7 @@ setup(name='burrito-fillings',
       maintainer_email="gregcaporaso@gmail.com",
       url='https://github.com/biocore/burrito-fillings',
       packages=find_packages(),
-      install_requires=['scikit-bio >= 0.2.1, < 0.3.0', 'burrito  < 1.0.0'],
+      install_requires=['scikit-bio >= 0.2.1, < 0.3.0',
+                        'burrito  < 1.0.0',
+                        'cogent == 1.5.3'],
       classifiers=classifiers)

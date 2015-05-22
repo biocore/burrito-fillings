@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-__version__ = '0.1.0-dev'
+__version__ = '0.1.1'
 
 from setuptools import find_packages, setup
 from distutils.command.build_py import build_py

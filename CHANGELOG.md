@@ -1,5 +1,7 @@
 # burrito-fillings changelog
 
+## Version 0.1.1-dev (changes since 0.1.1 go here)
+
 ## Version 0.1.1 (2015-05-22)
 
 * Updated handling of temporary files to make better use of python ``tempfile.gettempdir()`` for some of the most widely used burrito fillings ([#61](https://github.com/biocore/burrito-fillings/pull/61), [#64](https://github.com/biocore/burrito-fillings/pull/64)).

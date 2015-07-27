@@ -15,7 +15,7 @@ import shutil
 from unittest import TestCase, main
 from skbio import RNA
 from bfillings.mafft_v7 import (Mafft, align_unaligned_seqs,
-                             add_seqs_to_alignment, align_two_alignments)
+                                add_seqs_to_alignment, align_two_alignments)
 
 
 class MafftTests(TestCase):
@@ -59,9 +59,6 @@ class MafftTests(TestCase):
                                  "uaucgcuucgacgauucucugauagaga-----\n"
                                  ">c\n"
                                  "-------------------ugacuacgcau---\n")
-        # self.aligned2 = {'a': 'UAGGCUCUGAUAUAAUAGCUCUC---------',
-        #                  'b': 'UA----UCGCUUCGACGAUUCUCUGAUAGAGA',
-        #                  'c': 'UG------------ACUACGCAU---------'}
 
         self.align1 = (">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n"
                        ">seq_1\nGCUACGUAGCUAC----------\n"

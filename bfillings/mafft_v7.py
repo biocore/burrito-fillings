@@ -232,7 +232,7 @@ class Mafft(CommandLineApplication):
         """Method that points to the Mafft documentation."""
 
         help_str = ("See Mafft documentation at:\n"
-                    "http://align.bmr.kyushu-u.ac.jp/"
+                    "http://mafft.cbrc.jp/alignment/software/"
                     "mafft/software/manual/manual.html")
         return help_str
 
@@ -251,14 +251,12 @@ def align_unaligned_seqs(seqs_fp, moltype=DNA, params=None, accurate=False):
     ----------
     seqs_fp : string
         file path of the input fasta file
-    moltype : callable constructor
-        It can be ``DNA``, ``RNA``, ``Protein`` classes that are defined in
-        ``skbio``. Default is DNA
+    moltype : {skbio.DNA, skbio.RNA, skbio.Protein}
     params : dict-like type
         It pass the additional parameter settings to the application.
         Default is None.
     accurate : boolean
-        Perform accurate alignment or not. It will sarificing performance
+        Perform accurate alignment or not. It will sacrifice performance
         if set to True. Default is False.
 
     Returns
@@ -309,10 +307,10 @@ def add_seqs_to_alignment(seqs_fp, aln_fp, moltype=DNA,
 
     Parameters
     ----------
-    seqs_fp : file path of the unaligned sequences
-
-    aln_fp : file path of the seed alignment
-
+    seqs_fp : string
+        file path of the unaligned sequences
+    aln_fp : string
+        file path of the seed alignment
     params : dict of parameters to pass in to the Mafft app controller.
 
     Returns
@@ -333,10 +331,10 @@ def align_two_alignments(aln1_fp, aln2_fp, moltype, params=None):
 
     Parameters
     ----------
-    aln1_fp : file path of 1st alignment
-
-    aln2_fp : file path of 2nd alignment
-
+    aln1_fp : string
+        file path of 1st alignment
+    aln2_fp : string
+        file path of 2nd alignment
     params : dict of parameters to pass in to the Mafft app controller.
 
     Returns

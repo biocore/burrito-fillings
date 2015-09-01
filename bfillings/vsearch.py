@@ -222,6 +222,43 @@ class Vsearch(CommandLineApplication):
         return help_str
 
 
+def parse_uc_to_clusters(uc_filepath, seed_id_field=8):
+    """ Parse VSEARCH .uc file to return clusters
+
+    Parameters
+    ----------
+    uc_filepath: string
+        path to .uc file
+    seed_id_field: integer
+        .uc field to use as seed ID
+
+    Returns
+    -------
+    clusters: dictionary
+        dictionary of clusters
+    """
+    clusters = {}
+    with open(uc_filepath, 'U') as uc_f:
+        for line in uc_f:
+            line = line.split()
+            if line[0] == 'S':
+                seed_id = line[seed_id_field]
+                if seed_id not in clusters:
+                    clusters[seed_id] = [seed_id]
+                else:
+                    raise ValueError(
+                        "Multiple definition of the same seed: %s" % seed_id)
+            if line[0] == 'H':
+                seed_id = line[seed_id_field+1]
+                if seed_id not in clusters:
+                    raise ValueError(
+                        "No seed has been recorded for this hit: %s" % 
+                        seed_id)
+                else:
+                    clusters[seed_id].append(line[seed_id_field])
+    return clusters
+
+
 def vsearch_dereplicate_exact_seqs(
     fasta_filepath,
     output_filepath,

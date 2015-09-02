@@ -18,7 +18,6 @@ from os import close
 from os.path import exists, join, dirname
 from tempfile import mkstemp, mkdtemp
 from shutil import rmtree
-from collections import Counter
 
 from skbio.util import remove_files
 from skbio.parse.sequences import parse_fasta
@@ -172,10 +171,6 @@ class VsearchTests(TestCase):
     def tearDown(self):
         remove_files(self.files_to_remove)
         rmtree(self.output_dir)
-
-    def compare_lists(self, x, y):
-        """ Compares two lists and returns true if they are equal """
-        return Counter(x) == Counter(y)
 
     def test_vsearch_chimera_filter_ref(self):
         """ Test reference chimera filter, output only
@@ -794,11 +789,7 @@ class VsearchTests(TestCase):
                              's1_118': ['s1_118', 's1_119'],
                              's1_11': ['s1_11'],
                              's1_25': ['s1_25']}
-        self.assertEquals(
-            set(expected_clusters.keys()), set(clusters.keys()))
-        for cluster in expected_clusters:
-            self.assertTrue(self.compare_lists(
-                expected_clusters[cluster], clusters[cluster]))
+        self.assertDictEqual(clusters, expected_clusters)
 
     def test_parse_uc_to_clusters_duplicate_seed_ids(self):
         """ Test parse_uc_to_clusters() to raise ValueError

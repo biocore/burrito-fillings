@@ -25,8 +25,7 @@ from skbio.parse.sequences import parse_fasta
 from bfillings.vsearch import (vsearch_dereplicate_exact_seqs,
                                vsearch_sort_by_abundance,
                                vsearch_chimera_filter_de_novo,
-                               vsearch_chimera_filter_ref,
-                               parse_uc_to_clusters)
+                               vsearch_chimera_filter_ref)
 
 
 # Test class and cases
@@ -48,7 +47,6 @@ class VsearchTests(TestCase):
         self.uchime_single_ref_db = uchime_single_ref_db
         self.uc_output = uc_output
         self.uc_output_incorrect_1 = uc_output_incorrect_1
-        self.uc_output_incorrect_2 = uc_output_incorrect_2
 
         # temporary file for seqs_to_derep
         f, self.seqs_to_derep_fp = mkstemp(prefix='tmp_seqs_to_derep_',
@@ -145,15 +143,6 @@ class VsearchTests(TestCase):
         with open(self.uc_incorrect_1_fp, 'w') as tmp:
             tmp.write(self.uc_output_incorrect_1)
 
-        # temporary file for .uc incorrect output 2
-        f, self.uc_incorrect_2_fp =\
-            mkstemp(prefix='tmp_uc_incorrect_2',
-                    suffix='.uc')
-        close(f)
-        # write uc_output_incorrect_2 to file
-        with open(self.uc_incorrect_2_fp, 'w') as tmp:
-            tmp.write(self.uc_output_incorrect_2)
-
         # list of files to remove
         self.files_to_remove = [self.seqs_to_derep_fp,
                                 self.seqs_to_derep_max_min_abundance_fp,
@@ -165,8 +154,7 @@ class VsearchTests(TestCase):
                                 self.uchime_ref_db_fp,
                                 self.uchime_single_ref_db_fp,
                                 self.uc_fp,
-                                self.uc_incorrect_1_fp,
-                                self.uc_incorrect_2_fp]
+                                self.uc_incorrect_1_fp]
 
     def tearDown(self):
         remove_files(self.files_to_remove)
@@ -779,10 +767,10 @@ class VsearchTests(TestCase):
                           log_name="derep.log",
                           HALT_EXEC=False)
 
-    def test_parse_uc_to_clusters(self):
-        """ Test parse_uc_to_clusters()
+    def test_clusters_from_uc_file_vsearch(self):
+        """ Test clusters_from_uc_file() with VSEARCH output
         """
-        clusters = parse_uc_to_clusters(self.uc_fp)
+        clusters, failures, seeds = clusters_from_uc_file(self.uc_fp)
         expected_clusters = {'s1_80': ['s1_80', 's1_81', 's1_82'],
                              's1_0': ['s1_0', 's1_1'],
                              's1_10': ['s1_10', 's1_12', 's1_13'],
@@ -791,21 +779,13 @@ class VsearchTests(TestCase):
                              's1_25': ['s1_25']}
         self.assertDictEqual(clusters, expected_clusters)
 
-    def test_parse_uc_to_clusters_duplicate_seed_ids(self):
-        """ Test parse_uc_to_clusters() to raise ValueError
-        on duplicate seed ID declarations
+    def test_clusters_from_uc_file_vsearch_duplicate_seed_ids(self):
+        """ Raise UclustParseError on duplicate seed ID declarations
         """
-        self.assertRaises(ValueError,
-                          parse_uc_to_clusters,
-                          self.uc_incorrect_1_fp)
-
-    def test_parse_uc_to_clusters_unknown_seed_id(self):
-        """ Test parse_uc_to_clusters() to raise ValueError
-        on an unknown seed ID
-        """
-        self.assertRaises(ValueError,
-                          parse_uc_to_clusters,
-                          self.uc_incorrect_2_fp)
+        with open(self.uc_incorrect_1_fp, 'U') as uc_f:
+            self.assertRaises(UclustParseError,
+                              clusters_from_uc_file,
+                              uc_f)
 
 
 # VSEARCH test uc output
@@ -829,20 +809,6 @@ H   0   100 100.0   *   0   0   *   s1_81   s1_80
 H   0   100 100.0   *   0   0   *   s1_82   s1_80
 S   1   100 *   *   *   *   *   s1_80    *
 H   1   100 100.0   *   0   0   *   s1_1    s1_80
-S   2   100 *   *   *   *   *   s1_10   *
-H   2   100 100.0   *   0   0   *   s1_12   s1_10
-H   2   100 100.0   *   0   0   *   s1_13   s1_10
-S   3  100 *   *   *   *   *   s1_118  *
-H   3  100 100.0   *   0   0   *   s1_119  s1_118
-S   4  100 *   *   *   *   *   s1_11   *
-S   5  100 *   *   *   *   *   s1_25   *
-"""
-
-# hit to a non existant seed (s1_0)
-uc_output_incorrect_2 = """S    0   100 *   *   *   *   *   s1_80   *
-H   0   100 100.0   *   0   0   *   s1_81   s1_80
-H   0   100 100.0   *   0   0   *   s1_82   s1_80
-H   1   100 100.0   *   0   0   *   s1_1    s1_0
 S   2   100 *   *   *   *   *   s1_10   *
 H   2   100 100.0   *   0   0   *   s1_12   s1_10
 H   2   100 100.0   *   0   0   *   s1_13   s1_10

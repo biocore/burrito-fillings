@@ -45,12 +45,13 @@ class VsearchTests(TestCase):
         self.single_chimera_ref = single_chimera_ref
         self.uchime_ref_db = uchime_ref_db
         self.uchime_single_ref_db = uchime_single_ref_db
+        self.uc_output = uc_output
+        self.uc_output_incorrect_1 = uc_output_incorrect_1
 
         # temporary file for seqs_to_derep
         f, self.seqs_to_derep_fp = mkstemp(prefix='tmp_seqs_to_derep_',
                                            suffix='.fasta')
         close(f)
-
         # write seqs_to_derep to file
         with open(self.seqs_to_derep_fp, 'w') as tmp:
             tmp.write(self.seqs_to_derep)
@@ -60,7 +61,6 @@ class VsearchTests(TestCase):
             mkstemp(prefix='tmp_seqs_to_derep_abun_',
                     suffix='.fasta')
         close(f)
-
         # write seqs_to_derep_max_min_abundance to file
         with open(self.seqs_to_derep_max_min_abundance_fp, 'w') as tmp:
             tmp.write(self.seqs_to_derep_max_min_abundance)
@@ -70,7 +70,6 @@ class VsearchTests(TestCase):
             mkstemp(prefix='tmp_seqs_to_derep_concat_',
                     suffix='.fasta')
         close(f)
-
         # write seqs_to_derep_merged_derep_files to file
         with open(self.seqs_to_derep_merged_derep_files_fp, 'w') as tmp:
             tmp.write(self.seqs_to_derep_merged_derep_files)
@@ -79,7 +78,6 @@ class VsearchTests(TestCase):
         f, self.seqs_to_sort_fp = mkstemp(prefix='tmp_seqs_to_sort_',
                                           suffix='.fasta')
         close(f)
-
         # write seqs_to_sort to file
         with open(self.seqs_to_sort_fp, 'w') as tmp:
             tmp.write(self.seqs_to_sort)
@@ -88,7 +86,6 @@ class VsearchTests(TestCase):
         f, self.amplicon_reads_fp = mkstemp(prefix='tmp_amplicon_reads_',
                                             suffix='.fasta')
         close(f)
-
         # write amplicon_reads to file
         with open(self.amplicon_reads_fp, 'w') as tmp:
             tmp.write(self.amplicon_reads)
@@ -97,7 +94,6 @@ class VsearchTests(TestCase):
         f, self.single_chimera_fp = mkstemp(prefix='tmp_single_chimera_',
                                             suffix='.fasta')
         close(f)
-
         # write single_chimera to file
         # (de novo chimera checking)
         with open(self.single_chimera_fp, 'w') as tmp:
@@ -107,7 +103,6 @@ class VsearchTests(TestCase):
         f, self.single_chimera_ref_fp = mkstemp(prefix='tmp_single_chimera_',
                                                 suffix='.fasta')
         close(f)
-
         # write single_chimera_ref to file
         # (reference chimera checking)
         with open(self.single_chimera_ref_fp, 'w') as tmp:
@@ -117,7 +112,6 @@ class VsearchTests(TestCase):
         f, self.uchime_ref_db_fp = mkstemp(prefix='tmp_uchime_ref_db_',
                                            suffix='.fasta')
         close(f)
-
         # write uchime_ref_db to file
         with open(self.uchime_ref_db_fp, 'w') as tmp:
             tmp.write(self.uchime_ref_db)
@@ -127,10 +121,27 @@ class VsearchTests(TestCase):
             mkstemp(prefix='tmp_uchime_single_ref_db_',
                     suffix='.fasta')
         close(f)
-
         # write uchime_single_ref_db to file
         with open(self.uchime_single_ref_db_fp, 'w') as tmp:
             tmp.write(self.uchime_single_ref_db)
+
+        # temporary file for .uc output
+        f, self.uc_fp =\
+            mkstemp(prefix='tmp_uc_',
+                    suffix='.uc')
+        close(f)
+        # write uc_output to file
+        with open(self.uc_fp, 'w') as tmp:
+            tmp.write(self.uc_output)
+
+        # temporary file for .uc incorrect output 1
+        f, self.uc_incorrect_1_fp =\
+            mkstemp(prefix='tmp_uc_incorrect_1',
+                    suffix='.uc')
+        close(f)
+        # write uc_output_incorrect_1 to file
+        with open(self.uc_incorrect_1_fp, 'w') as tmp:
+            tmp.write(self.uc_output_incorrect_1)
 
         # list of files to remove
         self.files_to_remove = [self.seqs_to_derep_fp,
@@ -141,7 +152,9 @@ class VsearchTests(TestCase):
                                 self.single_chimera_fp,
                                 self.single_chimera_ref_fp,
                                 self.uchime_ref_db_fp,
-                                self.uchime_single_ref_db_fp]
+                                self.uchime_single_ref_db_fp,
+                                self.uc_fp,
+                                self.uc_incorrect_1_fp]
 
     def tearDown(self):
         remove_files(self.files_to_remove)
@@ -226,40 +239,49 @@ class VsearchTests(TestCase):
         self.assertTrue(exists(log_fp))
 
         expected_nonchimeras =\
-            ['3;size=102;', '16;size=95;', '22;size=93;', '2;size=87;', '39;size=84;',
-             '4;size=79;', '6;size=72;', '11;size=70;', '45;size=67;', '1;size=65;',
-             '425;size=2;', '100;size=1;', '102;size=1;', '10;size=1;', '115;size=1;',
-             '123;size=1;', '132;size=1;', '134;size=1;', '140;size=1;', '144;size=1;',
-             '148;size=1;', '14;size=1;', '156;size=1;', '15;size=1;', '161;size=1;',
-             '162;size=1;', '186;size=1;', '203;size=1;', '217;size=1;', '218;size=1;',
-             '21;size=1;', '221;size=1;', '222;size=1;', '225;size=1;', '233;size=1;',
-             '234;size=1;', '235;size=1;', '249;size=1;', '24;size=1;', '259;size=1;',
-             '266;size=1;', '26;size=1;', '27;size=1;', '296;size=1;', '303;size=1;',
-             '306;size=1;', '307;size=1;', '322;size=1;', '326;size=1;', '32;size=1;',
-             '332;size=1;', '333;size=1;', '338;size=1;', '360;size=1;', '362;size=1;',
-             '364;size=1;', '366;size=1;', '369;size=1;', '371;size=1;', '373;size=1;',
-             '374;size=1;', '37;size=1;', '386;size=1;', '387;size=1;', '392;size=1;',
-             '393;size=1;', '397;size=1;', '405;size=1;', '414;size=1;', '418;size=1;',
-             '431;size=1;', '436;size=1;', '444;size=1;', '445;size=1;', '456;size=1;',
-             '460;size=1;', '469;size=1;', '470;size=1;', '477;size=1;', '479;size=1;',
-             '486;size=1;', '500;size=1;', '515;size=1;', '528;size=1;', '530;size=1;',
-             '531;size=1;', '549;size=1;', '551;size=1;', '557;size=1;', '559;size=1;',
-             '561;size=1;', '562;size=1;', '564;size=1;', '566;size=1;', '568;size=1;',
-             '570;size=1;', '578;size=1;', '57;size=1;', '586;size=1;', '596;size=1;',
-             '600;size=1;', '612;size=1;', '625;size=1;', '632;size=1;', '649;size=1;',
-             '650;size=1;', '651;size=1;', '664;size=1;', '66;size=1;', '673;size=1;',
-             '675;size=1;', '682;size=1;', '690;size=1;', '699;size=1;', '709;size=1;',
-             '73;size=1;', '740;size=1;', '745;size=1;', '746;size=1;', '748;size=1;',
-             '760;size=1;', '766;size=1;', '778;size=1;', '77;size=1;', '791;size=1;',
-             '797;size=1;', '7;size=1;', '809;size=1;', '813;size=1;', '814;size=1;',
-             '816;size=1;', '817;size=1;', '821;size=1;', '824;size=1;', '827;size=1;',
-             '82;size=1;', '83;size=1;', '842;size=1;', '851;size=1;', '853;size=1;',
-             '862;size=1;', '863;size=1;', '866;size=1;', '871;size=1;', '879;size=1;',
-             '886;size=1;', '892;size=1;', '895;size=1;', '897;size=1;', '904;size=1;',
-             '912;size=1;', '916;size=1;', '91;size=1;', '920;size=1;', '921;size=1;',
-             '925;size=1;', '930;size=1;', '942;size=1;', '945;size=1;', '947;size=1;',
-             '948;size=1;', '952;size=1;', '956;size=1;', '958;size=1;', '964;size=1;',
-             '967;size=1;', '984;size=1;', '992;size=1;', '993;size=1;']
+            ['3;size=102;', '16;size=95;', '22;size=93;', '2;size=87;',
+             '39;size=84;', '4;size=79;', '6;size=72;', '11;size=70;',
+             '45;size=67;', '1;size=65;', '425;size=2;', '100;size=1;',
+             '102;size=1;', '10;size=1;', '115;size=1;', '123;size=1;',
+             '132;size=1;', '134;size=1;', '140;size=1;', '144;size=1;',
+             '148;size=1;', '14;size=1;', '156;size=1;', '15;size=1;',
+             '161;size=1;', '162;size=1;', '186;size=1;', '203;size=1;',
+             '217;size=1;', '218;size=1;', '21;size=1;', '221;size=1;',
+             '222;size=1;', '225;size=1;', '233;size=1;', '234;size=1;',
+             '235;size=1;', '249;size=1;', '24;size=1;', '259;size=1;',
+             '266;size=1;', '26;size=1;', '27;size=1;', '296;size=1;',
+             '303;size=1;', '306;size=1;', '307;size=1;', '322;size=1;',
+             '326;size=1;', '32;size=1;', '332;size=1;', '333;size=1;',
+             '338;size=1;', '360;size=1;', '362;size=1;', '364;size=1;',
+             '366;size=1;', '369;size=1;', '371;size=1;', '373;size=1;',
+             '374;size=1;', '37;size=1;', '386;size=1;', '387;size=1;',
+             '392;size=1;', '393;size=1;', '397;size=1;', '405;size=1;',
+             '414;size=1;', '418;size=1;', '431;size=1;', '436;size=1;',
+             '444;size=1;', '445;size=1;', '456;size=1;', '460;size=1;',
+             '469;size=1;', '470;size=1;', '477;size=1;', '479;size=1;',
+             '486;size=1;', '500;size=1;', '515;size=1;', '528;size=1;',
+             '530;size=1;', '531;size=1;', '549;size=1;', '551;size=1;',
+             '557;size=1;', '559;size=1;', '561;size=1;', '562;size=1;',
+             '564;size=1;', '566;size=1;', '568;size=1;', '570;size=1;',
+             '578;size=1;', '57;size=1;', '586;size=1;', '596;size=1;',
+             '600;size=1;', '612;size=1;', '625;size=1;', '632;size=1;',
+             '649;size=1;', '650;size=1;', '651;size=1;', '664;size=1;',
+             '66;size=1;', '673;size=1;', '675;size=1;', '682;size=1;',
+             '690;size=1;', '699;size=1;', '709;size=1;', '73;size=1;',
+             '740;size=1;', '745;size=1;', '746;size=1;', '748;size=1;',
+             '760;size=1;', '766;size=1;', '778;size=1;', '77;size=1;',
+             '791;size=1;', '797;size=1;', '7;size=1;', '809;size=1;',
+             '813;size=1;', '814;size=1;', '816;size=1;', '817;size=1;',
+             '821;size=1;', '824;size=1;', '827;size=1;', '82;size=1;',
+             '83;size=1;', '842;size=1;', '851;size=1;', '853;size=1;',
+             '862;size=1;', '863;size=1;', '866;size=1;', '871;size=1;',
+             '879;size=1;', '886;size=1;', '892;size=1;', '895;size=1;',
+             '897;size=1;', '904;size=1;', '912;size=1;', '916;size=1;',
+             '91;size=1;', '920;size=1;', '921;size=1;', '925;size=1;',
+             '930;size=1;', '942;size=1;', '945;size=1;', '947;size=1;',
+             '948;size=1;', '952;size=1;', '956;size=1;', '958;size=1;',
+             '964;size=1;', '967;size=1;', '984;size=1;', '992;size=1;',
+             '993;size=1;']
 
         num_seqs = 0
 
@@ -381,40 +403,49 @@ class VsearchTests(TestCase):
         self.assertTrue(exists(log_fp))
 
         expected_nonchimeras =\
-            ['3;size=102;', '16;size=95;', '22;size=93;', '2;size=87;', '39;size=84;',
-             '4;size=79;', '6;size=72;', '11;size=70;', '45;size=67;', '1;size=65;',
-             '425;size=2;', '100;size=1;', '102;size=1;', '10;size=1;', '115;size=1;',
-             '123;size=1;', '132;size=1;', '134;size=1;', '140;size=1;', '144;size=1;',
-             '148;size=1;', '14;size=1;', '156;size=1;', '15;size=1;', '161;size=1;',
-             '162;size=1;', '186;size=1;', '203;size=1;', '217;size=1;', '218;size=1;',
-             '21;size=1;', '221;size=1;', '222;size=1;', '225;size=1;', '233;size=1;',
-             '234;size=1;', '235;size=1;', '249;size=1;', '24;size=1;', '259;size=1;',
-             '266;size=1;', '26;size=1;', '27;size=1;', '296;size=1;', '303;size=1;',
-             '306;size=1;', '307;size=1;', '322;size=1;', '326;size=1;', '32;size=1;',
-             '332;size=1;', '333;size=1;', '338;size=1;', '360;size=1;', '362;size=1;',
-             '364;size=1;', '366;size=1;', '369;size=1;', '371;size=1;', '373;size=1;',
-             '374;size=1;', '37;size=1;', '386;size=1;', '387;size=1;', '392;size=1;',
-             '393;size=1;', '397;size=1;', '405;size=1;', '414;size=1;', '418;size=1;',
-             '431;size=1;', '436;size=1;', '444;size=1;', '445;size=1;', '456;size=1;',
-             '460;size=1;', '469;size=1;', '470;size=1;', '477;size=1;', '479;size=1;',
-             '486;size=1;', '500;size=1;', '515;size=1;', '528;size=1;', '530;size=1;',
-             '531;size=1;', '549;size=1;', '551;size=1;', '557;size=1;', '559;size=1;',
-             '561;size=1;', '562;size=1;', '564;size=1;', '566;size=1;', '568;size=1;',
-             '570;size=1;', '578;size=1;', '57;size=1;', '586;size=1;', '596;size=1;',
-             '600;size=1;', '612;size=1;', '625;size=1;', '632;size=1;', '649;size=1;',
-             '650;size=1;', '651;size=1;', '664;size=1;', '66;size=1;', '673;size=1;',
-             '675;size=1;', '682;size=1;', '690;size=1;', '699;size=1;', '709;size=1;',
-             '73;size=1;', '740;size=1;', '745;size=1;', '746;size=1;', '748;size=1;',
-             '760;size=1;', '766;size=1;', '778;size=1;', '77;size=1;', '791;size=1;',
-             '797;size=1;', '7;size=1;', '809;size=1;', '813;size=1;', '814;size=1;',
-             '816;size=1;', '817;size=1;', '821;size=1;', '824;size=1;', '827;size=1;',
-             '82;size=1;', '83;size=1;', '842;size=1;', '851;size=1;', '853;size=1;',
-             '862;size=1;', '863;size=1;', '866;size=1;', '871;size=1;', '879;size=1;',
-             '886;size=1;', '892;size=1;', '895;size=1;', '897;size=1;', '904;size=1;',
-             '912;size=1;', '916;size=1;', '91;size=1;', '920;size=1;', '921;size=1;',
-             '925;size=1;', '930;size=1;', '942;size=1;', '945;size=1;', '947;size=1;',
-             '948;size=1;', '952;size=1;', '956;size=1;', '958;size=1;', '964;size=1;',
-             '967;size=1;', '984;size=1;', '992;size=1;', '993;size=1;']
+            ['3;size=102;', '16;size=95;', '22;size=93;', '2;size=87;',
+             '39;size=84;', '4;size=79;', '6;size=72;', '11;size=70;',
+             '45;size=67;', '1;size=65;', '425;size=2;', '100;size=1;',
+             '102;size=1;', '10;size=1;', '115;size=1;', '123;size=1;',
+             '132;size=1;', '134;size=1;', '140;size=1;', '144;size=1;',
+             '148;size=1;', '14;size=1;', '156;size=1;', '15;size=1;',
+             '161;size=1;', '162;size=1;', '186;size=1;', '203;size=1;',
+             '217;size=1;', '218;size=1;', '21;size=1;', '221;size=1;',
+             '222;size=1;', '225;size=1;', '233;size=1;', '234;size=1;',
+             '235;size=1;', '249;size=1;', '24;size=1;', '259;size=1;',
+             '266;size=1;', '26;size=1;', '27;size=1;', '296;size=1;',
+             '303;size=1;', '306;size=1;', '307;size=1;', '322;size=1;',
+             '326;size=1;', '32;size=1;', '332;size=1;', '333;size=1;',
+             '338;size=1;', '360;size=1;', '362;size=1;', '364;size=1;',
+             '366;size=1;', '369;size=1;', '371;size=1;', '373;size=1;',
+             '374;size=1;', '37;size=1;', '386;size=1;', '387;size=1;',
+             '392;size=1;', '393;size=1;', '397;size=1;', '405;size=1;',
+             '414;size=1;', '418;size=1;', '431;size=1;', '436;size=1;',
+             '444;size=1;', '445;size=1;', '456;size=1;', '460;size=1;',
+             '469;size=1;', '470;size=1;', '477;size=1;', '479;size=1;',
+             '486;size=1;', '500;size=1;', '515;size=1;', '528;size=1;',
+             '530;size=1;', '531;size=1;', '549;size=1;', '551;size=1;',
+             '557;size=1;', '559;size=1;', '561;size=1;', '562;size=1;',
+             '564;size=1;', '566;size=1;', '568;size=1;', '570;size=1;',
+             '578;size=1;', '57;size=1;', '586;size=1;', '596;size=1;',
+             '600;size=1;', '612;size=1;', '625;size=1;', '632;size=1;',
+             '649;size=1;', '650;size=1;', '651;size=1;', '664;size=1;',
+             '66;size=1;', '673;size=1;', '675;size=1;', '682;size=1;',
+             '690;size=1;', '699;size=1;', '709;size=1;', '73;size=1;',
+             '740;size=1;', '745;size=1;', '746;size=1;', '748;size=1;',
+             '760;size=1;', '766;size=1;', '778;size=1;', '77;size=1;',
+             '791;size=1;', '797;size=1;', '7;size=1;', '809;size=1;',
+             '813;size=1;', '814;size=1;', '816;size=1;', '817;size=1;',
+             '821;size=1;', '824;size=1;', '827;size=1;', '82;size=1;',
+             '83;size=1;', '842;size=1;', '851;size=1;', '853;size=1;',
+             '862;size=1;', '863;size=1;', '866;size=1;', '871;size=1;',
+             '879;size=1;', '886;size=1;', '892;size=1;', '895;size=1;',
+             '897;size=1;', '904;size=1;', '912;size=1;', '916;size=1;',
+             '91;size=1;', '920;size=1;', '921;size=1;', '925;size=1;',
+             '930;size=1;', '942;size=1;', '945;size=1;', '947;size=1;',
+             '948;size=1;', '952;size=1;', '956;size=1;', '958;size=1;',
+             '964;size=1;', '967;size=1;', '984;size=1;', '992;size=1;',
+             '993;size=1;']
 
         num_seqs = 0
 
@@ -736,6 +767,56 @@ class VsearchTests(TestCase):
                           log_name="derep.log",
                           HALT_EXEC=False)
 
+    def test_clusters_from_uc_file_vsearch(self):
+        """ Test clusters_from_uc_file() with VSEARCH output
+        """
+        clusters, failures, seeds = clusters_from_uc_file(self.uc_fp)
+        expected_clusters = {'s1_80': ['s1_80', 's1_81', 's1_82'],
+                             's1_0': ['s1_0', 's1_1'],
+                             's1_10': ['s1_10', 's1_12', 's1_13'],
+                             's1_118': ['s1_118', 's1_119'],
+                             's1_11': ['s1_11'],
+                             's1_25': ['s1_25']}
+        self.assertDictEqual(clusters, expected_clusters)
+
+    def test_clusters_from_uc_file_vsearch_duplicate_seed_ids(self):
+        """ Raise UclustParseError on duplicate seed ID declarations
+        """
+        with open(self.uc_incorrect_1_fp, 'U') as uc_f:
+            self.assertRaises(UclustParseError,
+                              clusters_from_uc_file,
+                              uc_f)
+
+
+# VSEARCH test uc output
+uc_output = """S    0   100 *   *   *   *   *   s1_80   *
+H   0   100 100.0   *   0   0   *   s1_81   s1_80
+H   0   100 100.0   *   0   0   *   s1_82   s1_80
+S   1   100 *   *   *   *   *   s1_0    *
+H   1   100 100.0   *   0   0   *   s1_1    s1_0
+S   2   100 *   *   *   *   *   s1_10   *
+H   2   100 100.0   *   0   0   *   s1_12   s1_10
+H   2   100 100.0   *   0   0   *   s1_13   s1_10
+S   3  100 *   *   *   *   *   s1_118  *
+H   3  100 100.0   *   0   0   *   s1_119  s1_118
+S   4  100 *   *   *   *   *   s1_11   *
+S   5  100 *   *   *   *   *   s1_25   *
+"""
+
+# duplicate seed declarations (s1_80)
+uc_output_incorrect_1 = """S    0   100 *   *   *   *   *   s1_80   *
+H   0   100 100.0   *   0   0   *   s1_81   s1_80
+H   0   100 100.0   *   0   0   *   s1_82   s1_80
+S   1   100 *   *   *   *   *   s1_80    *
+H   1   100 100.0   *   0   0   *   s1_1    s1_80
+S   2   100 *   *   *   *   *   s1_10   *
+H   2   100 100.0   *   0   0   *   s1_12   s1_10
+H   2   100 100.0   *   0   0   *   s1_13   s1_10
+S   3  100 *   *   *   *   *   s1_118  *
+H   3  100 100.0   *   0   0   *   s1_119  s1_118
+S   4  100 *   *   *   *   *   s1_11   *
+S   5  100 *   *   *   *   *   s1_25   *
+"""
 
 # Test dereplicating sequences using default parameters
 seqs_to_derep = """>HWI-ST157_0368:1:2102:15078:69955#0/1
@@ -854,32 +935,32 @@ TGCATTTTCTCTTATCGAAAACCTTCAGCGTTCTGATCTGAATCCCGTCGAAGAGGCTAAGGGCTATCGCCAACTCATTG
 """
 
 # Grinder simulated chimeric reads using Greengenes 13.8 release
-# command used: grinder -random_seed 100 -reference_file 97_otus_gg_13_8.fasta \
-#                       -forward_reverse ./primers.fna -length_bias 0 -copy_bias 1 \
-#                       -unidirectional 1 -read_dist 150 -mutation_dist uniform 0.1 \
-#                       -mutation_ratio 100 0 -total_reads 1000 -diversity 10 -chimera_perc 10 \
-#                       -od grinder_chimeric_reads_illumina
+# command: grinder -random_seed 100 -reference_file 97_otus_gg_13_8.fasta \
+#                -forward_reverse ./primers.fna -length_bias 0 -copy_bias 1 \
+#                -unidirectional 1 -read_dist 150 -mutation_dist uniform 0.1 \
+#                -mutation_ratio 100 0 -total_reads 1000 -diversity 10 \
+#                -chimera_perc 10 -od grinder_chimeric_reads_illumina
 # primers.fna contain 515f and 806r primers
-# reads >251 reference=4370324,646991 amplicon=488..779,499..789 position=1..150
-#       >320 reference=646991,4370324,646991 amplicon=499..789,488..779,499..789 position=1..150
-#       >36 reference=4370324,814974 amplicon=488..779,479..769 position=1..150
-#       >672 reference=814974,160832 amplicon=479..769,436..727 position=1..150
-#       >142 reference=160832,814974 amplicon=436..727,479..769 position=1..150 errors=2%G
-#       >201 reference=4304512,510574 amplicon=451..742,501..793 position=1..150
-#       >241 reference=646991,4370324 amplicon=499..789,488..779 position=1..150 errors=13%A
-#       >279 reference=311922,160832,510574 amplicon=481..773,436..727,501..793 position=1..150
-#       >299 reference=4370324,4304512 amplicon=488..779,451..742 position=1..150
-#       >359 reference=646991,4370324 amplicon=499..789,488..779 position=1..150 errors=52%A
-#       >375 reference=4304512,769294 amplicon=451..742,504..795 position=1..150
-#       >407 reference=4304512,579954 amplicon=451..742,488..779 position=1..150
-#       >423 reference=4370324,579954 amplicon=488..779,488..779 position=1..150
-#       >516 reference=814974,579954 amplicon=479..769,488..779 position=1..150
-#       >618 reference=814974,646991 amplicon=479..769,499..789 position=1..150 errors=32%C
-#       >717 reference=814974,510574 amplicon=479..769,501..793 position=1..150
-#       >902 reference=510574,579954 amplicon=501..793,488..779 position=1..150
-#       >918 reference=814974,4370324 amplicon=479..769,488..779 position=1..150
-#       >941 reference=579954,4304512 amplicon=488..779,451..742 position=1..150
-#       are chimeric
+# reads >251 reference=4370324,646991 amplicon=488..779,499..789
+#    >320 reference=646991,4370324,646991 amplicon=499..789,488..779,499..789
+#    >36 reference=4370324,814974 amplicon=488..779,479..769
+#    >672 reference=814974,160832 amplicon=479..769,436..727
+#    >142 reference=160832,814974 amplicon=436..727,479..769 errors=2%G
+#    >201 reference=4304512,510574 amplicon=451..742,501..793
+#    >241 reference=646991,4370324 amplicon=499..789,488..779 errors=13%A
+#    >279 reference=311922,160832,510574 amplicon=481..773,436..727,501..793
+#    >299 reference=4370324,4304512 amplicon=488..779,451..742
+#    >359 reference=646991,4370324 amplicon=499..789,488..779 errors=52%A
+#    >375 reference=4304512,769294 amplicon=451..742,504..795
+#    >407 reference=4304512,579954 amplicon=451..742,488..779
+#    >423 reference=4370324,579954 amplicon=488..779,488..779
+#    >516 reference=814974,579954 amplicon=479..769,488..779
+#    >618 reference=814974,646991 amplicon=479..769,499..789 errors=32%C
+#    >717 reference=814974,510574 amplicon=479..769,501..793
+#    >902 reference=510574,579954 amplicon=501..793,488..779
+#    >918 reference=814974,4370324 amplicon=479..769,488..779
+#    >941 reference=579954,4304512 amplicon=488..779,451..742
+# are chimeric
 amplicon_reads = """>3;size=102;
 GTGCCAGCAGCCGCGGTAATACATAGGTCACAAGCGTTATCCGGATTTATTGGGCGTAAAGCGTTCGTAGGCGGTTTGTT
 AAGTCTAGAGTTAAAGCCTGGGGTTCAACCCCAGCCCGCTTTGGATACTGACAAACTAGAGTTACATAGA

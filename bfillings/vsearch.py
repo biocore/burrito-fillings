@@ -8,7 +8,7 @@
 
 """ Application controller for vsearch v1.1.1 """
 
-from os.path import abspath, join, dirname
+from os.path import abspath, join, dirname, splitext
 
 from burrito.parameters import ValuedParameter, FlagParameter
 from burrito.util import (CommandLineApplication, ResultPath,
@@ -292,7 +292,8 @@ def vsearch_dereplicate_exact_seqs(
     log_filepath = join(working_dir, log_name)
     uc_filepath = None
     if output_uc:
-        uc_filepath = join(working_dir, 'vsearch_uc_dereplicated.uc')
+        root_name = splitext(abspath(output_filepath))[0]
+        uc_filepath = join(working_dir, '%s.uc' % root_name)
         app.Parameters['--uc'].on(uc_filepath)
 
     if maxuniquesize:

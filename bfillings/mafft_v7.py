@@ -191,6 +191,9 @@ class Mafft(CommandLineApplication):
         # Seed alignments given in alignment_n (fasta format) are aligned with
         # sequences in input. The alignment within every seed is preserved.
         '--seed': ValuedParameter(Prefix='--', Name='seed', Delimiter=' '),
+
+        # Number of threads
+        '--thread': ValuedParameter(Prefix='--', Name='thread', Delimiter=' ')
     }
 
     _parameters = {}
